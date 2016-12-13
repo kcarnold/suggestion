@@ -1,0 +1,48 @@
+.Keyboard {
+    height: 215px;
+    background: #D9D8DA;
+    flex: 0 0 auto;
+    position: relative;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+
+.row {
+    display: flex;
+    justify-content: space-around;
+}
+
+.row:nth-child(2) {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.key {
+    display: block;
+    background: white;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px;
+    /* position: absolute; */
+    flex: 2 0 0;
+    margin: 0 4px;
+}
+
+
+.key[data-key=" "] {
+    flex: 12 0 auto;
+}
+
+.key[data-key="'"], .key[data-key="?"] {
+    flex: 1 1 0;
+}
+
+.key[data-key=⏎] {
+    background: #5252FF;
+    color: white;
+    flex-basis: auto;
+}
