@@ -1,3 +1,19 @@
+/* https://www.paulirish.com/2012/box-sizing-border-box-ftw/ */
+/* apply a natural box layout model to all elements, but allowing components to change */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/*** TEXT ***/
+.CurText {
+    white-space: pre-line;
+}
+
+
+/***** KEYBOARD ****/
 .Keyboard {
     height: 215px;
     background: #D9D8DA;
@@ -49,4 +65,31 @@
 
 .key-reverse {
     background-color: #ACB4BD;
+}
+
+
+/******* SUGGESTIONS BAR *****/
+
+.SuggestionsBar {
+    background-color: #ADB5BD;
+    height: 42px;
+}
+
+.Suggestion {
+    display: inline-block;
+    color: white;
+    border-right: 1px solid white;
+    text-align: left;
+    font-family: sans-serif;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    padding: 0 4px;
+    line-height: 30px;
+    cursor: pointer;
+    width: 33%;
+}
+
+.Suggestion:last-child {
+    border-right: none;
 }

@@ -127,11 +127,22 @@ window.addEventListener('resize', function() {
 
 setSize();
 
+const SuggestionsBar = observer(['state', 'dispatch'], class SuggestionsBar extends Component {
+  render() {
+    return <div className="SuggestionsBar">
+      {[1,2,3].map((x, i) => <div key={i} className="Suggestion">sugg</div>)
+      }
+    </div>
+
+  }
+})
+
 const ExperimentScreen = observer(['state', 'dispatch'], class ExperimentScreen extends Component {
   render() {
     let {state} = this.props;
-    return  <div>
-      <div>{state.curText}</div>
+    return  <div className="ExperimentScreen">
+      <div className="CurText">{state.curText}</div>
+      <SuggestionsBar />
       <Keyboard />
     </div>;
   }
