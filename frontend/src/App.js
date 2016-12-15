@@ -37,13 +37,22 @@ var state = new StateStore();
 window.state = state;
 
 registerHandler('tapKey', event => {
+  let key = event.key;
+  switch(key) {
+    case '⌫':
+      state.curText = state.curText.slice(0, -1);
+      break;
+    case '⏎':
+      key = '\n';
+  }
   state.curText = state.curText + event.key;
 });
 
 
 
 var KEYLABELS = {
-    ' ': 'space'
+    ' ': 'space',
+    '\n': '⏎',
 };
 
 function getClosestKey(keyRects, touchX, touchY) {
@@ -86,13 +95,13 @@ class Keyboard extends Component {
     var keyNodes = {};
     this.keyNodes = keyNodes;
     return <div className="Keyboard" ref={node => this.node = node} onClick={this.handleClick}>{
-      ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .⏎'].map(function(row, i) {
+      ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\n'].map(function(row, i) {
           return <div key={i} className="row">{
             _.map(row, function(key, j) {
               // if (layer === 'upper') key = key.toUpperCase();
               var label = key in KEYLABELS ? KEYLABELS[key] : key;
               var className = 'key';
-              if ('⏎⌫\'-!,.?'.indexOf(key) !== -1) className += ' key-reverse';
+              if ('\n⌫\'-!,.?'.indexOf(key) !== -1) className += ' key-reverse';
               return <div key={key} className={className} data-key={key} ref={node => keyNodes[key] = node}>{label}</div>;
           })}</div>
           })}

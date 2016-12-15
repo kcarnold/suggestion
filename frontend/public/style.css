@@ -41,8 +41,12 @@
     flex: 1 1 0;
 }
 
-.key[data-key=⏎] {
-    background: #5252FF;
+.key[data-key=\A] {
+    background-color: #5252FF;
     color: white;
     flex-basis: auto;
+}
+
+.key-reverse {
+    background-color: #ACB4BD;
 }
