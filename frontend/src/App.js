@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 // import logo from './logo.svg';
 import './App.css';
 import _ from 'lodash';
+import {extendObservable, observable, action, autorun, toJS, transaction} from 'mobx';
+import {observer, Provider} from 'mobx-react';
+
 
 var handlersByType = {};
 
@@ -20,6 +23,24 @@ function dispatch(event) {
     handlers.forEach(fn => fn(event));
   }
 }
+
+class StateStore {
+  constructor() {
+    this.__version__ = 1;
+    extendObservable(this, {
+      curText: 'Test text',
+    });
+  };
+}
+
+var state = new StateStore();
+window.state = state;
+
+registerHandler('tapKey', event => {
+  state.curText = state.curText + event.key;
+});
+
+
 
 var KEYLABELS = {
     ' ': 'space'
@@ -53,10 +74,12 @@ class Keyboard extends Component {
         let {top, left, width, height} = node.getBoundingClientRect();
         this.keyRects.push({rect: {top, left, width, height}, key});
       });
+      evt.preventDefault();
+      evt.stopPropagation();
     }
 
     let key = getClosestKey(this.keyRects, evt.clientX, evt.clientY);
-    console.log(evt.clientX, evt.clientY, key);
+    dispatch({type: 'tapKey', key});
   };
 
   render() {
@@ -95,12 +118,24 @@ window.addEventListener('resize', function() {
 
 setSize();
 
+const ExperimentScreen = observer(['state', 'dispatch'], class ExperimentScreen extends Component {
+  render() {
+    let {state} = this.props;
+    return  <div>
+      <div>{state.curText}</div>
+      <Keyboard />
+    </div>;
+  }
+});
+
 class App extends Component {
   render() {
     return (
+      <Provider state={state} dispatch={dispatch}>
       <div className="App">
-        <Keyboard />
+        <ExperimentScreen />
       </div>
+      </Provider>
     );
   }
 }
