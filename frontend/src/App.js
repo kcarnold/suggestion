@@ -7,6 +7,20 @@ var KEYLABELS = {
     ' ': 'space'
 };
 
+function getClosestKey(keyRects, touchX, touchY) {
+    var closestKey = null, closestDist = Infinity;
+    keyRects.forEach(function(krect) {
+        var rect = krect.rect, hwidth = rect.width / 2, hheight = rect.height / 2, x = rect.left + hwidth, y = rect.top + hheight;
+        var dx = Math.max(0, Math.abs(touchX - x) - hwidth), dy = Math.max(0, Math.abs(touchY - y) - hheight);
+        var dist = dx * dx + dy * dy;
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestKey = krect.key;
+        }
+    });
+    return closestKey;
+}
+
 class Keyboard extends Component {
   lastKbdRect = null;
 
@@ -15,14 +29,16 @@ class Keyboard extends Component {
     let kbdRect = {top, left, width, height};
     if (!_.isEqual(kbdRect, this.lastKbdRect)) {
       this.lastKbdRect = kbdRect;
-      var keyRects = {};
+      var keyRects = [];
       this.keyRects = keyRects;
       _.forOwn(this.keyNodes, (node, key) => {
         let {top, left, width, height} = node.getBoundingClientRect();
-        this.keyRects[key] = {top, left, width, height};
+        this.keyRects.push({rect: {top, left, width, height}, key});
       });
-      debugger
     }
+
+    let key = getClosestKey(this.keyRects, evt.clientX, evt.clientY);
+    console.log(evt.clientX, evt.clientY, key);
   };
 
   render() {
