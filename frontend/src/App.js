@@ -3,6 +3,24 @@ import React, { Component } from 'react';
 import './App.css';
 import _ from 'lodash';
 
+var handlersByType = {};
+
+function registerHandler(eventType, fn) {
+  handlersByType[eventType] = handlersByType[eventType] || [];
+  handlersByType[eventType].push(fn);
+}
+
+function dispatch(event) {
+  console.log(event);
+  event.timestamp = +new Date();
+  let handlers = handlersByType[event.type];
+  if (!handlers) {
+    console.warn('Dispatched event with no handlers', event);
+  } else {
+    handlers.forEach(fn => fn(event));
+  }
+}
+
 var KEYLABELS = {
     ' ': 'space'
 };
@@ -58,6 +76,24 @@ class Keyboard extends Component {
       </div>;
   }
 }
+
+function setSize() {
+  let width = Math.min(document.documentElement.clientWidth, screen.availWidth);
+  let height = Math.min(document.documentElement.clientHeight, screen.availHeight);
+  if (height < 450) {
+    if (width > height)
+      alert('Please rotate your phone to be in the portrait orientation.');
+    else
+      alert("Your screen is small; things might not work well.");
+  }
+  dispatch({type: 'resized', width, height});
+}
+
+window.addEventListener('resize', function() {
+    setTimeout(setSize, 10);
+});
+
+setSize();
 
 class App extends Component {
   render() {
