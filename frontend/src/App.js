@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import './App.css';
 import _ from 'lodash';
 import {extendObservable, observable, action, autorun, toJS, transaction} from 'mobx';
-import {observer, Provider} from 'mobx-react';
+import {observer, inject, Provider} from 'mobx-react';
 
 
 var handlersByType = {};
@@ -127,7 +127,7 @@ window.addEventListener('resize', function() {
 
 setSize();
 
-const SuggestionsBar = observer(['state', 'dispatch'], class SuggestionsBar extends Component {
+const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
     return <div className="SuggestionsBar">
       {[1,2,3].map((x, i) => <div key={i} className="Suggestion">sugg</div>)
@@ -135,9 +135,9 @@ const SuggestionsBar = observer(['state', 'dispatch'], class SuggestionsBar exte
     </div>
 
   }
-})
+}));
 
-const ExperimentScreen = observer(['state', 'dispatch'], class ExperimentScreen extends Component {
+const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentScreen extends Component {
   render() {
     let {state} = this.props;
     return  <div className="ExperimentScreen">
@@ -146,7 +146,7 @@ const ExperimentScreen = observer(['state', 'dispatch'], class ExperimentScreen 
       <Keyboard />
     </div>;
   }
-});
+}));
 
 class App extends Component {
   render() {
