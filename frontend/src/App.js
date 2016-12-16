@@ -24,7 +24,13 @@ function dispatch(event) {
   } else {
     handlers.forEach(fn => fn(event));
   }
+  log(event.type, event);
 }
+
+function log(event) {
+  ws.send({type: 'log', event});
+}
+
 
 class StateStore {
   constructor() {
