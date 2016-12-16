@@ -162,7 +162,7 @@ class WebsocketHandler(MyWSHandler):
                     phrases = yield process_pool.submit(beam_search_phrases, toks, beam_width=10, length=1, prefix_probs=prefix_probs)[:3]
                 else:
                     phrases = yield process_pool.submit(suggestion_generator.generate_diverse_phrases, domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
-                self.send_json(type='suggestions', timestamp=request['timestamp'], next_word=suggestion_generator.phrases_to_suggs(phrases))
+                self.send_json(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'), next_word=suggestion_generator.phrases_to_suggs(phrases))
                 print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']

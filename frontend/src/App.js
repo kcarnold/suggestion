@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 // import logo from './logo.svg';
 // import './App.css';
 import _ from 'lodash';
-import {extendObservable} from 'mobx';
-// unused: observable, action, autorun, toJS, transaction
+import {extendObservable, autorun} from 'mobx';
+// unused: observable, action, toJS, transaction
 import {observer, inject, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 
@@ -52,12 +52,59 @@ class StateStore {
     this.__version__ = 1;
     extendObservable(this, {
       curText: 'Test text',
+      tapLocations: [],
     });
-  };
+  }
+
+  getSuggestionContext() {
+    let sofar = this.curText, cursorPos = sofar.length;
+    let lastSpaceIdx = sofar.search(/\s\S*$/);
+    let curWord = [];
+    for (let i=lastSpaceIdx + 1; i<cursorPos; i++) {
+      let chr = {letter: sofar[i]};
+      if (this.tapLocations[i] !== null) {
+        chr.tap = this.tapLocations[i];
+      }
+      curWord.push(chr);
+    }
+    return {
+      prefix: sofar.slice(0, lastSpaceIdx + 1),
+      curWord
+    };
+  }
 }
 
 var state = new StateStore();
 window.state = state;
+
+var suggestionCache = {};
+
+var curRequestId = 0;
+var requestsById = {};
+
+autorun(() => {
+  if (!(state.curText in suggestionCache)) {
+    // FIXME: this ignores sub-key taps.
+    let context = state.getSuggestionContext()
+    let {prefix, curWord} = context;
+    ws.send({
+      type: 'requestSuggestions',
+      request_id: curRequestId,
+      sofar: prefix,
+      cur_word: curWord,
+      temperature: .5,
+      domain: 'yelp_train',
+    });
+    requestsById[curRequestId++] = context;
+  }
+});
+
+ws.onmessage = function(msg) {
+  if (msg.type === 'suggestions') {
+    dispatch({type: 'receivedSuggestions', msg});
+  }
+};
+
 
 registerHandler('tapKey', event => {
   state.curText += event.key;
@@ -67,7 +114,16 @@ registerHandler('tapBackspace', event => {
   state.curText = state.curText.slice(0, -1);
 });
 
-
+registerHandler('receivedSuggestions', ({msg}) => {
+  let {request_id} = msg;
+  if (!(request_id in requestsById)) {
+    console.warn("Got a response to a request we didn't make??");
+    return;
+  }
+  let {prefix, curWord} = requestsById[request_id];
+  delete requestsById[request_id];
+  console.log(prefix, curWord, msg);
+});
 
 var KEYLABELS = {
     ' ': 'space',
