@@ -11,7 +11,7 @@ import numpy as np
 import nltk
 
 from .paths import paths
-from .tokenize import tokenize_mid_document, tokenize
+from .tokenization import tokenize_mid_document, tokenize
 
 LOG10 = np.log(10)
 
