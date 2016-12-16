@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 // import logo from './logo.svg';
-import './App.css';
+// import './App.css';
 import _ from 'lodash';
-import {extendObservable, observable, action, autorun, toJS, transaction} from 'mobx';
+import {extendObservable} from 'mobx';
+// unused: observable, action, autorun, toJS, transaction
 import {observer, inject, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 
