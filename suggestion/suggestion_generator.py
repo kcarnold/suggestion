@@ -188,7 +188,7 @@ class Model:
         return next_words, logprobs
 
 
-models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'aan']}
+models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train']}
 def get_model(name):
     return models[name]
 
