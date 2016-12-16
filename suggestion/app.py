@@ -145,12 +145,12 @@ class WebsocketHandler(MyWSHandler):
 
     @tornado.gen.coroutine
     def on_message(self, message):
-        start = time.time()
-        request = json.loads(message)
-        # if self.participant is not None:
-        #     self.participant.log(dict(type='clientMessage', msg=request))
-        if request['type'] == 'requestSuggestions':
-            try:
+        try:
+            start = time.time()
+            request = json.loads(message)
+            # if self.participant is not None:
+            #     self.participant.log(dict(type='clientMessage', msg=request))
+            if request['type'] == 'requestSuggestions':
                 toks = yield process_pool.submit(suggestion_generator.tokenize_sofar, request['sofar'])
                 cur_word = request['cur_word']
                 prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -163,26 +163,26 @@ class WebsocketHandler(MyWSHandler):
                 else:
                     phrases = yield process_pool.submit(suggestion_generator.generate_diverse_phrases, domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
                 self.send_json(type='suggestions', timestamp=request['timestamp'], next_word=suggestion_generator.phrases_to_suggs(phrases))
-            except Exception:
-                traceback.print_exc()
-            print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
-        elif request['type'] == 'keyRects':
-            self.keyRects[request['layer']] = request['keyRects']
-        elif request['type'] == 'setState':
-            self.participant.state = request['state']
-        elif request['type'] == 'init':
-            # self.client_id = request['client_id']
-            participant_id = request['participantId']
-            assert all(x in string.hexdigits for x in participant_id)
-            self.participant = Participant.get_participant(participant_id)
-            self.participant.connected(self)
-        elif request['type'] == 'log':
-            self.participant.log(request['event'])
-            self.participant.send_to_controllers(client_log=request['event'])
-        elif request['type'] == 'ping':
-            pass
-        else:
-            print("Unknown request type:", request['type'])
+                print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
+            elif request['type'] == 'keyRects':
+                self.keyRects[request['layer']] = request['keyRects']
+            elif request['type'] == 'setState':
+                self.participant.state = request['state']
+            elif request['type'] == 'init':
+                # self.client_id = request['client_id']
+                participant_id = request['participantId']
+                assert all(x in string.hexdigits for x in participant_id)
+                self.participant = Participant.get_participant(participant_id)
+                self.participant.connected(self)
+            elif request['type'] == 'log':
+                self.participant.log(request['event'])
+                self.participant.send_to_controllers(client_log=request['event'])
+            elif request['type'] == 'ping':
+                pass
+            else:
+                print("Unknown request type:", request['type'])
+        except Exception:
+            traceback.print_exc()
 
     def check_origin(self, origin):
         return True
