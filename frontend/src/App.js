@@ -8,6 +8,20 @@ import WSClient from './wsclient';
 
 var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 
+// Generate a hopefully-unique id
+var clientId = null;
+if (window.location.search.match(/^\?\d{6}$/)) {
+    clientId = window.location.search.slice(1);
+} else if (window.localStorage.getItem('clientId')) {
+    clientId = window.localStorage.getItem('clientId');
+} else {
+    clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
+}
+window.localStorage['clientId'] = clientId;
+ws.sendHello({type: 'init', participantId: clientId});
+
+
+
 var handlersByType = {};
 
 function registerHandler(eventType, fn) {
@@ -24,7 +38,7 @@ function dispatch(event) {
   } else {
     handlers.forEach(fn => fn(event));
   }
-  log(event.type, event);
+  log(event);
 }
 
 function log(event) {
