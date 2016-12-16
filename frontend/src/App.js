@@ -60,15 +60,11 @@ var state = new StateStore();
 window.state = state;
 
 registerHandler('tapKey', event => {
-  let key = event.key;
-  switch(key) {
-    case '⌫':
-      state.curText = state.curText.slice(0, -1);
-      break;
-    case '⏎':
-      key = '\n';
-  }
-  state.curText = state.curText + event.key;
+  state.curText += event.key;
+});
+
+registerHandler('tapBackspace', event => {
+  state.curText = state.curText.slice(0, -1);
 });
 
 
@@ -111,7 +107,13 @@ class Keyboard extends Component {
     }
 
     let key = getClosestKey(this.keyRects, evt.clientX, evt.clientY);
-    dispatch({type: 'tapKey', key});
+    if (key === '⏎')
+      key = '\n';
+    if (key === '⌫') {
+      dispatch({type: 'tapBackspace'});
+    } else {
+      dispatch({type: 'tapKey', key});
+    }
   };
 
   render() {
