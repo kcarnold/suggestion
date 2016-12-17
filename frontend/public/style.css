@@ -21,7 +21,7 @@ html {
     position: relative;
     display: flex;
     flex-flow: column nowrap;
-    justify-content: space-between;
+    justify-content: space-around;
     cursor: pointer;
 }
 
@@ -88,6 +88,7 @@ html {
     line-height: 30px;
     cursor: pointer;
     width: 33%;
+    height: 100%;
 }
 
 .Suggestion:last-child {
