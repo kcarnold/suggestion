@@ -93,6 +93,7 @@ class StateStore {
       contextSequenceNum: 0,
       lastSuggestionsFromServer: [],
       activeSuggestion: null,
+      lastSpaceWasAuto: false,
       get activeSuggestionWords() {
         return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
       },
@@ -113,13 +114,23 @@ class StateStore {
         }
         return suggestions;
       },
+      insertText: M.action((toInsert, charsToDelete, taps) => {
+        let cursorPos = this.curText.length;
+        let newCursorPos = cursorPos - charsToDelete;
+        this.curText = this.curText.slice(0, newCursorPos) + toInsert;
+        this.tapLocations = this.tapLocations.slice(0, newCursorPos).concat(taps || _.map(toInsert, () => null));
+      }),
       tapKey: M.action(event => {
-        this.curText += event.key;
-        this.tapLocations.push({x: event.x, y: event.y});
+        let isNonWord = event.key.match(/\W/);
+        let deleteSpace = this.lastSpaceWasAuto && isNonWord;
+        this.insertText(event.key, deleteSpace ? 1 : 0, [{x: event.x, y: event.y}]);
+        this.lastSpaceWasAuto = false;
+        this.activeSuggestion = null;
       }),
       tapBackspace: M.action(() => {
-        this.curText = this.curText.slice(0, -1);
-        this.tapLocations.pop();
+        this.insertText('', 1);
+        this.lastSpaceWasAuto = false;
+        this.activeSuggestion = null;
       }),
       insertSuggestion: M.action(slot => {
         let wordToInsert = null;
@@ -144,9 +155,10 @@ class StateStore {
             };
           }
         }
-        let {prefix} = this.getSuggestionContext();
-        this.curText = prefix + wordToInsert;
-        this.tapLocations = this.tapLocations.slice(0, prefix.length).concat(_.map(wordToInsert, () => null));
+        let {curWord} = this.getSuggestionContext();
+        let charsToDelete = curWord.length;
+        this.insertText(wordToInsert + ' ', charsToDelete, null);
+        this.lastSpaceWasAuto = true;
       }),
 
       updateSuggestions: M.action(event => {
