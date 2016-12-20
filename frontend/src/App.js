@@ -106,11 +106,19 @@ class StateStore {
         let suggestions = M.toJS(this.lastSuggestionsFromServer);
 
         if (this.activeSuggestion) {
-          suggestions[this.activeSuggestion.slot] = {
+          // Reorder the suggestions to match the active suggestion.
+          // - find the corresponding next-word suggestion.
+          let activeSuggestionNextWord = this.activeSuggestionWords[0];
+          let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
+          if (nextWordIdx !== -1) {
+            // Remove the now-redundant suggestion.
+            suggestions.splice(nextWordIdx, 1);
+          }
+          suggestions.splice(this.activeSuggestion.slot, 0, {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
             words: this.activeSuggestionWords,
-          }
+          });
         }
         return suggestions;
       },
@@ -157,6 +165,11 @@ class StateStore {
         }
         let {curWord} = this.getSuggestionContext();
         let charsToDelete = curWord.length;
+        let isNonWord = wordToInsert.match(/\W/);
+        let deleteSpace = this.lastSpaceWasAuto && isNonWord;
+        if (deleteSpace) {
+          charsToDelete++;
+        }
         this.insertText(wordToInsert + ' ', charsToDelete, null);
         this.lastSpaceWasAuto = true;
       }),
@@ -169,27 +182,12 @@ class StateStore {
           return;
         }
 
-        let suggestions = msg.next_word.map(sugg => ({
+        this.lastSuggestionsFromServer = msg.next_word.map(sugg => ({
           orig: sugg,
           contextSequenceNum: msg.request_id,
           words: sugg.one_word.words.concat(sugg.continuation.length ? sugg.continuation[0].words : []),
           probs: sugg.probs,
         }));
-
-        // Reorder the suggestions to match the active suggestion, if applicable.
-        if (this.activeSuggestion !== null) {
-          let activeSuggestionNextWord = this.activeSuggestionWords[0];
-          let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
-          if (nextWordIdx !== -1) {
-            // Move the corresponding server suggestion to the correct spot.
-            suggestions.splice(this.activeSuggestion.slot, 0, suggestions.splice(nextWordIdx, 1)[0]);
-          } else {
-            // not one of the next words. Leave a blank for it.
-            suggestions.splice(this.activeSuggestion.slot, 0, null);
-          }
-        }
-
-        this.lastSuggestionsFromServer = suggestions;
       }),
     });
   }
@@ -225,6 +223,7 @@ class StateStore {
     case 'tapSuggestion':
       this.insertSuggestion(event.slot);
       break;
+    default:
     }
   };
 }
