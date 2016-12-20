@@ -7,9 +7,33 @@ html {
   box-sizing: inherit;
 }
 
+/*** Overall layout ****/
+.ExperimentScreen {
+    height: 100vh;
+    display: flex;
+    flex-flow: column nowrap;
+    padding-bottom: 35px;
+}
+
 /*** TEXT ***/
 .CurText {
     white-space: pre-line;
+    flex: 1 1 auto;
+}
+
+.Cursor {
+    display: inline-block;
+    width: 2px;
+    margin: 0 -2px -3px 0;
+    background: blue;
+    height: 17px;
+    animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
 }
 
 
