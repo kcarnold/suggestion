@@ -31,24 +31,17 @@ what key we thought it was.
 All server communication comes in this way too.
  */
 
-// Dispatch by type. This was probably premature...
-var handlersByType = {};
+var eventHandlers = [];
 
-function registerHandler(eventType, fn) {
-  handlersByType[eventType] = handlersByType[eventType] || [];
-  handlersByType[eventType].push(fn);
+function registerHandler(fn) {
+  eventHandlers.push(fn);
 }
 
 function dispatch(event) {
   console.log(event);
   log(event);
   event.timestamp = +new Date();
-  let handlers = handlersByType[event.type];
-  if (!handlers) {
-    console.warn('Dispatched event with no handlers', event);
-  } else {
-    handlers.forEach(fn => fn(event));
-  }
+  eventHandlers.forEach(fn => fn(event));
 }
 
 // Every event gets logged to the server. Keep events small!
@@ -98,7 +91,7 @@ class StateStore {
       curText: '',
       tapLocations: [],
       contextSequenceNum: 0,
-      lastSuggestionsFromServer: null,
+      lastSuggestionsFromServer: [],
       activeSuggestion: null,
       get activeSuggestionWords() {
         return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
@@ -123,12 +116,10 @@ class StateStore {
       tapKey: M.action(event => {
         this.curText += event.key;
         this.tapLocations.push({x: event.x, y: event.y});
-        this.contextSequenceNum++;
       }),
       tapBackspace: M.action(() => {
         this.curText = this.curText.slice(0, -1);
         this.tapLocations.pop();
-        this.contextSequenceNum++;
       }),
       insertSuggestion: M.action(slot => {
         let wordToInsert = null;
@@ -155,7 +146,38 @@ class StateStore {
         }
         let {prefix} = this.getSuggestionContext();
         this.curText = prefix + wordToInsert;
-        this.tapLocations = this.tapLocations.slice(0, prefix.length).concat(wordToInsert.map(() => null));
+        this.tapLocations = this.tapLocations.slice(0, prefix.length).concat(_.map(wordToInsert, () => null));
+      }),
+
+      updateSuggestions: M.action(event => {
+        let {msg} = event;
+        // Only update suggestions if the data is valid.
+        if (msg.request_id !== this.contextSequenceNum) {
+          console.log("Discarding outdated suggestions", msg.request_id, this.contextSequenceNum);
+          return;
+        }
+
+        let suggestions = msg.next_word.map(sugg => ({
+          orig: sugg,
+          contextSequenceNum: msg.request_id,
+          words: sugg.one_word.words.concat(sugg.continuation.length ? sugg.continuation[0].words : []),
+          probs: sugg.probs,
+        }));
+
+        // Reorder the suggestions to match the active suggestion, if applicable.
+        if (this.activeSuggestion !== null) {
+          let activeSuggestionNextWord = this.activeSuggestionWords[0];
+          let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
+          if (nextWordIdx !== -1) {
+            // Move the corresponding server suggestion to the correct spot.
+            suggestions.splice(this.activeSuggestion.slot, 0, suggestions.splice(nextWordIdx, 1)[0]);
+          } else {
+            // not one of the next words. Leave a blank for it.
+            suggestions.splice(this.activeSuggestion.slot, 0, null);
+          }
+        }
+
+        this.lastSuggestionsFromServer = suggestions;
       }),
     });
   }
@@ -176,9 +198,34 @@ class StateStore {
       curWord
     };
   }
+
+  handleEvent = (event) => {
+    switch (event.type) {
+    case 'tapKey':
+      this.tapKey(event);
+      break;
+    case 'tapBackspace':
+      this.tapBackspace();
+      break;
+    case 'receivedSuggestions':
+      this.updateSuggestions(event);
+      break;
+    case 'tapSuggestion':
+      this.insertSuggestion(event.slot);
+      break;
+    }
+  };
 }
 
 var state = new StateStore();
+registerHandler(state.handleEvent);
+
+// Keep a running sequence of contexts.
+// This works because every context change also changes curText.
+M.observe(state, 'curText', () => {
+  state.contextSequenceNum++;
+});
+
 
 // Auto-runner to watch the context and request suggestions.
 M.autorun(() => {
@@ -201,43 +248,6 @@ ws.onmessage = function(msg) {
 };
 
 
-registerHandler('tapKey', event => {
-  state.tapKey(event);
-});
-
-registerHandler('tapBackspace', event => {
-  state.tapBackspace();
-});
-
-registerHandler('receivedSuggestions', ({msg}) => {
-  // Only update suggestions if the data is valid.
-  if (msg.request_id !== state.contextSequenceNum) {
-    console.log("Discarding outdated suggestions", msg.request_id, state.contextSequenceNum);
-    return;
-  }
-
-  let suggestions = msg.next_word.map(sugg => ({
-    orig: sugg,
-    contextSequenceNum: msg.request_id,
-    words: sugg.one_word.words.concat(sugg.continuation.length ? sugg.continuation[0].words : []),
-    probs: sugg.probs,
-  }));
-
-  // Reorder the suggestions to match the active suggestion, if applicable.
-  if (state.activeSuggestion !== null) {
-    let activeSuggestionNextWord = state.activeSuggestionWords[0];
-    let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
-    if (nextWordIdx !== -1) {
-      // Move the corresponding server suggestion to the correct spot.
-      suggestions.splice(state.activeSuggestion.slot, 0, suggestions.splice(nextWordIdx, 1)[0]);
-    } else {
-      // not one of the next words. Leave a blank for it.
-      suggestions.splice(state.activeSuggestion.slot, 0, null);
-    }
-  }
-
-  state.lastSuggestionsFromServer = suggestions;
-});
 
 var KEYLABELS = {
     ' ': 'space',
@@ -324,8 +334,15 @@ setSize();
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
+    const {state, dispatch} = this.props;
     return <div className="SuggestionsBar">
-      {[1,2,3].map((x, i) => <div key={i} className="Suggestion">sugg</div>)
+      {state.visibleSuggestions.map((sugg, i) => (
+        <div
+          key={i}
+          className="Suggestion"
+          onClick={() => dispatch({type: 'tapSuggestion', slot: i})}>
+        {sugg.words[0]}
+        </div>))
       }
     </div>
 
