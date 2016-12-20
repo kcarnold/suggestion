@@ -343,20 +343,28 @@ window.addEventListener('resize', function() {
 
 setSize();
 
+class Suggestion extends Component {
+  render() {
+    let {onTap, word, preview} = this.props;
+    return <div
+      className="Suggestion"
+      onClick={onTap}>
+      {word}<span className="preview">{preview.join(' ')}</span>
+    </div>;
+  }
+}
+
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
     const {state, dispatch} = this.props;
     return <div className="SuggestionsBar">
-      {state.visibleSuggestions.map((sugg, i) => (
-        <div
-          key={i}
-          className="Suggestion"
-          onClick={() => dispatch({type: 'tapSuggestion', slot: i})}>
-        {sugg.words[0]}
-        </div>))
-      }
-    </div>
-
+      {state.visibleSuggestions.map((sugg, i) => <Suggestion
+        key={i}
+        onTap={() => dispatch({type: 'tapSuggestion', slot: i})}
+        word={sugg.words[0]}
+        preview={sugg.words.slice(1)} />
+      )}
+    </div>;
   }
 }));
 
@@ -364,7 +372,8 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
   render() {
     let {state} = this.props;
     return  <div className="ExperimentScreen">
-      <div className="CurText">{state.curText}</div>
+      <div className="CurText">{state.curText}<span className="Cursor"></span>
+      </div>
       <SuggestionsBar />
       <Keyboard />
     </div>;

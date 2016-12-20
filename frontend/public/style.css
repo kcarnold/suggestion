@@ -118,3 +118,10 @@ html {
 .Suggestion:last-child {
     border-right: none;
 }
+
+.preview {
+  color: #dedede;
+  margin-left: 4px;
+  font-weight: 100;
+  font-size: 12px;
+}
