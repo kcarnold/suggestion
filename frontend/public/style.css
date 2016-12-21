@@ -119,6 +119,10 @@ html {
     border-right: none;
 }
 
+.Suggestion.invalid {
+  color: #dedede;
+}
+
 .preview {
   color: #dedede;
   margin-left: 4px;

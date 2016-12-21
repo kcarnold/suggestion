@@ -103,7 +103,10 @@ class StateStore {
         // - Suggestions from the server, filled in as long as they're valid.
 
         // Copy the suggestions so we can tweak them.
-        let suggestions = M.toJS(this.lastSuggestionsFromServer);
+        let suggestions = M.toJS(this.lastSuggestionsFromServer).map(sugg => ({
+          isValid: sugg.contextSequenceNum == this.contextSequenceNum,
+          ...sugg
+        }));
 
         if (this.activeSuggestion) {
           // Reorder the suggestions to match the active suggestion.
@@ -118,6 +121,7 @@ class StateStore {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
             words: this.activeSuggestionWords,
+            isValid: true,
           });
         }
         return suggestions;
@@ -345,9 +349,9 @@ setSize();
 
 class Suggestion extends Component {
   render() {
-    let {onTap, word, preview} = this.props;
+    let {onTap, word, preview, isValid} = this.props;
     return <div
-      className="Suggestion"
+      className={"Suggestion" + (isValid ? '' : ' invalid')}
       onClick={onTap}>
       {word}<span className="preview">{preview.join(' ')}</span>
     </div>;
@@ -362,7 +366,8 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
         key={i}
         onTap={() => dispatch({type: 'tapSuggestion', slot: i})}
         word={sugg.words[0]}
-        preview={sugg.words.slice(1)} />
+        preview={sugg.words.slice(1)}
+        isValid={sugg.isValid} />
       )}
     </div>;
   }
