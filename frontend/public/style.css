@@ -9,10 +9,9 @@ html {
 
 /*** Overall layout ****/
 .ExperimentScreen {
-    height: 100vh;
+    height: calc(100vh - 75px);
     display: flex;
     flex-flow: column nowrap;
-    padding-bottom: 35px;
 }
 
 /*** TEXT ***/
