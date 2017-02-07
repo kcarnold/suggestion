@@ -138,7 +138,7 @@ class StateStore {
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         let toInsert = event.key;
         let taps = [{x: event.x, y: event.y}];
-        let autoSpace = isNonWord;
+        let autoSpace = isNonWord && event.key !== "'" && event.key !== '-';
         if (autoSpace) {
           toInsert += " ";
           taps.push({});
@@ -177,7 +177,7 @@ class StateStore {
         }
         let {curWord} = this.getSuggestionContext();
         let charsToDelete = curWord.length;
-        let isNonWord = wordToInsert.match(/\W/);
+        let isNonWord = wordToInsert.match(/^\W$/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         if (deleteSpace) {
           charsToDelete++;
