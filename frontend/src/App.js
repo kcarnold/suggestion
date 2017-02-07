@@ -5,7 +5,8 @@ import M from 'mobx';
 import {observer, inject, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 
-var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
+//var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
+var ws = new WSClient(`ws://${window.location.host}/ws`);
 
 // Generate a hopefully-unique id
 var clientId = null;
