@@ -135,8 +135,15 @@ class StateStore {
       tapKey: M.action(event => {
         let isNonWord = event.key.match(/\W/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
-        this.insertText(event.key, deleteSpace ? 1 : 0, [{x: event.x, y: event.y}]);
-        this.lastSpaceWasAuto = false;
+        let toInsert = event.key;
+        let taps = [{x: event.x, y: event.y}];
+        let autoSpace = isNonWord;
+        if (autoSpace) {
+          toInsert += " ";
+          taps.push({});
+        }
+        this.insertText(toInsert, deleteSpace ? 1 : 0, taps);
+        this.lastSpaceWasAuto = autoSpace;
         this.activeSuggestion = null;
       }),
       tapBackspace: M.action(() => {
