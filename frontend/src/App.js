@@ -352,7 +352,7 @@ class Suggestion extends Component {
     let {onTap, word, preview, isValid} = this.props;
     return <div
       className={"Suggestion" + (isValid ? '' : ' invalid')}
-      onClick={onTap}>
+      onClick={isValid ? onTap : null}>
       {word}<span className="preview">{preview.join(' ')}</span>
     </div>;
   }
