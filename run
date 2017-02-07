@@ -1,3 +1,3 @@
 #!/bin/sh
-(cd frontend && npm start) &
+#(cd frontend && npm start) &
 exec python -m tornado.autoreload -m suggestion.runserver
