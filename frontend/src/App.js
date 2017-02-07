@@ -295,6 +295,7 @@ class Keyboard extends Component {
   lastKbdRect = null;
 
   handleClick = (evt) => {
+    let {clientX, clientY} = evt.type === 'touchstart' ? evt.targetTouches[0] : evt;
     let {top, left, width, height} = this.node.getBoundingClientRect();
     let kbdRect = {top, left, width, height};
     if (!_.isEqual(kbdRect, this.lastKbdRect)) {
@@ -305,24 +306,24 @@ class Keyboard extends Component {
         let {top, left, width, height} = node.getBoundingClientRect();
         this.keyRects.push({rect: {top, left, width, height}, key});
       });
-      evt.preventDefault();
-      evt.stopPropagation();
     }
 
-    let key = getClosestKey(this.keyRects, evt.clientX, evt.clientY);
+    let key = getClosestKey(this.keyRects, clientX, clientY);
     if (key === '⏎')
       key = '\n';
     if (key === '⌫') {
       dispatch({type: 'tapBackspace'});
     } else {
-      dispatch({type: 'tapKey', key, x: evt.clientX, y: evt.clientY});
+      dispatch({type: 'tapKey', key, x: clientX, y: clientY});
     }
+    evt.preventDefault();
+    evt.stopPropagation();
   };
 
   render() {
     var keyNodes = {};
     this.keyNodes = keyNodes;
-    return <div className="Keyboard" ref={node => this.node = node} onClick={this.handleClick}>{
+    return <div className="Keyboard" ref={node => this.node = node} onClick={this.handleClick} onTouchStart={this.handleClick}>{
       ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\n'].map(function(row, i) {
           return <div key={i} className="row">{
             _.map(row, function(key, j) {
@@ -360,7 +361,8 @@ class Suggestion extends Component {
     let {onTap, word, preview, isValid} = this.props;
     return <div
       className={"Suggestion" + (isValid ? '' : ' invalid')}
-      onClick={isValid ? onTap : null}>
+      onClick={isValid ? onTap : null}
+      onTouchStart={isValid ? onTap : null}>
       {word}<span className="preview">{preview.join(' ')}</span>
     </div>;
   }
@@ -372,7 +374,11 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
     return <div className="SuggestionsBar">
       {state.visibleSuggestions.map((sugg, i) => <Suggestion
         key={i}
-        onTap={() => dispatch({type: 'tapSuggestion', slot: i})}
+        onTap={(evt) => {
+          dispatch({type: 'tapSuggestion', slot: i});
+          evt.preventDefault();
+          evt.stopPropagation();
+        }}
         word={sugg.words[0]}
         preview={sugg.words.slice(1)}
         isValid={sugg.isValid} />
