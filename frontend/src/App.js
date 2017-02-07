@@ -104,7 +104,7 @@ class StateStore {
 
         // Copy the suggestions so we can tweak them.
         let suggestions = M.toJS(this.lastSuggestionsFromServer).map(sugg => ({
-          isValid: sugg.contextSequenceNum == this.contextSequenceNum,
+          isValid: sugg.contextSequenceNum === this.contextSequenceNum,
           ...sugg
         }));
 
