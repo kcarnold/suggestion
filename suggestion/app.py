@@ -151,11 +151,12 @@ class WebsocketHandler(MyWSHandler):
             # if self.participant is not None:
             #     self.participant.log(dict(type='clientMessage', msg=request))
             if request['type'] == 'requestSuggestions':
+                # yield tornado.gen.sleep(1.)
                 toks = yield process_pool.submit(suggestion_generator.tokenize_sofar, request['sofar'])
                 cur_word = request['cur_word']
                 prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
                 # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-                temperature = request.get('temperature', .1)
+                temperature = request['temperature']
                 domain = request.get('domain', 'yelp_train')
                 if temperature == 0:
                     # TODO: test this!
