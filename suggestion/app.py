@@ -153,17 +153,20 @@ class WebsocketHandler(MyWSHandler):
             if request['type'] == 'requestSuggestions':
                 # yield tornado.gen.sleep(1.)
                 toks = yield process_pool.submit(suggestion_generator.tokenize_sofar, request['sofar'])
+                sentence_idx = sum(1 for tok in toks if tok == '</S>')
+                print(sentence_idx)
                 cur_word = request['cur_word']
                 prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
                 # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-                temperature = request['temperature']
+                # temperature = request['temperature']
+                temperature = random.Random((self.participant.participant_id, sentence_idx)).random()
                 domain = request.get('domain', 'yelp_train')
                 if temperature == 0:
                     # TODO: test this!
                     phrases = yield process_pool.submit(beam_search_phrases, toks, beam_width=10, length=1, prefix_probs=prefix_probs)[:3]
                 else:
                     phrases = yield process_pool.submit(suggestion_generator.generate_diverse_phrases, domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
-                self.send_json(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'), next_word=suggestion_generator.phrases_to_suggs(phrases))
+                self.send_json(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'), temperature=temperature, next_word=suggestion_generator.phrases_to_suggs(phrases))
                 print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
