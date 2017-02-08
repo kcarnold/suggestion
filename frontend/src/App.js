@@ -52,6 +52,8 @@ function log(event) {
 }
 
 
+let START_PAGE = 'experiment';
+
 /**** Main state store!
 
 This represents all the state, UI state included. The entire UI should be a function of this, with perhaps a few pragmatic exceptions (none yet - 2016-12-17).
@@ -86,7 +88,7 @@ An autorun thread watches contextSequenceNum and requests suggestions when the c
 visibleSuggestions is a pure computation based on the last suggestions received from the server, the current context sequence number, and the active suggestion. It puts them all together, keeping track of what's valid.
 
 */
-class StateStore {
+class ExperimentStateStore {
   constructor() {
     this.__version__ = 1;
     M.extendObservable(this, {
@@ -203,6 +205,30 @@ class StateStore {
         }));
       }),
     });
+
+    this.disposers = [];
+    // Keep a running sequence of contexts.
+    // This works because every context change also changes curText.
+    this.disposers.push(M.observe(this, 'curText', () => {
+          this.contextSequenceNum++;
+    }));
+
+
+    // Auto-runner to watch the context and request suggestions.
+    this.disposers.push(M.autorun(() => {
+      let context = M.untracked(() => this.getSuggestionContext());
+      let {prefix, curWord} = context;
+      ws.send({
+        type: 'requestSuggestions',
+        request_id: this.contextSequenceNum,
+        sofar: prefix,
+        cur_word: curWord,
+        temperature: .5,
+        domain: 'yelp_train',
+      });
+    }));
+
+
   }
 
   getSuggestionContext() {
@@ -239,31 +265,36 @@ class StateStore {
     default:
     }
   };
+
+  dispose() {
+    this.disposers.forEach(x => {x()});
+  }
 }
 
-var state = new StateStore();
+class MasterStateStore {
+  constructor() {
+    this.__version__ = 1;
+    M.extendObservable(this, {
+      page: START_PAGE,
+      experimentState: new ExperimentStateStore(),
+    });
+  }
+
+  handleEvent = (event) => {
+    if (this.experimentState) {
+      this.experimentState.handleEvent(event);
+    }
+    switch (event.type) {
+    case 'experimentDone':
+      this.page = 'done';
+      break;
+    default:
+    }
+  }
+}
+
+var state = new MasterStateStore();
 registerHandler(state.handleEvent);
-
-// Keep a running sequence of contexts.
-// This works because every context change also changes curText.
-M.observe(state, 'curText', () => {
-  state.contextSequenceNum++;
-});
-
-
-// Auto-runner to watch the context and request suggestions.
-M.autorun(() => {
-  let context = M.untracked(() => state.getSuggestionContext());
-  let {prefix, curWord} = context;
-  ws.send({
-    type: 'requestSuggestions',
-    request_id: state.contextSequenceNum,
-    sofar: prefix,
-    cur_word: curWord,
-    temperature: .5,
-    domain: 'yelp_train',
-  });
-});
 
 ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
@@ -321,24 +352,45 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
   }
 }));
 
+// const ExperimentScreen = inject((allStores) => ({
+//   state: allStores.state.experimentState,
+//   dispatch: allStores.dispatch}))(observer(class ExperimentScreen extends Component {
 const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentScreen extends Component {
   render() {
     let {state} = this.props;
-    return  <div className="ExperimentScreen">
-      <div className="CurText">{state.curText}<span className="Cursor"></span>
+    let {experimentState} = state;
+    return <Provider state={experimentState} appState={state}>
+      <div className="ExperimentScreen">
+      <div style={{backgroundColor: '#ccc', color: 'black'}}>
+        <button onClick={evt => {
+          if(confirm("Are you sure you're done?")) {
+            dispatch({type: 'experimentDone'});
+          }
+        }}>Done</button>
+      </div>
+      <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
       </div>
       <SuggestionsBar />
       <Keyboard dispatch={this.props.dispatch} />
-    </div>;
+    </div>
+    </Provider>;
   }
 }));
 
 class App extends Component {
   render() {
+    let screen;
+    switch(state.page) {
+      case 'experiment':
+        screen = <ExperimentScreen />;
+        break
+      default:
+        debugger;
+    }
     return (
       <Provider state={state} dispatch={dispatch}>
       <div className="App">
-        <ExperimentScreen />
+        {screen}
       </div>
       </Provider>
     );
