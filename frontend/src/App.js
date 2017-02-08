@@ -377,7 +377,7 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
   }
 }));
 
-class App extends Component {
+const App = observer(class App extends Component {
   render() {
     let screen;
     switch(state.page) {
@@ -395,7 +395,7 @@ class App extends Component {
       </Provider>
     );
   }
-}
+});
 
 export default App;
 
