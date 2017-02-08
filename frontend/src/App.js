@@ -383,7 +383,12 @@ const App = observer(class App extends Component {
     switch(state.page) {
       case 'experiment':
         screen = <ExperimentScreen />;
-        break
+        break;
+      case 'done':
+        screen = <div>
+          Thanks! Your code is {clientId}.
+        </div>;
+        break;
       default:
         debugger;
     }
