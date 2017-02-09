@@ -1,5 +1,9 @@
 import gzip
-import json
+import ujson as json
+import tqdm
+import joblib
+from suggestion.tokenization import tokenize
+from suggestion.suffix_array import DocSuffixArray
 
 reviews = []
 businesses = {}
@@ -16,25 +20,43 @@ all_restaurants = {
     if 'Restaurants' in b['categories'] and b['open']}
 restaurant_reviews = [r for r in reviews if r['business_id'] in all_restaurants]
 
-from megacomplete.tokenize import tokenize
+print("Dumping un-tokenized as JSON")
+with open('models/reviews.json', 'w') as f:
+    json.dump(restaurant_reviews, f)
+
 bad_eoses = ["coffee roasting co . </S> <S> is one of the best coffee shops", "gogi ! </S> <S>", "green st . </S> <S> is one of my standard go to"]
 
 import re
 cant_type = re.compile(r'[^\-a-z., !\']')
 
+
+def tokenized_review(text):
+    text = text.lower()
+    text = cant_type.sub(' ', text)
+    line = ' '.join(tokenize(text)[0])
+    line = line.replace('<D> <P> <S>', '<D>')
+    line = line.replace('<P> <S>', '<P>')
+    for bad_eos in bad_eoses:
+        if bad_eos in line:
+            print("Subbing", bad_eos)
+            line = line.replace(bad_eos, bad_eos.replace('</S> <S> ', ''))
+    return line.split()
+
+tokenized_reviews = [tokenized_review(review['text']) for review in tqdm.tqdm(restaurant_reviews, desc="Tokenizing")]
+print("Dumping reviews as JSON")
+with open('models/tokenized_reviews.json', 'w') as f:
+    json.dump(tokenized_reviews, f)
+
 with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt', 'w') as fp_test, open('models/yelp-char.txt', 'w') as f_char:
-    for i, review in enumerate(restaurant_reviews):
-        text = review['text'].lower()
-        text = cant_type.sub(' ', text)
-        line = ' '.join(tokenize(text)[0])
-        line = line.replace('<D> <P> <S>', '<D>')
-        line = line.replace('<P> <S>', '<P>')
-        for bad_eos in bad_eoses:
-            if bad_eos in line:
-                print("Subbing", bad_eos)
-                line = line.replace(bad_eos, bad_eos.replace('</S> <S> ', ''))
+    for i, review in enumerate(tqdm.tqdm(tokenized_reviews, desc="Writing")):
         if i % 10 == 0:
             print(line, file=fp_test)
         else:
             print(line, file=fp_train)
-        print(' '.join(text.replace(' ', '_')), file=f_char)
+#        print(' '.join(text.replace(' ', '_')), file=f_char)
+
+
+print("Build suffix array")
+sufarr = DocSuffixArray.construct(tokenized_reviews, 100)
+
+joblib.dump(dict(suffix_array=sufarr.suffix_array, doc_idx=sufarr.doc_idx, tok_idx=sufarr.tok_idx, lcp=sufarr.lcp), 'models/yelp_sufarr.joblib')
