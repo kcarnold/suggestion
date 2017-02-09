@@ -285,8 +285,8 @@ class MasterStateStore {
       this.experimentState.handleEvent(event);
     }
     switch (event.type) {
-    case 'experimentDone':
-      this.page = 'done';
+    case 'typingDone':
+      this.page = 'edit';
       break;
     default:
     }
@@ -364,7 +364,7 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
       <div style={{backgroundColor: '#ccc', color: 'black'}}>
         <button onClick={evt => {
           if(confirm("Are you sure you're done?")) {
-            dispatch({type: 'experimentDone'});
+            dispatch({type: 'typingDone'});
           }
         }}>Done</button>
       </div>
@@ -377,12 +377,26 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
   }
 }));
 
+class EditingControl extends Component {
+  componentDidMount() {
+    this.elt.value = this.props.initialValue;
+  }
+  render() {
+    return <textarea ref={elt => {this.elt = elt}} />
+  }
+}
+
 const App = observer(class App extends Component {
   render() {
     let screen;
     switch(state.page) {
       case 'experiment':
         screen = <ExperimentScreen />;
+        break;
+      case 'edit':
+        screen = <div className="EditPage">
+          <EditingControl initialValue={state.experimentState.curText} />
+        </div>;
         break;
       case 'done':
         screen = <div>

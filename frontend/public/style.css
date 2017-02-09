@@ -14,6 +14,10 @@ html {
     flex-flow: column nowrap;
 }
 
+.EditPage textarea {
+    width: 100%;
+}
+
 /*** TEXT ***/
 .CurText {
     white-space: pre-line;
