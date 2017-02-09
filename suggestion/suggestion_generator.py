@@ -6,12 +6,11 @@ import sys
 import itertools
 import datrie
 from collections import defaultdict
-import json
 import numpy as np
 import nltk
 
 from .paths import paths
-from .tokenization import tokenize_mid_document, tokenize
+from .tokenization import tokenize_mid_document
 
 LOG10 = np.log(10)
 
