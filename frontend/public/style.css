@@ -50,6 +50,7 @@ html {
     flex-flow: column nowrap;
     justify-content: space-around;
     cursor: pointer;
+    user-select: none;
 }
 
 
@@ -100,6 +101,7 @@ html {
 .SuggestionsBar {
     background-color: #ADB5BD;
     height: 42px;
+    user-select: none;
 }
 
 .Suggestion {
