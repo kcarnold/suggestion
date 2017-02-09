@@ -176,15 +176,18 @@ class Model:
             next_words = [w for w in next_words if w != self.eos_idx and w != self.eop_idx]
         if len(next_words) == 0:
             return [], np.zeros(0)
+        logprobs = self.eval_logprobs_for_words(state, next_words)
+        if prefix_logprobs is not None:
+            logprobs += prior_logprobs
+        return next_words, logprobs
+
+    def eval_logprobs_for_words(self, state, next_words):
         new_state = kenlm.State()
         logprobs = np.empty(len(next_words))
         for next_idx, word_idx in enumerate(next_words):
-            logprob = self.model.base_score_from_idx(state, word_idx, new_state)
-            if prefix_logprobs is not None:
-                logprob += prior_logprobs[next_idx]
-            logprobs[next_idx] = logprob
+            logprobs[next_idx] = self.model.base_score_from_idx(state, word_idx, new_state)
         logprobs *= LOG10
-        return next_words, logprobs
+        return logprobs
 
 
 models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train']}
