@@ -29,6 +29,7 @@ class DocSuffixArray:
         # FIXME: sort end-of-document at the end. (or beginning??)
         vocab = sorted(set(master_token_list))
         word2idx = {word: idx for idx, word in enumerate(vocab)}
+        print("Mapping vocabulary")
         tok_array = np.empty(num_sa_toks, dtype=np.int32)
         for i, tok in enumerate(master_token_list):
             tok_array[i] = word2idx[tok]
