@@ -10,15 +10,15 @@ class DocSuffixArray:
         self.lcp = lcp
 
     @classmethod
-    def construct(cls, docs, max_toks_per_doc):
+    def construct(cls, docs):
         print("Prepare suffix array")
-        num_sa_toks = sum(min(max_toks_per_doc, len(doc)) for doc in docs)
+        num_sa_toks = sum(len(doc) for doc in docs)
         sa_doc_idx = np.empty(num_sa_toks, dtype=int)
         sa_tok_idx = np.empty(num_sa_toks, dtype=int)
         ptr = 0
         master_token_list = []
         for doc_idx, doc in enumerate(docs):
-            tok_list = [tok.lower() for tok in doc[:max_toks_per_doc]]
+            tok_list = [tok.lower() for tok in doc]
             sa_doc_idx[ptr:ptr+len(tok_list)] = doc_idx
             sa_tok_idx[ptr:ptr+len(tok_list)] = np.arange(len(tok_list))
             master_token_list.extend(tok_list)
