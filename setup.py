@@ -6,7 +6,7 @@ from Cython.Build import cythonize
 import numpy as np
 
 extensions = [
-    # Extension('orgback.accel', ['orgback/accel.pyx'], include_dirs=[np.get_include()])
+    Extension('suggestion.suffix_sort', ['suggestion/qsufsort.c', 'suggestion/suffix_sort.pyx'], include_dirs=[np.get_include()])
 ]
 
 setup(
