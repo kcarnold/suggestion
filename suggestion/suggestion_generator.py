@@ -278,7 +278,7 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 
 
 def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=None):
-    start_state, start_score = model.get_state(start_words)
+    start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(start_score, [], False, start_state, None, 0)]
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
