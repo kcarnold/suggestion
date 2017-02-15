@@ -59,9 +59,9 @@ def generate_phrase_from_sufarr(model, sufarr, context_toks, length, temperature
         logprobs = model.eval_logprobs_for_words(state, vocab_indices)
         logprobs /= temperature
         probs = suggestion_generator.softmax(logprobs)
-        if len(next_words) < 10:
-            print(next_words, probs)
-        print(start_idx, end_idx-start_idx, len(next_words), scipy.stats.entropy(probs))
+#        if len(next_words) < 10:
+#            print(next_words, probs)
+#        print(start_idx, end_idx-start_idx, len(next_words), scipy.stats.entropy(probs))
 
         picked_subidx = np.random.choice(len(probs), p=probs)
         picked_idx = vocab_indices[picked_subidx]
@@ -75,7 +75,31 @@ def generate_phrase_from_sufarr(model, sufarr, context_toks, length, temperature
     return phrase, generated_logprobs
 
 
-context = 'my '
-context_toks = suggestion_generator.tokenize_sofar(context)
-generate_phrase_from_sufarr(model, sufarr, context_toks, 30, temperature=.01)
+for context in ['', 'my', 'the lunch menu', 'we', 'i could not imagine', 'absolutely', "i love", "my first",]:
+    context_toks = suggestion_generator.tokenize_sofar(context + ' ')
+    print('\n\n', context)
+    print("- Exploratory")
+    for i in range(5):
+        print('', ' '.join(generate_phrase_from_sufarr(model, sufarr, context_toks, 6, temperature=1)[0]))
+    print("- Max likelihood")
+    print('\n'.join([' ' + ' '.join(x['words'])
+        for x in suggestion_generator.beam_search_phrases(model, context_toks, 100, 30)[:5]]))
 #%%
+
+# Simplest thing to do: go back until we have < K phrases, then pick one at random.
+def draw_randomly_from_context_match(sufarr, context_toks, min_suffixes):
+    a, b = 0, len(sufarr.tok_idx)
+    context_toks_idx = len(context_toks)
+    while context_toks_idx > 0:
+        search_phrase = tuple(context_toks[context_toks_idx - 1:])
+        new_a, new_b = sufarr.search_range(search_phrase)
+        print(search_phrase, new_a, new_b)
+        if new_b - new_a > min_suffixes:
+            a = new_a
+            b = new_b
+            context_toks_idx -= 1
+        else:
+            print(a, b, search_phrase)
+            break
+    return sufarr.get_suffix_by_idx(np.random.choice(range(a, b)))
+' '.join(draw_randomly_from_context_match(sufarr, suggestion_generator.tokenize_sofar('i love '), 100)[:10])

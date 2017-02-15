@@ -8,9 +8,12 @@ import datrie
 from collections import defaultdict
 import numpy as np
 import nltk
+import ujson as json
+import joblib
 
 from .paths import paths
 from .tokenization import tokenize_mid_document
+from . import suffix_array
 
 LOG10 = np.log(10)
 
@@ -195,6 +198,27 @@ def get_model(name):
     return models[name]
 
 
+print("Loading docs...", end='', flush=True)
+docs = json.load(open(os.path.join(paths.models, 'tokenized_reviews.json')))
+print(', suffix array...', end='', flush=True)
+sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
+print(" Done.")
+
+def collect_words_in_range(start, after_end, word_idx):
+    words = set()
+    if start == after_end:
+        return words
+    words.add(sufarr.get_suffix_by_idx(start)[word_idx])
+    for i in range(start + 1, after_end):
+        # Invariant: words contains all words at offset word_idx in suffixes from
+        # start to i.
+        if sufarr.lcp[i - 1] <= word_idx:
+            word = sufarr.get_suffix_by_idx(i)[word_idx]
+            assert word not in words
+            words.add(word)
+    return words
+
+
 
 from scipy.misc import logsumexp
 def softmax(scores):
@@ -256,6 +280,47 @@ def generate_phrase(model, context_toks, length, prefix_logprobs=None, **kw):
     return phrase[len(context_toks):], generated_logprobs
 
 
+def generate_phrase_from_sufarr(model, sufarr, context_toks, length, prefix_logprobs=None, temperature=1.):
+    if context_toks[0] == '<s>':
+        state, _ = model.get_state(context_toks[1:], bos=True)
+    else:
+        state, _ = model.get_state(context_toks, bos=False)
+    phrase = []
+    generated_logprobs = np.empty(length)
+    for i in range(length):
+        start_idx, end_idx = sufarr.search_range((context_toks[-1],) + tuple(phrase) + ('',))
+        next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
+
+        if prefix_logprobs is not None:
+            prior_logprobs = np.full(len(next_words), -10)
+            for logprob, prefix in prefix_logprobs:
+                for nextword_idx, word in enumerate(next_words):
+                    if word.startswith(prefix):
+                        prior_logprobs[nextword_idx] = logprob
+        else:
+            prior_logprobs = None
+        if len(next_words) == 0:
+            raise GenerationFailedException
+        vocab_indices = [model.model.vocab_index(word) for word in next_words]
+        logprobs = model.eval_logprobs_for_words(state, vocab_indices)
+        if prior_logprobs is not None:
+            logprobs += prior_logprobs
+        logprobs /= temperature
+        probs = softmax(logprobs)
+
+        picked_subidx = np.random.choice(len(probs), p=probs)
+        picked_idx = vocab_indices[picked_subidx]
+        new_state = kenlm.State()
+        model.model.base_score_from_idx(state, picked_idx, new_state)
+        state = new_state
+        word = next_words[picked_subidx]
+        phrase.append(word)
+        generated_logprobs[i] = np.log(probs[picked_subidx])
+        prefix_logprobs = None
+    return phrase, generated_logprobs
+
+
+
 def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=None, **kw):
     if model is None:
         model = 'yelp_train'
@@ -272,7 +337,8 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
     for idx in np.random.choice(len(first_words), min(len(first_words), n), p=first_word_probs, replace=False):
         first_word = model.id2str[first_words[idx]]
         first_word_logprob = np.log(first_word_probs[idx])
-        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
+#        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
+        phrase, phrase_logprobs = generate_phrase_from_sufarr(model, sufarr, context_toks + [first_word], length - 1, **kw)
         res.append(([first_word] + phrase, np.hstack(([first_word_logprob], phrase_logprobs))))
     return res
 

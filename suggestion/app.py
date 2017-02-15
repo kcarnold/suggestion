@@ -159,7 +159,8 @@ class WebsocketHandler(MyWSHandler):
                 prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
                 # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
                 # temperature = request['temperature']
-                temperature = random.Random((self.participant.participant_id, sentence_idx)).random()
+                # temperature = random.Random((self.participant.participant_id, sentence_idx)).random()
+                temperature = 1.
                 domain = request.get('domain', 'yelp_train')
                 if temperature == 0:
                     # TODO: test this!
