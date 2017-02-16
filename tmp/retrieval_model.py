@@ -103,3 +103,78 @@ def draw_randomly_from_context_match(sufarr, context_toks, min_suffixes):
             break
     return sufarr.get_suffix_by_idx(np.random.choice(range(a, b)))
 ' '.join(draw_randomly_from_context_match(sufarr, suggestion_generator.tokenize_sofar('i love '), 100)[:10])
+#%%
+def search_context(sufarr, context, try_to_get_less_than, min_suffixes=2):
+    offset_into_suffix = 1
+    while True:#offset_into_suffix <= len(context):
+        search_for = context[-offset_into_suffix:]
+        a, b = sufarr.search_range(tuple(search_for))
+        num_found = b - a
+#        print(num_found, search_for)
+        if num_found < min_suffixes:
+#            print("Too few")
+            offset_into_suffix -= 1
+            a, b = sufarr.search_range(tuple(search_for)[1:])
+            break
+        if b - a < try_to_get_less_than:
+#            print("Ok", offset_into_suffix)
+            break
+        if offset_into_suffix < len(context):
+            offset_into_suffix += 1
+        else:
+            break
+    return a, b, offset_into_suffix
+a, b, offset = search_context(sufarr, '<D> great food ,'.split() + [''], 100)
+offset -= 1
+print(sufarr.get_suffix_by_idx(a)[:offset])
+print(sufarr.get_suffix_by_idx(a)[offset:][:5])
+
+#%%
+incorrect = []
+num_alternatives_es = []
+for i in range(1000):
+    while True:
+        doc_idx = np.random.choice(len(docs))
+        doc_toks = docs[doc_idx]
+        tok_idx = np.random.randint(1, len(doc_toks))
+        context = doc_toks[:tok_idx]
+        true_suffix = doc_toks[tok_idx:]
+        if context[-1][0] == '<' or true_suffix[0][0] == '<':
+            # TODO: also a problem if true_suffix doesn't include any real words. Or if it's way too common, like ['.', '</S>'].
+            continue
+        break
+
+
+    context_state = model.get_state(context[-6:], bos=False)[0]
+
+    a, b, offset = search_context(sufarr, context + [''], try_to_get_less_than=100)
+    offset -= 1
+    if offset == 0:
+        print("Oops, didn't find context??")
+        continue
+    assert sufarr.get_suffix_by_idx(a)[:offset] == context[-offset:]
+    truesuf_a, truesuf_b = sufarr.search_range(tuple(context[len(context)-offset:] + true_suffix))
+    assert truesuf_b - truesuf_a >= 1
+    assert sufarr.get_suffix_by_idx(truesuf_a)[:offset] == context[-offset:]
+    if a == truesuf_a and b == truesuf_b:
+        print("Oops, unique word??")
+        continue
+
+    num_alternatives_es.append(b - a - (truesuf_b - truesuf_a))
+    while True:
+        c = np.random.randint(a, b)
+        if truesuf_a <= c < truesuf_b:
+            continue
+        break
+    # TODO: instead, compute the rank of the correct suffix compared with the alternatives.
+    # If there are a ton of alternatives, take a random sample of a fixed-size subset of them.
+    c_suf = sufarr.get_suffix_by_idx(c)[offset:]
+    #print(sufarr.docs[sufarr.doc_idx[c]][sufarr.tok_idx[c]-offset:][:10])
+    assert sufarr.get_suffix_by_idx(c)[:offset] == context[-offset:]
+    true_score = model.score_seq(context_state, true_suffix[:5])[0]
+    fake_score = model.score_seq(context_state, c_suf[:5])[0]
+    # TODO: another thing to try: look at the difference between the likelihood in the originial context and the likelihood in the new context.
+    if fake_score > true_score:
+        incorrect.append((doc_idx, tok_idx, c))
+#    print(true_score, ' '.join(context[-5:]), '|', ' '.join(true_suffix[:5]))
+#    print(fake_score, ' '.join(context[-5:]), '|', ' '.join(c_suf[:5]))
