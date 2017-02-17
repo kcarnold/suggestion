@@ -150,10 +150,12 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, num_to_re
                     unigram_bonus = -unigram_probs[word_idx] if word_idx > 4 else 0.
 
                     new_score = score + logprob + unigram_bonus
-#                    done = new_num_chars >= length
-                    done = False#
+                    done = new_num_chars >= length
+#                    done = False#
                     yield new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus]
         beam = heapq.nlargest(beam_width, candidates())
+        if i == 2:
+            return beam
     if num_to_return is None:
         num_to_return = beam_width
     return [dict(score=score, words=words, done=done, num_chars=num_chars, bonuses=bonuses) for score, words, done, _, _, num_chars, bonuses in sorted(beam, reverse=True)[:num_to_return]]
@@ -165,8 +167,19 @@ def show_beam(beam):
 for context in ['', 'my', 'the lunch menu', 'we', 'i could not imagine', 'absolutely', "i love", "my first", "the chicken pasta"]:
     context_toks = suggestion_generator.tokenize_sofar(context + ' ')
     print('\n\n', context)
-    show_beam(beam_search_sufarr(model, sufarr, context_toks, beam_width=200, length=5, num_to_return=10))
-
+    show_beam(beam_search_sufarr(model, sufarr, context_toks, beam_width=200, length=30, num_to_return=10))
+#%%
+beam = beam_search_sufarr(model, sufarr, context_toks, beam_width=200, length=30, num_to_return=10)
+#%%
+# Ensure that the beam always has at least 3 different starting words
+from collections import defaultdict
+import itertools
+by_first_word = defaultdict(list)
+for ent in beam:
+    by_first_word[ent[1][0]].append(ent)
+by_first_word = {word: sorted(entries, reverse=True) for word, entries in by_first_word.items()}
+sorted_entries_grouped_by_first_word = sorted(by_first_word.items(), key=lambda pair: pair[1][0][0], reverse=True)
+beam = [sorted_entries_grouped_by_first_word[i][1].pop() for i in range(3)] + sorted(itertools.chain.from_iterable(ent[1] for ent in sorted_entries_grouped_by_first_word), reverse=True)
 #%%
 def search_context(sufarr, context, try_to_get_less_than, min_suffixes=2):
     offset_into_suffix = 1
