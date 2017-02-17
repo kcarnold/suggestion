@@ -386,6 +386,72 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
     return [dict(score=score, words=[model.id2str[word] for word in words], done=done, num_chars=num_chars) for score, words, done, _, _, num_chars in sorted(beam, reverse=True)]
 
 
+def get_unigram_probs(model):
+    logprobs = np.empty(len(model.id2str))
+    state = model.null_context_state
+    state2 = kenlm.State()
+    for i, word in enumerate(model.id2str):
+        if i < 4:
+            logprobs[i] = -np.inf
+        else:
+            logprobs[i] = model.model.base_score_from_idx(state, i, state2)
+    logprobs *= np.log(10)
+    return logprobs
+
+
+def beam_search_sufarr(model, sufarr, start_words, beam_width, length, num_to_return=None, unigram_bonus_factor=0., prefix=''):
+    unigram_probs = get_unigram_probs(model)
+    LOG10 = np.log(10)
+    start_state, start_score = model.get_state(start_words, bos=False)
+    beam = [(start_score, [], False, start_state, None, 0, [])]
+    for i in range(length):
+        prefix_chars = 1 if i > 0 else 0
+        def candidates():
+            for score, words, done, penultimate_state, last_word_idx, num_chars, bonuses in beam:
+                if done:
+                    yield score, words, done, penultimate_state, last_word_idx, num_chars, bonuses
+                    continue
+                if last_word_idx is not None:
+                    last_state = kenlm.State()
+                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                else:
+                    last_state = penultimate_state
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,))
+                next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
+                assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
+#                logprobs = model.eval_logprobs_for_words(state, vocab_indices)
+                new_state = kenlm.State()
+                for next_idx, word in enumerate(next_words):
+                    if word[0] in '<.!?':
+                        continue
+                    word_idx = model.model.vocab_index(word)
+                    new_words = words + [word]
+                    new_num_chars = num_chars + prefix_chars + len(word)
+                    logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 else 0.
+
+                    new_score = score + logprob + unigram_bonus
+                    done = new_num_chars >= length
+#                    done = False#
+                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus]
+        beam = heapq.nlargest(beam_width, candidates())
+        prefix = ''
+    if num_to_return is None:
+        num_to_return = beam_width
+    return [dict(score=score, words=words, done=done, num_chars=num_chars, bonuses=bonuses) for score, words, done, _, _, num_chars, bonuses in sorted(beam, reverse=True)[:num_to_return]]
+
+def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
+    if model is None:
+        model = 'yelp_train'
+    if isinstance(model, str):
+        model = get_model(model)
+
+    state, _ = model.get_state(context_toks)
+    ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
+    return [(ent['words'], None) for ent in ents[:n]]
+
+
+
 def tap_decoder(before_cursor, cur_word, key_rects, beam_width=100, scale=100.):
     keys = [k['key'] for k in key_rects]
     rects = [k['rect'] for k in key_rects]

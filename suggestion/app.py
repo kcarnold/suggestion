@@ -157,14 +157,12 @@ class WebsocketHandler(MyWSHandler):
                 print(sentence_idx)
                 cur_word = request['cur_word']
                 prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
+                prefix = ''.join(item['letter'] for item in cur_word)
                 # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-                # temperature = request['temperature']
-                # temperature = random.Random((self.participant.participant_id, sentence_idx)).random()
-                temperature = 1.
+                temperature = 0.
                 domain = request.get('domain', 'yelp_train')
                 if temperature == 0:
-                    # TODO: test this!
-                    phrases = yield process_pool.submit(beam_search_phrases, toks, beam_width=10, length=1, prefix_probs=prefix_probs)[:3]
+                    phrases = (yield process_pool.submit(suggestion_generator.generate_by_beamsearch, domain, toks, n=3, beam_width=100, length=30, prefix=prefix, unigram_bonus_factor=1.))
                 else:
                     phrases = yield process_pool.submit(suggestion_generator.generate_diverse_phrases, domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
                 self.send_json(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'), temperature=temperature, next_word=suggestion_generator.phrases_to_suggs(phrases))
