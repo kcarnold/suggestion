@@ -104,6 +104,70 @@ def draw_randomly_from_context_match(sufarr, context_toks, min_suffixes):
     return sufarr.get_suffix_by_idx(np.random.choice(range(a, b)))
 ' '.join(draw_randomly_from_context_match(sufarr, suggestion_generator.tokenize_sofar('i love '), 100)[:10])
 #%%
+def get_unigram_probs(model):
+    logprobs = np.empty(len(model.id2str))
+    state = model.null_context_state
+    state2 = kenlm.State()
+    for i, word in enumerate(model.id2str):
+        if i < 4:
+            logprobs[i] = -np.inf
+        else:
+            logprobs[i] = model.model.base_score_from_idx(state, i, state2)
+    logprobs *= np.log(10)
+    return logprobs
+unigram_probs = get_unigram_probs(model)
+#%%
+import heapq
+def beam_search_sufarr(model, sufarr, start_words, beam_width, length, num_to_return=None):
+    LOG10 = np.log(10)
+    start_state, start_score = model.get_state(start_words, bos=False)
+    beam = [(start_score, [], False, start_state, None, 0, [])]
+    for i in range(length):
+        prefix_chars = 1 if i > 0 else 0
+        def candidates():
+            for score, words, done, penultimate_state, last_word_idx, num_chars, bonuses in beam:
+                if done:
+                    yield score, words, done, penultimate_state, last_word_idx, num_chars, bonuses
+                    continue
+                if last_word_idx is not None:
+                    last_state = kenlm.State()
+                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                else:
+                    last_state = penultimate_state
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + ('',))
+                next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
+                assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
+#                logprobs = model.eval_logprobs_for_words(state, vocab_indices)
+                new_state = kenlm.State()
+                for next_idx, word in enumerate(next_words):
+                    if word[0] in '<.!?':
+                        continue
+                    word_idx = model.model.vocab_index(word)
+                    new_words = words + [word]
+                    new_num_chars = num_chars + prefix_chars + len(word)
+                    logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+#                    unigram_bonus = 10*np.sqrt(-unigram_probs[word_idx]) if word_idx > 4 else 0.
+                    unigram_bonus = -unigram_probs[word_idx] if word_idx > 4 else 0.
+
+                    new_score = score + logprob + unigram_bonus
+#                    done = new_num_chars >= length
+                    done = False#
+                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus]
+        beam = heapq.nlargest(beam_width, candidates())
+    if num_to_return is None:
+        num_to_return = beam_width
+    return [dict(score=score, words=words, done=done, num_chars=num_chars, bonuses=bonuses) for score, words, done, _, _, num_chars, bonuses in sorted(beam, reverse=True)[:num_to_return]]
+
+def show_beam(beam):
+    for ent in beam:
+        print('{:3.2f} {:3.2f} {}'.format(ent['score'] - sum(ent['bonuses']), ent['score'], ' '.join(ent['words'])))
+
+for context in ['', 'my', 'the lunch menu', 'we', 'i could not imagine', 'absolutely', "i love", "my first", "the chicken pasta"]:
+    context_toks = suggestion_generator.tokenize_sofar(context + ' ')
+    print('\n\n', context)
+    show_beam(beam_search_sufarr(model, sufarr, context_toks, beam_width=200, length=5, num_to_return=10))
+
+#%%
 def search_context(sufarr, context, try_to_get_less_than, min_suffixes=2):
     offset_into_suffix = 1
     while True:#offset_into_suffix <= len(context):
