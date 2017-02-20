@@ -210,25 +210,8 @@ class ExperimentStateStore {
     // Keep a running sequence of contexts.
     // This works because every context change also changes curText.
     this.disposers.push(M.observe(this, 'curText', () => {
-          this.contextSequenceNum++;
+      this.contextSequenceNum++;
     }));
-
-
-    // Auto-runner to watch the context and request suggestions.
-    this.disposers.push(M.autorun(() => {
-      let context = M.untracked(() => this.getSuggestionContext());
-      let {prefix, curWord} = context;
-      ws.send({
-        type: 'requestSuggestions',
-        request_id: this.contextSequenceNum,
-        sofar: prefix,
-        cur_word: curWord,
-        temperature: .5,
-        domain: 'yelp_train',
-      });
-    }));
-
-
   }
 
   getSuggestionContext() {
@@ -295,6 +278,29 @@ class MasterStateStore {
 
 var state = new MasterStateStore();
 registerHandler(state.handleEvent);
+
+
+// Auto-runner to watch the context and request suggestions.
+M.autorun(() => {
+  let {experimentState} = state;
+  if (!experimentState)
+    return;
+
+  let seqNum = experimentState.contextSequenceNum;
+
+  // The only dependency is contextSequenceNum; other details don't matter.
+  let context = M.untracked(() => experimentState.getSuggestionContext());
+  let {prefix, curWord} = context;
+  ws.send({
+    type: 'requestSuggestions',
+    request_id: seqNum,
+    sofar: prefix,
+    cur_word: curWord,
+    temperature: .5,
+    domain: 'yelp_train',
+  });
+});
+
 
 ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
