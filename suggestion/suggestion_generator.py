@@ -399,24 +399,27 @@ def get_unigram_probs(model):
     return logprobs
 
 
-def beam_search_sufarr(model, sufarr, start_words, beam_width, length, num_to_return=None, unigram_bonus_factor=0., prefix=''):
+from collections import namedtuple
+BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
+
+def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_bonus_factor=0., prefix=''):
     unigram_probs = get_unigram_probs(model)
     LOG10 = np.log(10)
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [(start_score, [], False, start_state, None, 0, [])]
+    beam = [BeamEntry(start_score, [], False, start_state, None, 0, [])]
     for i in range(length):
         prefix_chars = 1 if i > 0 else 0
         def candidates():
-            for score, words, done, penultimate_state, last_word_idx, num_chars, bonuses in beam:
-                if done:
-                    yield score, words, done, penultimate_state, last_word_idx, num_chars, bonuses
+            for entry in beam:
+                if entry.done:
+                    yield entry
                     continue
-                if last_word_idx is not None:
+                if entry.last_word_idx is not None:
                     last_state = kenlm.State()
-                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                    model.model.base_score_from_idx(entry.penultimate_state, entry.last_word_idx, last_state)
                 else:
-                    last_state = penultimate_state
-                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,))
+                    last_state = entry.penultimate_state
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(entry.words) + (prefix,))
                 next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
                 assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
 #                logprobs = model.eval_logprobs_for_words(state, vocab_indices)
@@ -425,20 +428,18 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, num_to_re
                     if word[0] in '<.!?':
                         continue
                     word_idx = model.model.vocab_index(word)
-                    new_words = words + [word]
-                    new_num_chars = num_chars + prefix_chars + len(word)
+                    new_words = entry.words + [word]
+                    new_num_chars = entry.num_chars + prefix_chars + len(word)
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 else 0.
 
-                    new_score = score + logprob + unigram_bonus
+                    new_score = entry.score + logprob + unigram_bonus
                     done = new_num_chars >= length
-#                    done = False#
-                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus]
+                    yield BeamEntry(new_score, new_words, done, last_state, word_idx, new_num_chars, entry.bonuses + [unigram_bonus])
         beam = heapq.nlargest(beam_width, candidates())
         prefix = ''
-    if num_to_return is None:
-        num_to_return = beam_width
-    return [dict(score=score, words=words, done=done, num_chars=num_chars, bonuses=bonuses) for score, words, done, _, _, num_chars, bonuses in sorted(beam, reverse=True)[:num_to_return]]
+    # nlargest guarantees that its result is sorted descending.
+    return beam
 
 def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
     if model is None:
@@ -448,7 +449,15 @@ def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
 
     state, _ = model.get_state(context_toks)
     ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
-    return [(ent['words'], None) for ent in ents[:n]]
+    result = [ents.pop(0)]
+    first_words = {ent.words[0] for ent in result}
+    while len(result) < n and len(ents) > 0:
+        ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
+        best = ents.pop(0)
+        first_words.add(best.words[0])
+        result.append(best)
+
+    return [(ent.words, None) for ent in result]
 
 
 
