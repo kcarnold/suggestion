@@ -60,6 +60,7 @@ class MasterStateStore {
   constructor() {
     this.__version__ = 1;
     M.extendObservable(this, {
+      block: 0,
       page: START_PAGE,
       experimentState: new ExperimentStateStore(),
     });
@@ -72,6 +73,15 @@ class MasterStateStore {
     switch (event.type) {
     case 'typingDone':
       this.page = 'edit';
+      break;
+    case 'editingDone':
+      if (this.block === 0) {
+        this.block = 1;
+        this.experimentState = new ExperimentStateStore();
+        this.page = 'experiment';
+      } else {
+        this.page = 'postSurvey';
+      }
       break;
     default:
     }
