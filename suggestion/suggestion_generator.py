@@ -423,7 +423,9 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
                 start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(entry.words) + (prefix,))
                 next_words = collect_words_in_range(start_idx, end_idx, i + 1)
                 stats.append((end_idx - start_idx, len(next_words)))
-                assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
+                if len(next_words) == 0:
+                    assert model.id2str[entry.last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
+                    continue
                 new_state = kenlm.State()
                 for next_idx, word in enumerate(next_words):
                     is_punct = word[0] in '<.!?'
