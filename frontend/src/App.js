@@ -170,9 +170,6 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
   }
 }));
 
-// const ExperimentScreen = inject((allStores) => ({
-//   state: allStores.state.experimentState,
-//   dispatch: allStores.dispatch}))(observer(class ExperimentScreen extends Component {
 const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentScreen extends Component {
   render() {
     let {state} = this.props;
