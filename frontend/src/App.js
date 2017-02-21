@@ -190,7 +190,7 @@ class EditingControl extends Component {
     this.elt.value = this.props.initialValue;
   }
   render() {
-    return <textarea ref={elt => {this.elt = elt}} />
+    return <textarea ref={elt => {this.elt = elt}} />;
   }
 }
 
@@ -203,6 +203,14 @@ const App = observer(class App extends Component {
         break;
       case 'edit':
         screen = <div className="EditPage">
+          <div style={{backgroundColor: '#ccc', color: 'black'}}>
+            Now, edit what you wrote to make it better. When you're done, tap
+            <button onClick={evt => {
+              if (confirm("Are you sure you're done?")) {
+                dispatch({type: "editingDone"});
+              }
+            }}>Done</button>
+          </div>
           <EditingControl initialValue={state.experimentState.curText} />
         </div>;
         break;
