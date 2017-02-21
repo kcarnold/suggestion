@@ -205,17 +205,17 @@ sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths
 print(" Done.")
 
 def collect_words_in_range(start, after_end, word_idx):
-    words = set()
+    words = []
     if start == after_end:
         return words
-    words.add(sufarr.get_suffix_by_idx(start)[word_idx])
+    word = sufarr.docs[sufarr.doc_idx[start]][sufarr.tok_idx[start] + word_idx]
+    words.append(word)
     for i in range(start + 1, after_end):
         # Invariant: words contains all words at offset word_idx in suffixes from
         # start to i.
         if sufarr.lcp[i - 1] <= word_idx:
-            word = sufarr.get_suffix_by_idx(i)[word_idx]
-            assert word not in words
-            words.add(word)
+            word = sufarr.docs[sufarr.doc_idx[i]][sufarr.tok_idx[i] + word_idx]
+            words.append(word)
     return words
 
 
@@ -289,7 +289,7 @@ def generate_phrase_from_sufarr(model, sufarr, context_toks, length, prefix_logp
     generated_logprobs = np.empty(length)
     for i in range(length):
         start_idx, end_idx = sufarr.search_range((context_toks[-1],) + tuple(phrase) + ('',))
-        next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
+        next_words = collect_words_in_range(start_idx, end_idx, i + 1)
 
         if prefix_logprobs is not None:
             prior_logprobs = np.full(len(next_words), -10)
