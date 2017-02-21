@@ -149,7 +149,7 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
       <div style={{backgroundColor: '#ccc', color: 'black'}}>
         <button onClick={evt => {
           if(confirm("Are you sure you're done?")) {
-            dispatch({type: 'typingDone'});
+            dispatch({type: 'next'});
           }
         }}>Done</button>
       </div>
@@ -171,40 +171,66 @@ class EditingControl extends Component {
   }
 }
 
+const NextBtn = inject('dispatch')((props) => <button onClick={() => {
+  if (!props.confirm || confirm("Are you sure?"))
+    dispatch({type: 'next'})
+  }}>{props.children || "Next"}</button>);
+const Consent = () => <div>Consent <NextBtn /></div>;
+const SelectRestaurants = () => <div>
+  <p>Think of 2 restaurants or cafes you've been to recently.</p>
+  <div>1. <input/><br /> When were you last there? <input/></div>
+  <div>2. <input/><br /> When were you last there? <input/></div>
+  <NextBtn />
+  </div>;
+
+
+
+const Instructions = () => <div>Instructions <NextBtn /></div>;
+const EditScreen = () => <div className="EditPage">
+    <div style={{backgroundColor: '#ccc', color: 'black'}}>
+      Now, edit what you wrote to make it better. When you're done, tap <NextBtn confirm={true}>Done</NextBtn>
+    </div>
+    <EditingControl initialValue={state.experimentState.curText} />
+  </div>;
+const PostTaskSurvey = () => <div>Post-Task <NextBtn /></div>;
+const PostExpSurvey = () => <div>Post-Exp <NextBtn /></div>;
+const Done = () => <div>Thanks! Your code is {clientId}.</div>;
+
+const DispatchEvent = inject('dispatch')(class DispatchEvent extends Component {
+  componentDidMount() {
+    this.props.dispatch(this.props.event);
+    this.props.dispatch({type: 'next'});
+  }
+  render() {
+    return null;
+  }
+})
+
+const screens = [
+<Consent />,
+<SelectRestaurants />,
+<DispatchEvent event={{type: 'setupExperiment', block: 0}} />,
+<Instructions />,
+<ExperimentScreen />,
+<EditScreen />,
+<PostTaskSurvey />,
+<DispatchEvent event={{type: 'setupExperiment', block: 1}} />,
+<Instructions />,
+<ExperimentScreen />,
+<EditScreen />,
+<PostTaskSurvey />,
+<PostExpSurvey />,
+<Done />,
+];
+
 const App = observer(class App extends Component {
   render() {
-    let screen;
-    switch(state.page) {
-      case 'experiment':
-        screen = <ExperimentScreen />;
-        break;
-      case 'edit':
-        screen = <div className="EditPage">
-          <div style={{backgroundColor: '#ccc', color: 'black'}}>
-            Now, edit what you wrote to make it better. When you're done, tap
-            <button onClick={evt => {
-              if (confirm("Are you sure you're done?")) {
-                dispatch({type: "editingDone"});
-              }
-            }}>Done</button>
-          </div>
-          <EditingControl initialValue={state.experimentState.curText} />
-        </div>;
-        break;
-      case 'done':
-        screen = <div>
-          Thanks! Your code is {clientId}.
-        </div>;
-        break;
-      default:
-        debugger;
-    }
     return (
       <Provider state={state} dispatch={dispatch}>
-      <div className="App">
-        {screen}
-        <div className="clientId">{clientId}</div>
-      </div>
+        <div className="App">
+          {screens[state.screenNum]}
+          <div className="clientId">{clientId}</div>
+        </div>
       </Provider>
     );
   }

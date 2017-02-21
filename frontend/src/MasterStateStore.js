@@ -3,16 +3,13 @@ import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 
 
-let START_PAGE = 'experiment';
-
-
 export class MasterStateStore {
   constructor() {
     this.__version__ = 1;
     M.extendObservable(this, {
-      block: 0,
-      page: START_PAGE,
-      experimentState: new ExperimentStateStore(),
+      screenNum: 0,
+      block: null,
+      experimentState: null,
       get suggestionRequestParams() {
         return {
           rare_word_bonus: this.block === 0 ? 1 : 0.,
@@ -27,17 +24,12 @@ export class MasterStateStore {
       this.experimentState.handleEvent(event);
     }
     switch (event.type) {
-    case 'typingDone':
-      this.page = 'edit';
+    case 'next':
+      this.screenNum++;
       break;
-    case 'editingDone':
-      if (this.block === 0) {
-        this.block = 1;
-        this.experimentState = new ExperimentStateStore();
-        this.page = 'experiment';
-      } else {
-        this.page = 'postSurvey';
-      }
+    case 'setupExperiment':
+      this.experimentState = new ExperimentStateStore();
+      this.block = event.block;
       break;
     default:
     }
