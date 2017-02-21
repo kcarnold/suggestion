@@ -131,19 +131,6 @@ class MyWSHandler(tornado.websocket.WebSocketHandler):
         if self.participant is not None:
             self.participant.disconnected(self)
 
-def get_suggestions(sofar, cur_word, domain, rare_word_bonus):
-    toks = suggestion_generator.tokenize_sofar(sofar)
-    prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
-    prefix = ''.join(item['letter'] for item in cur_word)
-    # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-    temperature = 0.
-    if temperature == 0:
-        phrases = suggestion_generator.generate_by_beamsearch(
-            domain, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus)
-    else:
-        phrases = suggestion_generator.generate_diverse_phrases(
-            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
-    return phrases
 
 class WebsocketHandler(MyWSHandler):
     kind = 'client'
@@ -164,7 +151,7 @@ class WebsocketHandler(MyWSHandler):
             # if self.participant is not None:
             #     self.participant.log(dict(type='clientMessage', msg=request))
             if request['type'] == 'requestSuggestions':
-                phrases = yield process_pool.submit(get_suggestions,
+                phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
                     request['sofar'], request['cur_word'], domain=request.get('domain', 'yelp_train'),
                     rare_word_bonus=request.get('rare_word_bonus', 1.0))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))

@@ -198,11 +198,11 @@ def get_model(name):
     return models[name]
 
 
-print("Loading docs...", end='', flush=True)
+print("Loading docs...", end='', file=sys.stderr, flush=True)
 docs = json.load(open(os.path.join(paths.models, 'tokenized_reviews.json')))
-print(', suffix array...', end='', flush=True)
+print(', suffix array...', end='', file=sys.stderr, flush=True)
 sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
-print(" Done.")
+print(" Done.", file=sys.stderr)
 
 def collect_words_in_range(start, after_end, word_idx):
     words = []
@@ -516,3 +516,19 @@ def phrases_to_suggs(phrases):
     def de_numpy(x):
         return x.tolist() if x is not None else None
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
+
+
+def get_suggestions(sofar, cur_word, domain, rare_word_bonus):
+    toks = tokenize_sofar(sofar)
+    prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
+    prefix = ''.join(item['letter'] for item in cur_word)
+    # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
+    temperature = 0.
+    if temperature == 0:
+        phrases = generate_by_beamsearch(
+            domain, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus)
+    else:
+        phrases = generate_diverse_phrases(
+            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
+    return phrases
+
