@@ -8,9 +8,12 @@ import datrie
 from collections import defaultdict
 import numpy as np
 import nltk
+import ujson as json
+import joblib
 
 from .paths import paths
 from .tokenization import tokenize_mid_document
+from . import suffix_array
 
 LOG10 = np.log(10)
 
@@ -195,6 +198,27 @@ def get_model(name):
     return models[name]
 
 
+print("Loading docs...", end='', flush=True)
+docs = json.load(open(os.path.join(paths.models, 'tokenized_reviews.json')))
+print(', suffix array...', end='', flush=True)
+sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
+print(" Done.")
+
+def collect_words_in_range(start, after_end, word_idx):
+    words = []
+    if start == after_end:
+        return words
+    word = sufarr.docs[sufarr.doc_idx[start]][sufarr.tok_idx[start] + word_idx]
+    words.append(word)
+    for i in range(start + 1, after_end):
+        # Invariant: words contains all words at offset word_idx in suffixes from
+        # start to i.
+        if sufarr.lcp[i - 1] <= word_idx:
+            word = sufarr.docs[sufarr.doc_idx[i]][sufarr.tok_idx[i] + word_idx]
+            words.append(word)
+    return words
+
+
 
 from scipy.misc import logsumexp
 def softmax(scores):
@@ -256,6 +280,47 @@ def generate_phrase(model, context_toks, length, prefix_logprobs=None, **kw):
     return phrase[len(context_toks):], generated_logprobs
 
 
+def generate_phrase_from_sufarr(model, sufarr, context_toks, length, prefix_logprobs=None, temperature=1.):
+    if context_toks[0] == '<s>':
+        state, _ = model.get_state(context_toks[1:], bos=True)
+    else:
+        state, _ = model.get_state(context_toks, bos=False)
+    phrase = []
+    generated_logprobs = np.empty(length)
+    for i in range(length):
+        start_idx, end_idx = sufarr.search_range((context_toks[-1],) + tuple(phrase) + ('',))
+        next_words = collect_words_in_range(start_idx, end_idx, i + 1)
+
+        if prefix_logprobs is not None:
+            prior_logprobs = np.full(len(next_words), -10)
+            for logprob, prefix in prefix_logprobs:
+                for nextword_idx, word in enumerate(next_words):
+                    if word.startswith(prefix):
+                        prior_logprobs[nextword_idx] = logprob
+        else:
+            prior_logprobs = None
+        if len(next_words) == 0:
+            raise GenerationFailedException
+        vocab_indices = [model.model.vocab_index(word) for word in next_words]
+        logprobs = model.eval_logprobs_for_words(state, vocab_indices)
+        if prior_logprobs is not None:
+            logprobs += prior_logprobs
+        logprobs /= temperature
+        probs = softmax(logprobs)
+
+        picked_subidx = np.random.choice(len(probs), p=probs)
+        picked_idx = vocab_indices[picked_subidx]
+        new_state = kenlm.State()
+        model.model.base_score_from_idx(state, picked_idx, new_state)
+        state = new_state
+        word = next_words[picked_subidx]
+        phrase.append(word)
+        generated_logprobs[i] = np.log(probs[picked_subidx])
+        prefix_logprobs = None
+    return phrase, generated_logprobs
+
+
+
 def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=None, **kw):
     if model is None:
         model = 'yelp_train'
@@ -272,13 +337,14 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
     for idx in np.random.choice(len(first_words), min(len(first_words), n), p=first_word_probs, replace=False):
         first_word = model.id2str[first_words[idx]]
         first_word_logprob = np.log(first_word_probs[idx])
-        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
+#        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
+        phrase, phrase_logprobs = generate_phrase_from_sufarr(model, sufarr, context_toks + [first_word], length - 1, **kw)
         res.append(([first_word] + phrase, np.hstack(([first_word_logprob], phrase_logprobs))))
     return res
 
 
 def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=None):
-    start_state, start_score = model.get_state(start_words)
+    start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(start_score, [], False, start_state, None, 0)]
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
@@ -318,6 +384,82 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
                     yield score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state), new_words, new_num_chars >= length, last_state, word_idx, new_num_chars
         beam = heapq.nlargest(beam_width, candidates())
     return [dict(score=score, words=[model.id2str[word] for word in words], done=done, num_chars=num_chars) for score, words, done, _, _, num_chars in sorted(beam, reverse=True)]
+
+
+def get_unigram_probs(model):
+    logprobs = np.empty(len(model.id2str))
+    state = model.null_context_state
+    state2 = kenlm.State()
+    for i, word in enumerate(model.id2str):
+        if i < 4:
+            logprobs[i] = -np.inf
+        else:
+            logprobs[i] = model.model.base_score_from_idx(state, i, state2)
+    logprobs *= np.log(10)
+    return logprobs
+
+
+from collections import namedtuple
+BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
+
+def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_bonus_factor=0., prefix=''):
+    unigram_probs = get_unigram_probs(model)
+    LOG10 = np.log(10)
+    start_state, start_score = model.get_state(start_words, bos=False)
+    beam = [BeamEntry(start_score, [], False, start_state, None, 0, [])]
+    stats = []
+    for i in range(length):
+        prefix_chars = 1 if i > 0 else 0
+        def candidates():
+            for entry in beam:
+                if entry.done:
+                    yield entry
+                    continue
+                if entry.last_word_idx is not None:
+                    last_state = kenlm.State()
+                    model.model.base_score_from_idx(entry.penultimate_state, entry.last_word_idx, last_state)
+                else:
+                    last_state = entry.penultimate_state
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(entry.words) + (prefix,))
+                next_words = collect_words_in_range(start_idx, end_idx, i + 1)
+                stats.append((end_idx - start_idx, len(next_words)))
+                assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
+                new_state = kenlm.State()
+                for next_idx, word in enumerate(next_words):
+                    is_punct = word[0] in '<.!?'
+                    word_idx = model.model.vocab_index(word)
+                    new_words = entry.words + [word]
+                    new_num_chars = entry.num_chars + prefix_chars + len(word)
+                    logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 and not is_punct and word not in entry.words else 0.
+
+                    new_score = entry.score + logprob + unigram_bonus
+                    done = new_num_chars >= length
+                    yield BeamEntry(new_score, new_words, done, last_state, word_idx, new_num_chars, entry.bonuses + [unigram_bonus])
+        beam = heapq.nlargest(beam_width, candidates())
+        prefix = ''
+    # nlargest guarantees that its result is sorted descending.
+    # print(stats)
+    return beam
+
+def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
+    if model is None:
+        model = 'yelp_train'
+    if isinstance(model, str):
+        model = get_model(model)
+
+    state, _ = model.get_state(context_toks)
+    ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
+    result = [ents.pop(0)]
+    first_words = {ent.words[0] for ent in result}
+    while len(result) < n and len(ents) > 0:
+        ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
+        best = ents.pop(0)
+        first_words.add(best.words[0])
+        result.append(best)
+
+    return [(ent.words, None) for ent in result]
+
 
 
 def tap_decoder(before_cursor, cur_word, key_rects, beam_width=100, scale=100.):

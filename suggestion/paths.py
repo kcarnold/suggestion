@@ -8,7 +8,8 @@ class paths:
     db = os.path.join(parent, 'database.db')
 
     cache = os.path.join(parent, 'cache')
+    models = os.path.join(parent, 'models')
 
     @classmethod
     def model_basename(cls, model_name):
-        return os.path.join(cls.parent, 'models', model_name)
+        return os.path.join(cls.models, model_name)

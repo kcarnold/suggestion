@@ -1,0 +1,2 @@
+#!/bin/bash
+NODE_ENV=development ./node_modules/babel-cli/bin/babel-node.js --presets react-app analyze.js

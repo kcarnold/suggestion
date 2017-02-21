@@ -22,6 +22,7 @@ html {
 .CurText {
     white-space: pre-line;
     flex: 1 1 auto;
+    padding: 1px;
 }
 
 .Cursor {

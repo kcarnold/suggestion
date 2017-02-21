@@ -19,3 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+Includes qsufsort.c from http://www.larsson.dogma.net/qsufsort.c:
+
+   qsufsort.c
+   Copyright 1999, N. Jesper Larsson, all rights reserved.
+
+   This file contains an implementation of the algorithm presented in "Faster
+   Suffix Sorting" by N. Jesper Larsson (jesper@cs.lth.se) and Kunihiko
+   Sadakane (sada@is.s.u-tokyo.ac.jp).
+
+   This software may be used freely for any purpose. However, when distributed,
+   the original source must be clearly stated, and, when the source code is
+   distributed, the copyright notice must be retained and any alterations in
+   the code must be clearly marked. No warranty is given regarding the quality
+   of this software.
+
