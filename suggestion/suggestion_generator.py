@@ -402,7 +402,7 @@ def get_unigram_probs(model):
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
 
-def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_bonus_factor=0., prefix=''):
+def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix=''):
     unigram_probs = get_unigram_probs(model)
     LOG10 = np.log(10)
     start_state, start_score = model.get_state(start_words, bos=False)
@@ -431,7 +431,7 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_b
                     new_words = entry.words + [word]
                     new_num_chars = entry.num_chars + prefix_chars + len(word)
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 and not is_punct and word not in entry.words else 0.
+                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word_idx > 4 and not is_punct and word not in entry.words else 0.
 
                     new_score = entry.score + logprob + unigram_bonus
                     done = new_num_chars >= length

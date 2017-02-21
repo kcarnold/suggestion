@@ -63,6 +63,12 @@ class MasterStateStore {
       block: 0,
       page: START_PAGE,
       experimentState: new ExperimentStateStore(),
+      get suggestionRequestParams() {
+        return {
+          rare_word_bonus: this.block === 0 ? 1 : 0.,
+          domain: 'yelp_train'
+        };
+      }
     });
   }
 
@@ -101,15 +107,16 @@ M.autorun(() => {
   let seqNum = experimentState.contextSequenceNum;
 
   // The only dependency is contextSequenceNum; other details don't matter.
-  let context = M.untracked(() => experimentState.getSuggestionContext());
-  let {prefix, curWord} = context;
-  ws.send({
-    type: 'requestSuggestions',
-    request_id: seqNum,
-    sofar: prefix,
-    cur_word: curWord,
-    temperature: .5,
-    domain: 'yelp_train',
+  M.untracked(() => {
+    let context = experimentState.getSuggestionContext();
+    let {prefix, curWord} = context;
+    ws.send({
+      type: 'requestSuggestions',
+      request_id: seqNum,
+      sofar: prefix,
+      cur_word: curWord,
+      ...state.suggestionRequestParams
+    });
   });
 });
 
