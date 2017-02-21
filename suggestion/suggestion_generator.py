@@ -407,6 +407,7 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_b
     LOG10 = np.log(10)
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [BeamEntry(start_score, [], False, start_state, None, 0, [])]
+    stats = []
     for i in range(length):
         prefix_chars = 1 if i > 0 else 0
         def candidates():
@@ -420,18 +421,17 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_b
                 else:
                     last_state = entry.penultimate_state
                 start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(entry.words) + (prefix,))
-                next_words = sorted(collect_words_in_range(start_idx, end_idx, i + 1))
+                next_words = collect_words_in_range(start_idx, end_idx, i + 1)
+                stats.append((end_idx - start_idx, len(next_words)))
                 assert len(next_words) > 0, "Somehow we picked a word that didn't exist??"
-#                logprobs = model.eval_logprobs_for_words(state, vocab_indices)
                 new_state = kenlm.State()
                 for next_idx, word in enumerate(next_words):
-                    if word[0] in '<.!?':
-                        continue
+                    is_punct = word[0] in '<.!?'
                     word_idx = model.model.vocab_index(word)
                     new_words = entry.words + [word]
                     new_num_chars = entry.num_chars + prefix_chars + len(word)
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 else 0.
+                    unigram_bonus = -unigram_probs[word_idx]*unigram_bonus_factor if word_idx > 4 and not is_punct and word not in entry.words else 0.
 
                     new_score = entry.score + logprob + unigram_bonus
                     done = new_num_chars >= length
@@ -439,6 +439,7 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, unigram_b
         beam = heapq.nlargest(beam_width, candidates())
         prefix = ''
     # nlargest guarantees that its result is sorted descending.
+    # print(stats)
     return beam
 
 def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
