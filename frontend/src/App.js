@@ -240,6 +240,7 @@ const App = observer(class App extends Component {
       <Provider state={state} dispatch={dispatch}>
       <div className="App">
         {screen}
+        <div className="clientId">{clientId}</div>
       </div>
       </Provider>
     );

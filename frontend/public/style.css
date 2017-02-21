@@ -23,6 +23,13 @@ html {
     height: 100%;
 }
 
+.clientId {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    font-size: 6px;
+}
+
 /*** TEXT ***/
 .CurText {
     white-space: pre-line;
