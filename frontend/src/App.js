@@ -5,7 +5,7 @@ import M from 'mobx';
 import {observer, inject, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {Keyboard} from './Keyboard';
-import {ExperimentStateStore} from './ExperimentState';
+import {MasterStateStore} from './MasterStateStore';
 
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
@@ -52,47 +52,6 @@ function log(event) {
   ws.send({type: 'log', event});
 }
 
-
-let START_PAGE = 'experiment';
-
-
-class MasterStateStore {
-  constructor() {
-    this.__version__ = 1;
-    M.extendObservable(this, {
-      block: 0,
-      page: START_PAGE,
-      experimentState: new ExperimentStateStore(),
-      get suggestionRequestParams() {
-        return {
-          rare_word_bonus: this.block === 0 ? 1 : 0.,
-          domain: 'yelp_train'
-        };
-      }
-    });
-  }
-
-  handleEvent = (event) => {
-    if (this.experimentState) {
-      this.experimentState.handleEvent(event);
-    }
-    switch (event.type) {
-    case 'typingDone':
-      this.page = 'edit';
-      break;
-    case 'editingDone':
-      if (this.block === 0) {
-        this.block = 1;
-        this.experimentState = new ExperimentStateStore();
-        this.page = 'experiment';
-      } else {
-        this.page = 'postSurvey';
-      }
-      break;
-    default:
-    }
-  }
-}
 
 var state = new MasterStateStore();
 registerHandler(state.handleEvent);
