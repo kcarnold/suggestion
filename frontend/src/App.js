@@ -11,14 +11,18 @@ import {MasterStateStore} from './MasterStateStore';
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 
 // Generate a hopefully-unique id
-var clientId = null;
-if (window.location.search.match(/^\?\d{6}$/)) {
-    clientId = window.location.search.slice(1);
-} else if (window.localStorage.getItem('clientId')) {
-    clientId = window.localStorage.getItem('clientId');
-} else {
-    clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
-}
+var clientId = (function() {
+  if (window.location.search === '?reset') {
+    localStorage.clear();
+    window.location.search = '';
+  } else if (window.location.search.match(/^\?\d{6}$/)) {
+    return window.location.search.slice(1);
+  }
+  if (window.localStorage.getItem('clientId')) {
+    return window.localStorage.getItem('clientId');
+  }
+  return _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
+})();
 window.localStorage['clientId'] = clientId;
 ws.sendHello({type: 'init', participantId: clientId});
 
