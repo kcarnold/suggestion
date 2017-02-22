@@ -145,11 +145,11 @@ class Suggestion extends Component {
   }
 }
 
-const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
+const SuggestionsBar = inject('expState', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch} = this.props;
+    const {expState, dispatch} = this.props;
     return <div className="SuggestionsBar">
-      {state.visibleSuggestions.map((sugg, i) => <Suggestion
+      {expState.visibleSuggestions.map((sugg, i) => <Suggestion
         key={i}
         onTap={(evt) => {
           dispatch({type: 'tapSuggestion', slot: i});
@@ -164,18 +164,24 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
   }
 }));
 
+const NextBtn = inject('dispatch', 'state', 'screens')((props) => <button onClick={() => {
+  if (!props.confirm || confirm("Are you sure?")) {
+    let preEvent = props.screens[props.state.screenNum + 1].preEvent;
+    if (preEvent) {
+      props.dispatch(preEvent);
+    }
+    props.dispatch({type: 'next'})
+  }
+  }}>{props.children || "Next"}</button>);
+
 const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentScreen extends Component {
   render() {
     let {state} = this.props;
     let {experimentState} = state;
-    return <Provider state={experimentState} appState={state}>
+    return <Provider expState={experimentState}>
       <div className="ExperimentScreen">
       <div style={{backgroundColor: '#ccc', color: 'black'}}>
-        <button onClick={evt => {
-          if(confirm("Are you sure you're done?")) {
-            dispatch({type: 'next'});
-          }
-        }}>Done</button>
+        <NextBtn confirm={true}>Done</NextBtn>
       </div>
       <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
       </div>
@@ -186,23 +192,10 @@ const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentSc
   }
 }));
 
-class EditingControl extends Component {
-  componentDidMount() {
-    this.elt.value = this.props.initialValue;
-  }
-  render() {
-    return <textarea ref={elt => {this.elt = elt}} />;
-  }
-}
-
 const ControlledInput = inject('dispatch')(({dispatch, name}) => <input
   onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} />);
 
 
-const NextBtn = inject('dispatch')((props) => <button onClick={() => {
-  if (!props.confirm || confirm("Are you sure?"))
-    dispatch({type: 'next'})
-  }}>{props.children || "Next"}</button>);
 const Consent = () => <div>
   <h1>Informed Consent</h1>
   <p>By continuing, you agree that you have been provided with the consent form
@@ -227,49 +220,37 @@ const Instructions = inject('state')(observer(({state}) => <div>
     </ol>
     <p>Tap Next when you're ready to start typing the rough draft.</p>
     <NextBtn /></div>));
-const EditScreen = () => <div className="EditPage">
+const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
       Now, edit what you wrote to make it better. When you're done, tap <NextBtn confirm={true}>Done</NextBtn>
     </div>
-    <EditingControl initialValue={state.experimentState.curText} />
-  </div>;
+    <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
+  </div>));
 const PostTaskSurvey = () => <div>Post-Task <NextBtn /></div>;
 const PostExpSurvey = () => <div>Post-Exp <NextBtn /></div>;
 const Done = () => <div>Thanks! Your code is {clientId}.</div>;
 
-const DispatchEvent = inject('dispatch')(class DispatchEvent extends Component {
-  componentDidMount() {
-    this.props.dispatch(this.props.event);
-    this.props.dispatch({type: 'next'});
-  }
-  render() {
-    return null;
-  }
-})
-
 const screens = [
-<Consent />,
-<SelectRestaurants />,
-<DispatchEvent event={{type: 'setupExperiment', block: 0}} />,
-<Instructions />,
-<ExperimentScreen />,
-<EditScreen />,
-<PostTaskSurvey />,
-<DispatchEvent event={{type: 'setupExperiment', block: 1}} />,
-<Instructions />,
-<ExperimentScreen />,
-<EditScreen />,
-<PostTaskSurvey />,
-<PostExpSurvey />,
-<Done />,
+  {type: 'screen', screen: <Consent />},
+  {type: 'screen', screen: <SelectRestaurants />},
+  {type: 'screen', preEvent: {type: 'setupExperiment', block: 0}, screen: <Instructions />},
+  {type: 'screen', screen: <ExperimentScreen />},
+  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: <EditScreen />},
+  {type: 'screen', screen: <PostTaskSurvey />},
+  {type: 'screen', preEvent: {type: 'setupExperiment', block: 1}, screen: <Instructions />},
+  {type: 'screen', screen: <ExperimentScreen />},
+  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: <EditScreen />},
+  {type: 'screen', screen: <PostTaskSurvey />},
+  {type: 'screen', screen: <PostExpSurvey />},
+  {type: 'screen', screen: <Done />},
 ];
 
 const App = observer(class App extends Component {
   render() {
     return (
-      <Provider state={state} dispatch={dispatch}>
+      <Provider state={state} dispatch={dispatch} screens={screens}>
         <div className="App">
-          {screens[state.screenNum]}
+          {screens[state.screenNum].screen}
           <div className="clientId">{clientId}</div>
         </div>
       </Provider>

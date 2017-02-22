@@ -17,12 +17,12 @@ export class MasterStateStore {
       screenNum: 0,
       block: null,
       experimentState: null,
-      controlledInputs: {},
+      controlledInputs: M.asMap({}),
       get places() {
         let {controlledInputs} = this;
         let res = [
-          {name: controlledInputs.restaurant1, visit: controlledInputs.visit1},
-          {name: controlledInputs.restaurant2, visit: controlledInputs.visit2}
+          {name: controlledInputs.get('restaurant1'), visit: controlledInputs.get('visit1')},
+          {name: controlledInputs.get('restaurant2'), visit: controlledInputs.get('visit2')}
         ];
         if (this.swapPlaceOrder) {
           res.unshift(res.pop());
@@ -34,6 +34,10 @@ export class MasterStateStore {
           rare_word_bonus: this.block === 0 ? 1 : 0.,
           domain: 'yelp_train'
         };
+      },
+      get curEditTextName() { return 'edited-'+this.block; },
+      get curEditText() {
+        return this.controlledInputs.get(this.curEditTextName);
       }
     });
   }
@@ -51,7 +55,10 @@ export class MasterStateStore {
       this.block = event.block;
       break;
     case 'controlledInputChanged':
-      this.controlledInputs[event.name] = event.value;
+      this.controlledInputs.set(event.name, event.value);
+      break;
+    case 'setEditFromExperiment':
+      this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
       break;
     default:
     }
