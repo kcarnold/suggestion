@@ -39,12 +39,17 @@ All server communication comes in this way too.
  */
 
 var eventHandlers = [];
+var dispatchDisabled = false;
 
 function registerHandler(fn) {
   eventHandlers.push(fn);
 }
 
 function dispatch(event) {
+  if (dispatchDisabled) {
+    console.warn("Skipping event because dispatch disabled:", event);
+    return;
+  }
   console.log(event);
   log(event);
   event.timestamp = +new Date();
@@ -57,39 +62,60 @@ function log(event) {
 }
 
 
-var state = new MasterStateStore();
+var state = new MasterStateStore(clientId);
 registerHandler(state.handleEvent);
 
 
-// Auto-runner to watch the context and request suggestions.
-M.autorun(() => {
-  let {experimentState} = state;
-  if (!experimentState)
-    return;
+function startRequestingSuggestions() {
+  // Auto-runner to watch the context and request suggestions.
+  M.autorun(() => {
+    let {experimentState} = state;
+    if (!experimentState)
+      return;
 
-  let seqNum = experimentState.contextSequenceNum;
+    let seqNum = experimentState.contextSequenceNum;
 
-  // The only dependency is contextSequenceNum; other details don't matter.
-  M.untracked(() => {
-    let context = experimentState.getSuggestionContext();
-    let {prefix, curWord} = context;
-    ws.send({
-      type: 'requestSuggestions',
-      request_id: seqNum,
-      sofar: prefix,
-      cur_word: curWord,
-      ...state.suggestionRequestParams
+    // Abort if we already have the suggestions for this context.
+    if (experimentState.lastSuggestionsFromServer.length > 0 &&
+        experimentState.lastSuggestionsFromServer[0].contextSequenceNum === seqNum)
+      return;
+
+    // The only dependency is contextSequenceNum; other details don't matter.
+    M.untracked(() => {
+      let context = experimentState.getSuggestionContext();
+      let {prefix, curWord} = context;
+      ws.send({
+        type: 'requestSuggestions',
+        request_id: seqNum,
+        sofar: prefix,
+        cur_word: curWord,
+        ...state.suggestionRequestParams
+      });
     });
   });
-});
-
+}
 
 ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
+  } else if (msg.type === 'backlog') {
+    msg.body.forEach(msg => {
+      state.handleEvent(msg);
+    });
+    init();
   }
 };
 
+dispatchDisabled = true;
+
+// Kick it off with a request for the backlog. The handler for the response message will call 'init'.
+ws.send({type: 'requestBacklog'});
+
+function init() {
+    dispatchDisabled = false;
+    startRequestingSuggestions();
+    setSize();
+}
 
 function setSize() {
   let width = Math.min(document.documentElement.clientWidth, screen.availWidth);
@@ -106,8 +132,6 @@ function setSize() {
 window.addEventListener('resize', function() {
     setTimeout(setSize, 10);
 });
-
-setSize();
 
 class Suggestion extends Component {
   render() {

@@ -4,6 +4,8 @@ import json
 import time
 import os
 import traceback
+import datetime
+import io
 
 import tornado.ioloop
 import tornado.gen
@@ -13,7 +15,6 @@ import tornado.websocket
 
 from .paths import paths
 
-import datetime
 
 from tornado.options import define, options
 
@@ -63,7 +64,8 @@ class Participant:
         self.connections = []
 
         self.log_file_name = os.path.join(paths.logdir, self.participant_id + '.jsonl')
-        self.log_file = open(self.log_file_name, 'w+')
+        self.log_file = open(self.log_file_name, 'a+')
+        self.log_file.seek(0, io.SEEK_END)
         if self.state is None:
             self.state = dict(INITIAL_STATE)
 
@@ -98,6 +100,13 @@ class Participant:
 
         self.send_to_clients(state=state)
         self.send_to_controllers(state=state)
+
+    def get_log_entries(self):
+        self.log_file.seek(0)
+        log_entries = [json.loads(line) for line in self.log_file]
+        self.log_file.seek(0, io.SEEK_END)
+        return log_entries
+
 
     def send_to_clients(self, **kw):
         for conn in self.connections:
@@ -162,6 +171,8 @@ class WebsocketHandler(MyWSHandler):
                 self.keyRects[request['layer']] = request['keyRects']
             elif request['type'] == 'setState':
                 self.participant.state = request['state']
+            elif request['type'] == 'requestBacklog':
+                self.send_json(type='backlog', body=self.participant.get_log_entries())
             elif request['type'] == 'init':
                 # self.client_id = request['client_id']
                 participant_id = request['participantId']
