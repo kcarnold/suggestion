@@ -195,21 +195,38 @@ class EditingControl extends Component {
   }
 }
 
+const ControlledInput = inject('dispatch')(({dispatch, name}) => <input
+  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} />);
+
+
 const NextBtn = inject('dispatch')((props) => <button onClick={() => {
   if (!props.confirm || confirm("Are you sure?"))
     dispatch({type: 'next'})
   }}>{props.children || "Next"}</button>);
-const Consent = () => <div>Consent <NextBtn /></div>;
+const Consent = () => <div>
+  <h1>Informed Consent</h1>
+  <p>By continuing, you agree that you have been provided with the consent form
+  for this study and agree to its terms.</p>
+  <NextBtn /></div>;
 const SelectRestaurants = () => <div>
   <p>Think of 2 restaurants or cafes you've been to recently.</p>
-  <div>1. <input/><br /> When were you last there? <input/></div>
-  <div>2. <input/><br /> When were you last there? <input/></div>
+  <div>1. <ControlledInput name="restaurant1"/><br /> When were you last there? <ControlledInput name="visit1"/></div>
+  <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/></div>
   <NextBtn />
   </div>;
 
 
 
-const Instructions = () => <div>Instructions <NextBtn /></div>;
+const Instructions = inject('state')(observer(({state}) => <div>
+    <h1>Instructions</h1>
+    <p>Think about your <b>{state.places[0].visit}</b> visit to <b>{state.places[0].name}</b>.</p>
+    <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
+    <ol>
+      <li>Type out a very rough draft. Here we won't be concerned about grammar, coherence, accuracy, etc.</li>
+      <li>Edit what you wrote into a good review.</li>
+    </ol>
+    <p>Tap Next when you're ready to start typing the rough draft.</p>
+    <NextBtn /></div>));
 const EditScreen = () => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
       Now, edit what you wrote to make it better. When you're done, tap <NextBtn confirm={true}>Done</NextBtn>
