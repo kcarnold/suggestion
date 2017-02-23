@@ -13,6 +13,7 @@
     "mobx-react-devtools": "^4.2.10",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
+    "react-star-rating-component": "^1.2.4",
     "seedrandom": "^2.4.2"
   },
   "scripts": {

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import M from 'mobx';
 import {observer, inject, Provider} from 'mobx-react';
+import StarRatingComponent from 'react-star-rating-component';
 import WSClient from './wsclient';
 import {Keyboard} from './Keyboard';
 import {MasterStateStore} from './MasterStateStore';
@@ -240,6 +241,10 @@ const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extend
 const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <input
   onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} value={state.controlledInputs.get(name)} />));
 
+const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
+  name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
+  onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}} />));
+
 const screenViews = {
   Consent: () => <div>
     <h1>Informed Consent</h1>
@@ -249,8 +254,12 @@ const screenViews = {
 
   SelectRestaurants: () => <div>
     <p>Think of 2 restaurants or cafes you've been to recently.</p>
-    <div>1. <ControlledInput name="restaurant1"/><br /> When were you last there? <ControlledInput name="visit1"/></div>
-    <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/></div>
+    <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
+      <br />How would you rate that visit? <ControlledStarRating name="star1" />
+    </div>
+    <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
+      <br />How would you rate that visit? <ControlledStarRating name="star2" />
+    </div>
     <NextBtn />
     </div>,
 
@@ -270,7 +279,7 @@ const screenViews = {
       return <Provider expState={experimentState}>
         <div className="ExperimentScreen">
         <div style={{backgroundColor: '#ccc', color: 'black'}}>
-          Rough draft of review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          Rough draft of {state.curPlace.stars}-star review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           <Timer />
         </div>
         <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
