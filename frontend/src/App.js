@@ -181,15 +181,53 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
   }
 }));
 
+function advance(screens, state, dispatch) {
+  let nextScreen = screens[state.screenNum + 1];
+  if (nextScreen.preEvent) {
+    dispatch(nextScreen.preEvent);
+  }
+  if (nextScreen.timer) {
+    dispatch({type: 'setTimer', start: +new Date(), dur: nextScreen.timer});
+  }
+  dispatch({type: 'next'})
+}
+
 const NextBtn = inject('dispatch', 'state', 'screens')((props) => <button onClick={() => {
   if (!props.confirm || confirm("Are you sure?")) {
-    let preEvent = props.screens[props.state.screenNum + 1].preEvent;
-    if (preEvent) {
-      props.dispatch(preEvent);
-    }
-    props.dispatch({type: 'next'})
+    advance(props.screens, props.state, props.dispatch);
   }
   }}>{props.children || "Next"}</button>);
+
+const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extends Component {
+  state = {remain: Infinity};
+  tick = () => {
+    let {dispatch, state, screens} = this.props;
+    let elapsed = (+new Date() - state.timerStartedAt) / 1000;
+    let remain = state.timerDur - elapsed;
+    this.setState({remain});
+    if (remain > 0) {
+      this.timeout = setTimeout(this.tick, 100);
+    } else {
+      this.timeout = null;
+      advance(screens, state, dispatch);
+    }
+  };
+
+  componentDidMount() {
+    this.tick();
+  }
+
+  componentWillUnmount() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+  }
+
+  render() {
+    let {remain} = this.state;
+    return <div className="timer">{Math.round(remain)}</div>;
+  }
+}));
 
 const ControlledInput = inject('dispatch')(({dispatch, name}) => <input
   onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} />);
@@ -225,6 +263,7 @@ const screenViews = {
         <div className="ExperimentScreen">
         <div style={{backgroundColor: '#ccc', color: 'black'}}>
           <NextBtn confirm={true}>Done</NextBtn>
+          <Timer />
         </div>
         <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
         </div>
@@ -236,7 +275,7 @@ const screenViews = {
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
-      Now, edit what you wrote to make it better. When you're done, press <NextBtn confirm={true}>Done</NextBtn>
+      Now, edit what you wrote to make it better. When you're done, press <NextBtn confirm={true}>Done</NextBtn> <Timer />
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
@@ -254,19 +293,22 @@ const screenViews = {
   ConfirmPairing: () => <div>Just to test that everything is working right, click this button and both your phone and computer should advance: <NextBtn /></div>,
 };
 
+function experimentBlock(blockNum) {
+  return [
+    {preEvent: {type: 'setupExperiment', block: blockNum}, controllerScreen: 'Instructions'},
+    {screen: 'ExperimentScreen', timer: 60},
+    {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: 60},
+    {controllerScreen: 'PostTaskSurvey'},
+  ];
+}
+
 const screens = [
   {controllerScreen: 'Consent'},
   {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
   {controllerScreen: 'ConfirmPairing'},
   {controllerScreen: 'SelectRestaurants'},
-  {preEvent: {type: 'setupExperiment', block: 0}, controllerScreen: 'Instructions'},
-  {screen: 'ExperimentScreen'},
-  {preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
-  {screen: 'PostTaskSurvey'},
-  {preEvent: {type: 'setupExperiment', block: 1}, controllerScreen: 'Instructions'},
-  {screen: 'ExperimentScreen'},
-  {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen'},
-  {controllerScreen: 'PostTaskSurvey'},
+  ...experimentBlock(0),
+  ...experimentBlock(1),
   {controllerScreen: 'PostExpSurvey'},
   {screen: 'Done', controllerScreen: 'Done'},
 ];
@@ -296,3 +338,4 @@ export default App;
 // Globals
 window.M = M;
 window.state = state;
+window.dispatch = dispatch;

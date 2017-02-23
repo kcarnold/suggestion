@@ -19,6 +19,8 @@ export class MasterStateStore {
       block: null,
       experimentState: null,
       controlledInputs: M.asMap({}),
+      timerStartedAt: null,
+      timerDur: null,
       get places() {
         let {controlledInputs} = this;
         let res = [
@@ -51,6 +53,9 @@ export class MasterStateStore {
     case 'next':
       this.screenNum++;
       break;
+    case 'setScreen':
+      this.screenNum = event.screen;
+      break;
     case 'setupExperiment':
       this.experimentState = new ExperimentStateStore();
       this.block = event.block;
@@ -60,6 +65,10 @@ export class MasterStateStore {
       break;
     case 'setEditFromExperiment':
       this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
+      break;
+    case 'setTimer':
+      this.timerStartedAt = event.start;
+      this.timerDur = event.dur;
       break;
     default:
     }
