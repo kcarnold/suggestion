@@ -174,43 +174,24 @@ const NextBtn = inject('dispatch', 'state', 'screens')((props) => <button onClic
   }
   }}>{props.children || "Next"}</button>);
 
-const ExperimentScreen = inject('state', 'dispatch')(observer(class ExperimentScreen extends Component {
-  render() {
-    let {state} = this.props;
-    let {experimentState} = state;
-    return <Provider expState={experimentState}>
-      <div className="ExperimentScreen">
-      <div style={{backgroundColor: '#ccc', color: 'black'}}>
-        <NextBtn confirm={true}>Done</NextBtn>
-      </div>
-      <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
-      </div>
-      <SuggestionsBar />
-      <Keyboard dispatch={this.props.dispatch} />
-    </div>
-    </Provider>;
-  }
-}));
-
 const ControlledInput = inject('dispatch')(({dispatch, name}) => <input
   onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} />);
 
+const screenViews = {
+  Consent: () => <div>
+    <h1>Informed Consent</h1>
+    <p>By continuing, you agree that you have been provided with the consent form
+    for this study and agree to its terms.</p>
+    <NextBtn /></div>,
 
-const Consent = () => <div>
-  <h1>Informed Consent</h1>
-  <p>By continuing, you agree that you have been provided with the consent form
-  for this study and agree to its terms.</p>
-  <NextBtn /></div>;
-const SelectRestaurants = () => <div>
-  <p>Think of 2 restaurants or cafes you've been to recently.</p>
-  <div>1. <ControlledInput name="restaurant1"/><br /> When were you last there? <ControlledInput name="visit1"/></div>
-  <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/></div>
-  <NextBtn />
-  </div>;
+  SelectRestaurants: () => <div>
+    <p>Think of 2 restaurants or cafes you've been to recently.</p>
+    <div>1. <ControlledInput name="restaurant1"/><br /> When were you last there? <ControlledInput name="visit1"/></div>
+    <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/></div>
+    <NextBtn />
+    </div>,
 
-
-
-const Instructions = inject('state')(observer(({state}) => <div>
+  Instructions: inject('state')(observer(({state}) => <div>
     <h1>Instructions</h1>
     <p>Think about your <b>{state.places[0].visit}</b> visit to <b>{state.places[0].name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
@@ -219,38 +200,57 @@ const Instructions = inject('state')(observer(({state}) => <div>
       <li>Edit what you wrote into a good review.</li>
     </ol>
     <p>Tap Next when you're ready to start typing the rough draft.</p>
-    <NextBtn /></div>));
-const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
+    <NextBtn /></div>)),
+
+  ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+      let {experimentState} = state;
+      return <Provider expState={experimentState}>
+        <div className="ExperimentScreen">
+        <div style={{backgroundColor: '#ccc', color: 'black'}}>
+          <NextBtn confirm={true}>Done</NextBtn>
+        </div>
+        <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
+        </div>
+        <SuggestionsBar />
+        <Keyboard dispatch={dispatch} />
+      </div>
+      </Provider>;
+    })),
+
+  EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
       Now, edit what you wrote to make it better. When you're done, tap <NextBtn confirm={true}>Done</NextBtn>
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
-  </div>));
-const PostTaskSurvey = () => <div>Post-Task <NextBtn /></div>;
-const PostExpSurvey = () => <div>Post-Exp <NextBtn /></div>;
-const Done = () => <div>Thanks! Your code is {clientId}.</div>;
+  </div>)),
+
+  PostTaskSurvey: () => <div>Post-Task <NextBtn /></div>,
+  PostExpSurvey: () => <div>Post-Exp <NextBtn /></div>,
+  Done: () => <div>Thanks! Your code is {clientId}.</div>,
+};
 
 const screens = [
-  {type: 'screen', screen: <Consent />},
-  {type: 'screen', screen: <SelectRestaurants />},
-  {type: 'screen', preEvent: {type: 'setupExperiment', block: 0}, screen: <Instructions />},
-  {type: 'screen', screen: <ExperimentScreen />},
-  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: <EditScreen />},
-  {type: 'screen', screen: <PostTaskSurvey />},
-  {type: 'screen', preEvent: {type: 'setupExperiment', block: 1}, screen: <Instructions />},
-  {type: 'screen', screen: <ExperimentScreen />},
-  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: <EditScreen />},
-  {type: 'screen', screen: <PostTaskSurvey />},
-  {type: 'screen', screen: <PostExpSurvey />},
-  {type: 'screen', screen: <Done />},
+  {type: 'screen', screen: 'Consent'},
+  {type: 'screen', screen: 'SelectRestaurants'},
+  {type: 'screen', preEvent: {type: 'setupExperiment', block: 0}, screen: 'Instructions'},
+  {type: 'screen', screen: 'ExperimentScreen'},
+  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
+  {type: 'screen', screen: 'PostTaskSurvey'},
+  {type: 'screen', preEvent: {type: 'setupExperiment', block: 1}, screen: 'Instructions'},
+  {type: 'screen', screen: 'ExperimentScreen'},
+  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
+  {type: 'screen', screen: 'PostTaskSurvey'},
+  {type: 'screen', screen: 'PostExpSurvey'},
+  {type: 'screen', screen: 'Done'},
 ];
 
 const App = observer(class App extends Component {
   render() {
+    let screenName = screens[state.screenNum].screen;
     return (
       <Provider state={state} dispatch={dispatch} screens={screens}>
         <div className="App">
-          {screens[state.screenNum].screen}
+          {React.createElement(screenViews[screenName])}
           <div className="clientId">{clientId}</div>
         </div>
       </Provider>
