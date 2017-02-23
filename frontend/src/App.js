@@ -198,6 +198,14 @@ const NextBtn = inject('dispatch', 'state', 'screens')((props) => <button onClic
   }
   }}>{props.children || "Next"}</button>);
 
+function approxTime(remain) {
+  if (remain > 60)
+    return '~' + Math.round(remain / 60) + ' min';
+  if (remain > 10)
+    return '~' + (Math.round(remain / 10) * 10) + ' sec';
+  return Math.ceil(remain) + ' sec';
+}
+
 const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extends Component {
   state = {remain: Infinity};
   tick = () => {
@@ -225,7 +233,7 @@ const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extend
 
   render() {
     let {remain} = this.state;
-    return <div className="timer">{Math.round(remain)}</div>;
+    return <div className="timer">{approxTime(remain)}</div>;
   }
 }));
 
