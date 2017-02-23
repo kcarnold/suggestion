@@ -5,9 +5,10 @@ import seedrandom from 'seedrandom';
 
 
 export class MasterStateStore {
-  constructor(clientId) {
+  constructor(clientId, kind) {
     this.__version__ = 1;
     this.clientId = clientId;
+    this.kind = kind;
     this.rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
     this.conditionOrder = ['wp', 'pw'][this.rng() < .5 ? 0 : 1];

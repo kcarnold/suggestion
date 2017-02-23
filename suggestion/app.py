@@ -45,8 +45,6 @@ import tornado.autoreload
 tornado.autoreload.add_reload_hook(process_pool.shutdown)
 
 
-INITIAL_STATE = dict()
-
 active_participants = {}
 
 
@@ -66,8 +64,6 @@ class Participant:
         self.log_file_name = os.path.join(paths.logdir, self.participant_id + '.jsonl')
         self.log_file = open(self.log_file_name, 'a+')
         self.log_file.seek(0, io.SEEK_END)
-        if self.state is None:
-            self.state = dict(INITIAL_STATE)
 
     def log(self, event):
         assert self.log_file is not None
@@ -75,52 +71,19 @@ class Participant:
             json.dumps(dict(event, timestamp=datetime.datetime.now().isoformat(), participant_id=self.participant_id)),
             file=self.log_file, flush=True)
 
-    @property
-    def state(self):
-        with db_conn:
-            state_json = db_conn.execute('SELECT state FROM sessions WHERE participant_id=?', (self.participant_id,)).fetchone()
-        if state_json is None:
-            return None
-        else:
-            return json.loads(state_json[0])
-
-    @state.setter
-    def state(self, state):
-        self.log(dict(set_state=state))
-        prev_state = self.state
-        if prev_state is not None:
-            state = dict(prev_state, **state)
-            with db_conn:
-                db_conn.execute('UPDATE sessions SET state=? WHERE participant_id=?', (
-                    json.dumps(state), self.participant_id))
-        else:
-            with db_conn:
-                db_conn.execute('INSERT INTO sessions VALUES (?, ?, ?)', (
-                    self.participant_id, self.log_file_name, json.dumps(state)))
-
-        self.send_to_clients(state=state)
-        self.send_to_controllers(state=state)
-
     def get_log_entries(self):
         self.log_file.seek(0)
         log_entries = [json.loads(line) for line in self.log_file]
         self.log_file.seek(0, io.SEEK_END)
         return log_entries
 
-
-    def send_to_clients(self, **kw):
+    def broadcast(self, msg, exclude_conn):
         for conn in self.connections:
-            if conn.kind == 'client':
-                conn.send_json(**kw)
-
-    def send_to_controllers(self, **kw):
-        for conn in self.connections:
-            if conn.kind == 'controller':
-                conn.send_json(**kw)
+            if conn is not exclude_conn:
+                conn.send_json(**msg)
 
     def connected(self, client):
         self.connections.append(client)
-        client.send_json(state=self.state)
         print(client.kind, 'open', self.participant_id)
 
     def disconnected(self, client):
@@ -142,23 +105,21 @@ class MyWSHandler(tornado.websocket.WebSocketHandler):
 
 
 class WebsocketHandler(MyWSHandler):
-    kind = 'client'
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
         self.log_file = None
         self.participant = None
         self.keyRects = {}
+        # There will also be a 'kind', which gets set only when the client connects.
 
     def open(self):
-        print('open', flush=True)
+        print('ws open', flush=True)
 
     @tornado.gen.coroutine
     def on_message(self, message):
         try:
             start = time.time()
             request = json.loads(message)
-            # if self.participant is not None:
-            #     self.participant.log(dict(type='clientMessage', msg=request))
             if request['type'] == 'requestSuggestions':
                 phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
                     request['sofar'], request['cur_word'], domain=request.get('domain', 'yelp_train'),
@@ -169,19 +130,19 @@ class WebsocketHandler(MyWSHandler):
                 print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
-            elif request['type'] == 'setState':
-                self.participant.state = request['state']
             elif request['type'] == 'requestBacklog':
                 self.send_json(type='backlog', body=self.participant.get_log_entries())
             elif request['type'] == 'init':
-                # self.client_id = request['client_id']
                 participant_id = request['participantId']
+                self.kind = request['kind']
                 assert all(x in string.hexdigits for x in participant_id)
                 self.participant = Participant.get_participant(participant_id)
                 self.participant.connected(self)
+                self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
             elif request['type'] == 'log':
-                self.participant.log(request['event'])
-                self.participant.send_to_controllers(client_log=request['event'])
+                event = request['event']
+                self.participant.log(event)
+                self.participant.broadcast(dict(type='otherEvent', event=event), exclude_conn=self)
             elif request['type'] == 'ping':
                 pass
             else:
@@ -190,53 +151,7 @@ class WebsocketHandler(MyWSHandler):
             traceback.print_exc()
 
     def check_origin(self, origin):
-        return True
-
-
-class ControllerHandler(MyWSHandler):
-    kind = 'controller'
-
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
-        self.participant = None
-
-    def open(self):
-        print('controller open', flush=True)
-
-    def on_message(self, message):
-        request = json.loads(message)
-        if request['type'] == 'init':
-            participant_id = request['participantId']
-            assert all(x in string.hexdigits for x in participant_id)
-            self.participant = Participant.get_participant(participant_id)
-            self.participant.connected(self)
-        elif request['type'] == 'setState':
-            self.participant.state = request['newState']
-
-
-class Admin(MyWSHandler):
-    def on_message(self, message):
-        request = json.loads(message)
-        if request['type'] == 'dump':
-            res = []
-            for participant_id, participant in active_participants.items():
-                res.append(dict(
-                    participant_id=participant_id,
-                    state=participant.state,
-                    active=len(participant.client_connections) or len(participant.controller_connections)))
-            self.send_json(dump=res)
-        elif request['type'] == 'setState':
-            active_participants[request['participant_id']].state = request['state']
-        elif request['type'] == 'sendMsg':
-            participant_id = request['participant_id']
-            msg = request['msg']
-            participant = active_participants[participant_id]
-            if request.get('controller', True):
-                participant.send_to_controllers(**msg)
-            if request.get('client', True):
-                participant.send_to_clients(**msg)
-
-    def check_origin(self, origin):
+        """Allow any CORS access."""
         return True
 
 
@@ -254,8 +169,6 @@ class Application(tornado.web.Application):
         handlers = [
             (r'/', MainHandler),
             (r"/ws", WebsocketHandler),
-            (r"/wsController", ControllerHandler),
-            (r"/wsAdmin", Admin),
         ]
         tornado.web.Application.__init__(self, handlers, **settings)
 

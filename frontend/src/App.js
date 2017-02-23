@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import M from 'mobx';
-// unused: observable, action, toJS, transaction
 import {observer, inject, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {Keyboard} from './Keyboard';
@@ -10,21 +9,32 @@ import {MasterStateStore} from './MasterStateStore';
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 
-// Generate a hopefully-unique id
-var clientId = (function() {
-  if (window.location.search === '?reset') {
-    localStorage.clear();
-    window.location.search = '';
-  } else if (window.location.search.match(/^\?\d{6}$/)) {
-    return window.location.search.slice(1);
+// Request params if needed.
+var [clientId, clientKind] = (function() {
+  let params = window.location.search.slice(1);
+  let match = params.match(/^(\w+)-(\w+)$/);
+  let clientId, kind;
+  if (match) {
+    clientId = match[1];
+    kind = match[2];
+    return [clientId, kind];
   }
-  if (window.localStorage.getItem('clientId')) {
-    return window.localStorage.getItem('clientId');
+  if (params === 'gen') {
+    while(true) {
+      kind = prompt("Enter the letter 'c' if this is your computer, 'p' if this is your phone.");
+      if (kind.length === 0) continue;
+      break;
+    }
+    clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
+    window.location.search = '?' +  clientId + '-' + kind;
+    // That should cause a reload.
+  } else {
+    window.location.search = '?' + prompt("Enter your code:");
   }
-  return _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
+  return [null, null];
 })();
-window.localStorage['clientId'] = clientId;
-ws.sendHello({type: 'init', participantId: clientId});
+
+ws.sendHello({type: 'init', participantId: clientId, kind: clientKind});
 
 
 /**** Event dispatching
@@ -51,8 +61,9 @@ function dispatch(event) {
     return;
   }
   console.log(event);
+  event.jsTimestamp = +new Date();
+  event.kind = clientKind;
   log(event);
-  event.timestamp = +new Date();
   eventHandlers.forEach(fn => fn(event));
 }
 
@@ -62,7 +73,7 @@ function log(event) {
 }
 
 
-var state = new MasterStateStore(clientId);
+var state = new MasterStateStore(clientId, clientKind);
 registerHandler(state.handleEvent);
 
 
@@ -103,6 +114,10 @@ ws.onmessage = function(msg) {
       state.handleEvent(msg);
     });
     init();
+  } else if (msg.type === 'otherEvent') {
+    console.log('otherEvent', msg.event);
+    // Keep all the clients in lock-step.
+    state.handleEvent(msg.event);
   }
 };
 
@@ -113,8 +128,10 @@ ws.send({type: 'requestBacklog'});
 
 function init() {
     dispatchDisabled = false;
-    startRequestingSuggestions();
-    setSize();
+    if (clientKind === 'phone') {
+      startRequestingSuggestions();
+      setSize();
+    }
 }
 
 function setSize() {
@@ -219,7 +236,7 @@ const screenViews = {
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
-      Now, edit what you wrote to make it better. When you're done, tap <NextBtn confirm={true}>Done</NextBtn>
+      Now, edit what you wrote to make it better. When you're done, press <NextBtn confirm={true}>Done</NextBtn>
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
@@ -227,6 +244,8 @@ const screenViews = {
   PostTaskSurvey: () => <div>Post-Task <NextBtn /></div>,
   PostExpSurvey: () => <div>Post-Exp <NextBtn /></div>,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
+  LookAtPhone: () => <div>Complete this step on your phone.</div>,
+  LookAtComputer: () => <div>Complete this step on your computer.</div>
 };
 
 const screens = [
@@ -238,7 +257,7 @@ const screens = [
   {type: 'screen', screen: 'PostTaskSurvey'},
   {type: 'screen', preEvent: {type: 'setupExperiment', block: 1}, screen: 'Instructions'},
   {type: 'screen', screen: 'ExperimentScreen'},
-  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
+  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen'},
   {type: 'screen', screen: 'PostTaskSurvey'},
   {type: 'screen', screen: 'PostExpSurvey'},
   {type: 'screen', screen: 'Done'},
@@ -246,7 +265,13 @@ const screens = [
 
 const App = observer(class App extends Component {
   render() {
-    let screenName = screens[state.screenNum].screen;
+    let screenName;
+    if (clientKind === 'c') {
+      screenName = screens[state.screenNum].controllerScreen || 'LookAtPhone';
+    } else {
+      screenName = screens[state.screenNum].screen || 'LookAtComputer';
+    }
+
     return (
       <Provider state={state} dispatch={dispatch} screens={screens}>
         <div className="App">
