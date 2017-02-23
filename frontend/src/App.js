@@ -288,8 +288,8 @@ const screenViews = {
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
 
-  PostTaskSurvey: () => <div>Post-Task <NextBtn /></div>,
-  PostExpSurvey: () => <div>Post-Exp <NextBtn /></div>,
+  PostTaskSurvey: () => <div>The post-task survey would go here. For now, just click <NextBtn /></div>,
+  PostExpSurvey: () => <div>The post-experiment survey would go here. For now, just click <NextBtn /></div>,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
   LookAtPhone: () => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>,
   LookAtComputer: () => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>,
