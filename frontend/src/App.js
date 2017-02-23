@@ -128,7 +128,7 @@ ws.send({type: 'requestBacklog'});
 
 function init() {
     dispatchDisabled = false;
-    if (clientKind === 'phone') {
+    if (clientKind === 'p') {
       startRequestingSuggestions();
       setSize();
     }
@@ -244,23 +244,31 @@ const screenViews = {
   PostTaskSurvey: () => <div>Post-Task <NextBtn /></div>,
   PostExpSurvey: () => <div>Post-Exp <NextBtn /></div>,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
-  LookAtPhone: () => <div>Complete this step on your phone.</div>,
-  LookAtComputer: () => <div>Complete this step on your computer.</div>
+  LookAtPhone: () => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>,
+  LookAtComputer: () => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>,
+  SetupPairingComputer: () => <div>
+    <p>For this experiment, you'll need a smartphone.</p>
+    <p>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>.</p>
+  </div>,
+  SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
+  ConfirmPairing: () => <div>Just to test that everything is working right, click this button and both your phone and computer should advance: <NextBtn /></div>,
 };
 
 const screens = [
-  {type: 'screen', screen: 'Consent'},
-  {type: 'screen', screen: 'SelectRestaurants'},
-  {type: 'screen', preEvent: {type: 'setupExperiment', block: 0}, screen: 'Instructions'},
-  {type: 'screen', screen: 'ExperimentScreen'},
-  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
-  {type: 'screen', screen: 'PostTaskSurvey'},
-  {type: 'screen', preEvent: {type: 'setupExperiment', block: 1}, screen: 'Instructions'},
-  {type: 'screen', screen: 'ExperimentScreen'},
-  {type: 'screen', preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen'},
-  {type: 'screen', screen: 'PostTaskSurvey'},
-  {type: 'screen', screen: 'PostExpSurvey'},
-  {type: 'screen', screen: 'Done'},
+  {controllerScreen: 'Consent'},
+  {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+  {controllerScreen: 'ConfirmPairing'},
+  {controllerScreen: 'SelectRestaurants'},
+  {preEvent: {type: 'setupExperiment', block: 0}, controllerScreen: 'Instructions'},
+  {screen: 'ExperimentScreen'},
+  {preEvent: {type: 'setEditFromExperiment'}, screen: 'EditScreen'},
+  {screen: 'PostTaskSurvey'},
+  {preEvent: {type: 'setupExperiment', block: 1}, controllerScreen: 'Instructions'},
+  {screen: 'ExperimentScreen'},
+  {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen'},
+  {controllerScreen: 'PostTaskSurvey'},
+  {controllerScreen: 'PostExpSurvey'},
+  {screen: 'Done', controllerScreen: 'Done'},
 ];
 
 const App = observer(class App extends Component {
