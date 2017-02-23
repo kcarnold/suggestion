@@ -237,8 +237,8 @@ const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extend
   }
 }));
 
-const ControlledInput = inject('dispatch')(({dispatch, name}) => <input
-  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} />);
+const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <input
+  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} value={state.controlledInputs.get(name)} />));
 
 const screenViews = {
   Consent: () => <div>
