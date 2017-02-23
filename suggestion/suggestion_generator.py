@@ -429,9 +429,10 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
                 new_state = kenlm.State()
                 for next_idx, word in enumerate(next_words):
                     is_punct = word[0] in '<.!?'
+                    is_special = word[0] == '<'
                     word_idx = model.model.vocab_index(word)
                     new_words = entry.words + [word]
-                    new_num_chars = entry.num_chars + prefix_chars + len(word)
+                    new_num_chars = entry.num_chars + (0 if is_special else prefix_chars + len(word))
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word_idx > 4 and not is_punct and word not in entry.words else 0.
 
@@ -460,7 +461,7 @@ def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
         first_words.add(best.words[0])
         result.append(best)
 
-    return [(ent.words, None) for ent in result]
+    return [([word for word in ent.words if word[0] != '<'], None) for ent in result]
 
 
 
