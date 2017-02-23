@@ -38,6 +38,9 @@ export class MasterStateStore {
           domain: 'yelp_train'
         };
       },
+      get curPlace() {
+        return this.places[this.block];
+      },
       get curEditTextName() { return 'edited-'+this.block; },
       get curEditText() {
         return this.controlledInputs.get(this.curEditTextName);

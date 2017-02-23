@@ -256,7 +256,7 @@ const screenViews = {
 
   Instructions: inject('state')(observer(({state}) => <div>
     <h1>Instructions</h1>
-    <p>Think about your <b>{state.places[0].visit}</b> visit to <b>{state.places[0].name}</b>.</p>
+    <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
     <ol>
       <li>Type out a very rough draft. Here we won't be concerned about grammar, coherence, accuracy, etc.</li>
@@ -270,7 +270,7 @@ const screenViews = {
       return <Provider expState={experimentState}>
         <div className="ExperimentScreen">
         <div style={{backgroundColor: '#ccc', color: 'black'}}>
-          <NextBtn confirm={true}>Done</NextBtn>
+          Rough draft of review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           <Timer />
         </div>
         <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
@@ -283,7 +283,7 @@ const screenViews = {
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
-      Now, edit what you wrote to make it better. When you're done, press <NextBtn confirm={true}>Done</NextBtn> <Timer />
+      Now, edit what you wrote to make it better. <Timer />
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
