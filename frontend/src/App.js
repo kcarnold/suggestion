@@ -52,17 +52,12 @@ All server communication comes in this way too.
  */
 
 var eventHandlers = [];
-var dispatchDisabled = false;
 
 function registerHandler(fn) {
   eventHandlers.push(fn);
 }
 
 function dispatch(event) {
-  if (dispatchDisabled) {
-    console.warn("Skipping event because dispatch disabled:", event);
-    return;
-  }
   console.log(event);
   event.jsTimestamp = +new Date();
   event.kind = clientKind;
@@ -113,9 +108,11 @@ ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
   } else if (msg.type === 'backlog') {
+    state.replaying = true;
     msg.body.forEach(msg => {
       state.handleEvent(msg);
     });
+    state.replaying = false;
     init();
   } else if (msg.type === 'otherEvent') {
     console.log('otherEvent', msg.event);
@@ -124,13 +121,10 @@ ws.onmessage = function(msg) {
   }
 };
 
-dispatchDisabled = true;
-
 // Kick it off with a request for the backlog. The handler for the response message will call 'init'.
 ws.send({type: 'requestBacklog'});
 
 function init() {
-    dispatchDisabled = false;
     if (clientKind === 'p') {
       startRequestingSuggestions();
       setSize();
@@ -319,6 +313,7 @@ const screenViews = {
 
 const App = observer(class App extends Component {
   render() {
+    if (state.replaying) return <div>Loading...</div>;
     let screenName;
     let screenDesc = state.screens[state.screenNum];
     if (clientKind === 'c') {

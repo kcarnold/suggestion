@@ -27,6 +27,7 @@ export class MasterStateStore {
     this.swapPlaceOrder = this.rng() < .5;
 
     M.extendObservable(this, {
+      replaying: true,
       screenNum: 0,
       block: null,
       experimentState: null,
