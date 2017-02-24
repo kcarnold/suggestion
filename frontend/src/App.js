@@ -23,14 +23,16 @@ var [clientId, clientKind] = (function() {
   if (params === 'gen') {
     while(true) {
       kind = prompt("Enter the letter 'c' if this is your computer, 'p' if this is your phone.");
-      if (kind.length === 0) continue;
+      if (!kind || kind.length === 0) continue;
       break;
     }
     clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
     window.location.search = '?' +  clientId + '-' + kind;
-    // That should cause a reload.
+    // That should cause a reload, once the rest of this script finishes.
   } else {
-    window.location.search = '?' + prompt("Enter your code:");
+    let code = prompt("Enter your code:");
+    if (!code) code = 'gen';
+    window.location.search = '?' + code;
   }
   return [null, null];
 })();
