@@ -91,6 +91,19 @@ class Participant:
         print(client.kind, 'close', self.participant_id)
 
 
+class DemoParticipant:
+    participant_id = 'DEMO'
+
+    def log(self, event):
+        return
+
+    def get_log_entries(self):
+        return []
+
+    def broadcast(self, *a, **kw):
+        return
+
+
 class MyWSHandler(tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         # Non-None enables compression with default options.
@@ -135,10 +148,13 @@ class WebsocketHandler(MyWSHandler):
             elif request['type'] == 'init':
                 participant_id = request['participantId']
                 self.kind = request['kind']
-                assert all(x in string.hexdigits for x in participant_id)
-                self.participant = Participant.get_participant(participant_id)
-                self.participant.connected(self)
-                self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
+                if participant_id.startswith('demo'):
+                    self.participant = DemoParticipant()
+                else:
+                    assert all(x in string.hexdigits for x in participant_id)
+                    self.participant = Participant.get_participant(participant_id)
+                    self.participant.connected(self)
+                    self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
             elif request['type'] == 'log':
                 event = request['event']
                 self.participant.log(event)

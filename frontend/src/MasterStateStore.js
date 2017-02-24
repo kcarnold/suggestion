@@ -15,16 +15,45 @@ function experimentBlock({block, prewriteTimer, editTimer}) {
 const prewriteTimer = 120;
 const editTimer = 120;
 
+const ngramFlags = {
+  useSufarr: false,
+  temperature: 0,
+};
+
+const namedConditions = {
+  word: {
+    sugFlags: ngramFlags,
+    showPhrase: false
+  },
+  phrase: {
+    sugFlags: ngramFlags,
+    showPhrase: true
+  },
+  rareButRealPhrase: {
+    sugFlags: {
+      useSufarr: true,
+      rare_word_bonus: 1,
+    },
+    showPhrase: true
+  }
+};
 
 export class MasterStateStore {
   constructor(clientId, kind) {
     this.__version__ = 1;
     this.clientId = clientId;
     this.kind = kind;
+
     this.rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
-    this.conditionOrder = ['wp', 'pw'][this.rng() < .5 ? 0 : 1];
+    this.swapConditionOrder = this.rng() < .5;
     this.swapPlaceOrder = this.rng() < .5;
+    this.conditions = ['word', 'phrase'];
+    if (this.swapConditionOrder) {
+      this.conditions.unshift(this.conditions.pop());
+    }
+
+    let isDemo = (clientId || '').slice(0, 4) === 'demo';
 
     M.extendObservable(this, {
       replaying: true,
@@ -35,6 +64,7 @@ export class MasterStateStore {
       timerStartedAt: null,
       timerDur: null,
       get screens() {
+        if (isDemo) return [{screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
           {controllerScreen: 'Consent', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
@@ -59,18 +89,28 @@ export class MasterStateStore {
       },
       get suggestionRequestParams() {
         return {
-          rare_word_bonus: this.block === 0 ? 1 : 0.,
+          ...this.condition.sugFlags,
           domain: 'yelp_train'
         };
       },
       get curPlace() {
+        if (isDemo) return {name: 'Corner Cafe', visit: 'last night', stars: 4};
         return this.places[this.block];
       },
       get curEditTextName() { return 'edited-'+this.block; },
       get curEditText() {
         return this.controlledInputs.get(this.curEditTextName);
+      },
+      get condition() {
+        if (isDemo) return namedConditions[clientId.slice(4)];
+        return namedConditions[this.conditions[this.block]];
       }
     });
+
+    if (isDemo) {
+      this.block = 0;
+      this.experimentState = new ExperimentStateStore(this.condition);
+    }
   }
 
   handleEvent = (event) => {
@@ -85,8 +125,8 @@ export class MasterStateStore {
       this.screenNum = event.screen;
       break;
     case 'setupExperiment':
-      this.experimentState = new ExperimentStateStore();
       this.block = event.block;
+      this.experimentState = new ExperimentStateStore(this.condition);
       break;
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);

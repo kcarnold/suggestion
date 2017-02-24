@@ -162,6 +162,7 @@ class Suggestion extends Component {
 const SuggestionsBar = inject('expState', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
     const {expState, dispatch} = this.props;
+    let {showPhrase} = expState.condition;
     return <div className="SuggestionsBar">
       {expState.visibleSuggestions.map((sugg, i) => <Suggestion
         key={i}
@@ -171,7 +172,7 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
           evt.stopPropagation();
         }}
         word={sugg.words[0]}
-        preview={sugg.words.slice(1)}
+        preview={showPhrase ? sugg.words.slice(1) : []}
         isValid={sugg.isValid} />
       )}
     </div>;
@@ -207,6 +208,7 @@ const Timer = inject('dispatch', 'state')(observer(class Timer extends Component
   state = {remain: Infinity};
   tick = () => {
     let {dispatch, state} = this.props;
+    if (!state.timerStartedAt) return;
     let elapsed = (+new Date() - state.timerStartedAt) / 1000;
     let remain = state.timerDur - elapsed;
     this.setState({remain});
