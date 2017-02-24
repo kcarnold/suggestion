@@ -343,24 +343,27 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
     return res
 
 
+from collections import namedtuple
+BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
+
 def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=None):
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [(start_score, [], False, start_state, None, 0)]
+    beam = [BeamEntry(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
         prefix_chars = 1 if i > 0 else 0
         def candidates():
-            for score, words, done, penultimate_state, last_word_idx, num_chars in beam:
-                if done:
-                    yield score, words, done, penultimate_state, last_word_idx, num_chars
+            for entry in beam:
+                if entry.done:
+                    yield entry
                     continue
-                if last_word_idx is not None:
+                if i > 0:
                     last_state = kenlm.State()
-                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                    model.model.base_score_from_idx(entry.penultimate_state, entry.last_word_idx, last_state)
                 else:
-                    last_state = penultimate_state
+                    last_state = entry.penultimate_state
                 probs = None
-                if len(words) == 0 and prefix_probs is not None:
+                if i == 0 and prefix_probs is not None:
                     next_words = []
                     probs = []
                     for prob, prefix in prefix_probs:
@@ -368,9 +371,8 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
                             next_words.append(word_idx)
                             probs.append(prob)
                 else:
-                    last_word = words[-1] if words else model.model.vocab_index(start_words[-1])
                     # print(id2str[last_word])
-                    next_words = bigrams.get(last_word, [])
+                    next_words = bigrams.get(entry.last_word_idx, [])
                 new_state = kenlm.State()
                 for next_idx, word_idx in enumerate(next_words):
                     if word_idx == model.eos_idx or word_idx == model.eop_idx:
@@ -379,13 +381,16 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
                         prob = probs[next_idx]
                     else:
                         prob = 0.
-                    new_words = words + [word_idx]
-                    new_num_chars = num_chars + prefix_chars + len(model.id2str[word_idx])
-                    yield score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state), new_words, new_num_chars >= length, last_state, word_idx, new_num_chars
+                    new_score = entry.score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    word = model.id2str[word_idx]
+                    new_words = entry.words + [word]
+                    new_num_chars = entry.num_chars + prefix_chars + len(word)
+                    yield BeamEntry(new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars)
         beam = heapq.nlargest(beam_width, candidates())
-    return [dict(score=score, words=[model.id2str[word] for word in words], done=done, num_chars=num_chars) for score, words, done, _, _, num_chars in sorted(beam, reverse=True)]
+    return beam
 
 
+# TODO: cache this!?
 def get_unigram_probs(model):
     logprobs = np.empty(len(model.id2str))
     state = model.null_context_state
@@ -399,14 +404,11 @@ def get_unigram_probs(model):
     return logprobs
 
 
-from collections import namedtuple
-BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
 
 def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix=''):
     unigram_probs = get_unigram_probs(model)
-    LOG10 = np.log(10)
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [BeamEntry(start_score, [], False, start_state, None, 0, [])]
+    beam = [BeamEntry(0., [], False, start_state, None, 0, [])]
     stats = []
     for i in range(length):
         prefix_chars = 1 if i > 0 else 0
@@ -445,12 +447,13 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
     # print(stats)
     return beam
 
-def generate_by_beamsearch(model, context_toks, n, length, prefix='', **kw):
-    if model is None:
-        model = 'yelp_train'
-    if isinstance(model, str):
-        model = get_model(model)
+def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, temperature, beam_width=50):
+    first_word_ents = beam_search_phrases(model, context_toks, beam_width=10, length=1, prefix_logprobs=prefix_logprobs)[:n]
+    return [ent.words + beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars).words
+        for ent in first_word_ents]
 
+
+def generate_by_beamsearch_sufarr(model, context_toks, n, length, use_sufarr, prefix='', **kw):
     state, _ = model.get_state(context_toks)
     ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
     result = [ents.pop(0)]
@@ -510,28 +513,28 @@ def tokenize_sofar(sofar):
     return ['<s>', "<D>"] + toks[3:-1]
 
 
-def predict_forward(toks, oneword_suggestion, beam_width=50, length=25, length_bonus=0):
-    return dict(one_word=oneword_suggestion, continuation=beam_search_phrases(
-        toks + oneword_suggestion['words'], beam_width=beam_width, length=length, length_bonus=length_bonus)[:10])
-
-
 def phrases_to_suggs(phrases):
     def de_numpy(x):
         return x.tolist() if x is not None else None
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
 
 
-def get_suggestions(sofar, cur_word, domain, rare_word_bonus):
+def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature):
+    model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-    temperature = 0.
     if temperature == 0:
-        phrases = generate_by_beamsearch(
-            domain, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus)
+        if use_sufarr:
+            return generate_by_beamsearch_sufarr(
+                model, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus)
+        else:
+            return generate_by_beamsearch_ngram(
+                model, toks, n=3, beam_width=50, length=30, prefix_logprobs=prefix_logprobs)
     else:
+        # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
-            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature)
+            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature, use_sufarr=use_sufarr)
     return phrases
 

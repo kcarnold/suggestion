@@ -135,8 +135,11 @@ class WebsocketHandler(MyWSHandler):
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
                 phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
-                    request['sofar'], request['cur_word'], domain=request.get('domain', 'yelp_train'),
-                    rare_word_bonus=request.get('rare_word_bonus', 1.0))
+                    request['sofar'], request['cur_word'],
+                    domain=request.get('domain', 'yelp_train'),
+                    rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                    use_sufarr=request.get('useSufarr', False),
+                    temperature=request.get('temperature', 0.))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
                 result['next_word'] = suggestion_generator.phrases_to_suggs(phrases)
                 self.send_json(**result)
