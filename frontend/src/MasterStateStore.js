@@ -12,6 +12,10 @@ function experimentBlock({block, prewriteTimer, editTimer}) {
   ];
 }
 
+const prewriteTimer = 120;
+const editTimer = 120;
+
+
 export class MasterStateStore {
   constructor(clientId, kind) {
     this.__version__ = 1;
@@ -35,8 +39,8 @@ export class MasterStateStore {
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'ConfirmPairing'},
           {controllerScreen: 'SelectRestaurants'},
-          ...experimentBlock(0),
-          ...experimentBlock(1),
+          ...experimentBlock({block: 0, prewriteTimer, editTimer}),
+          ...experimentBlock({block: 1, prewriteTimer, editTimer}),
           {controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
         ];
