@@ -254,6 +254,10 @@ const screenViews = {
     for this study and agree to its terms.</p>
     <NextBtn /></div>,
 
+  ProbablyWrongCode: () => <div>
+    <p>Waiting for consent on computer. If you're seeing this on your phone, you probably mistyped your code.</p>
+  </div>,
+
   SelectRestaurants: () => <div>
     <p>Think of 2 restaurants or cafes you've been to recently.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
@@ -322,7 +326,7 @@ function experimentBlock(blockNum) {
 }
 
 const screens = [
-  {controllerScreen: 'Consent'},
+  {controllerScreen: 'Consent', screen: 'ProbablyWrongCode'},
   {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
   {controllerScreen: 'ConfirmPairing'},
   {controllerScreen: 'SelectRestaurants'},
