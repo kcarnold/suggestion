@@ -23,7 +23,7 @@ define("port", default=5000, help="run on the given port", type=int)
 settings = dict(
     xheaders=True,
     template_path=paths.ui,
-    static_path=paths.ui,
+    static_path=paths.ui + '/static',
     debug=True,
     )
 
@@ -169,6 +169,7 @@ class Application(tornado.web.Application):
         handlers = [
             (r'/', MainHandler),
             (r"/ws", WebsocketHandler),
+            (r"/(style\.css)", tornado.web.StaticFileHandler, dict(path=paths.ui)),
         ]
         tornado.web.Application.__init__(self, handlers, **settings)
 
