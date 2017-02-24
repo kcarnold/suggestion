@@ -3,6 +3,14 @@ import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 import seedrandom from 'seedrandom';
 
+function experimentBlock({block, prewriteTimer, editTimer}) {
+  return [
+    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
+    {screen: 'ExperimentScreen', timer: prewriteTimer},
+    {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
+    {controllerScreen: 'PostTaskSurvey'},
+  ];
+}
 
 export class MasterStateStore {
   constructor(clientId, kind) {
@@ -21,6 +29,18 @@ export class MasterStateStore {
       controlledInputs: M.asMap({}),
       timerStartedAt: null,
       timerDur: null,
+      get screens() {
+        return [
+          {controllerScreen: 'Consent', screen: 'ProbablyWrongCode'},
+          {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+          {controllerScreen: 'ConfirmPairing'},
+          {controllerScreen: 'SelectRestaurants'},
+          ...experimentBlock(0),
+          ...experimentBlock(1),
+          {controllerScreen: 'PostExpSurvey'},
+          {screen: 'Done', controllerScreen: 'Done'},
+        ];
+      },
       get places() {
         let {controlledInputs} = this;
         let res = [

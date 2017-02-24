@@ -184,8 +184,8 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
   }
 }));
 
-function advance(screens, state, dispatch) {
-  let nextScreen = screens[state.screenNum + 1];
+function advance(state, dispatch) {
+  let nextScreen = state.screens[state.screenNum + 1];
   if (nextScreen.preEvent) {
     dispatch(nextScreen.preEvent);
   }
@@ -195,9 +195,9 @@ function advance(screens, state, dispatch) {
   dispatch({type: 'next'})
 }
 
-const NextBtn = inject('dispatch', 'state', 'screens')((props) => <button onClick={() => {
+const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
   if (!props.confirm || confirm("Are you sure?")) {
-    advance(props.screens, props.state, props.dispatch);
+    advance(props.state, props.dispatch);
   }
   }}>{props.children || "Next"}</button>);
 
@@ -209,10 +209,10 @@ function approxTime(remain) {
   return Math.ceil(remain) + ' sec';
 }
 
-const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extends Component {
+const Timer = inject('dispatch', 'state')(observer(class Timer extends Component {
   state = {remain: Infinity};
   tick = () => {
-    let {dispatch, state, screens} = this.props;
+    let {dispatch, state} = this.props;
     let elapsed = (+new Date() - state.timerStartedAt) / 1000;
     let remain = state.timerDur - elapsed;
     this.setState({remain});
@@ -220,7 +220,7 @@ const Timer = inject('dispatch', 'state', 'screens')(observer(class Timer extend
       this.timeout = setTimeout(this.tick, 100);
     } else {
       this.timeout = null;
-      advance(screens, state, dispatch);
+      advance(state, dispatch);
     }
   };
 
@@ -316,37 +316,19 @@ const screenViews = {
   ConfirmPairing: () => <div>Just to test that everything is working right, click this button and both your phone and computer should advance: <NextBtn /></div>,
 };
 
-function experimentBlock(blockNum) {
-  return [
-    {preEvent: {type: 'setupExperiment', block: blockNum}, controllerScreen: 'Instructions'},
-    {screen: 'ExperimentScreen', timer: 60},
-    {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: 60},
-    {controllerScreen: 'PostTaskSurvey'},
-  ];
-}
-
-const screens = [
-  {controllerScreen: 'Consent', screen: 'ProbablyWrongCode'},
-  {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-  {controllerScreen: 'ConfirmPairing'},
-  {controllerScreen: 'SelectRestaurants'},
-  ...experimentBlock(0),
-  ...experimentBlock(1),
-  {controllerScreen: 'PostExpSurvey'},
-  {screen: 'Done', controllerScreen: 'Done'},
-];
 
 const App = observer(class App extends Component {
   render() {
     let screenName;
+    let screenDesc = state.screens[state.screenNum];
     if (clientKind === 'c') {
-      screenName = screens[state.screenNum].controllerScreen || 'LookAtPhone';
+      screenName = screenDesc.controllerScreen || 'LookAtPhone';
     } else {
-      screenName = screens[state.screenNum].screen || 'LookAtComputer';
+      screenName = screenDesc.screen || 'LookAtComputer';
     }
 
     return (
-      <Provider state={state} dispatch={dispatch} screens={screens}>
+      <Provider state={state} dispatch={dispatch}>
         <div className="App">
           {React.createElement(screenViews[screenName])}
           <div className="clientId">{clientId}</div>
