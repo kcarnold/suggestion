@@ -53,7 +53,7 @@ export class Keyboard extends Component {
   render() {
     var keyNodes = {};
     this.keyNodes = keyNodes;
-    return <div className="Keyboard" ref={node => this.node = node} onClick={this.handleClick} onTouchStart={this.handleClick}>{
+    return <div className="Keyboard" ref={node => this.node = node} onTouchStart={this.handleClick}>{
       ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\n'].map(function(row, i) {
           return <div key={i} className="row">{
             _.map(row, function(key, j) {
