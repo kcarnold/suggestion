@@ -31,14 +31,22 @@ var [clientId, clientKind] = (function() {
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 
-var hasMessagesUpTo = {}
+var logs = {};
+window.logs = logs;
 
-function updateBacklogIndices() {
-  ws.setHello([{type: 'init', participantId: clientId, kind: clientKind, hasMessagesUpTo: hasMessagesUpTo}]);
+function updateBacklog() {
+  ws.setHello([{type: 'init', participantId: clientId, kind: clientKind, messageCount: _.mapValues(logs, v => v.length)}]);
+}
+
+function addLogEntry(kind, event) {
+  if (!logs[kind])
+    logs[kind] = [];
+  logs[kind].push(event);
+  updateBacklog();
 }
 
 if (clientId) {
-  updateBacklogIndices();
+  updateBacklog();
   ws.connect();
 }
 
@@ -70,6 +78,7 @@ function dispatch(event) {
 // Every event gets logged to the server. Keep events small!
 function log(event) {
   ws.send({type: 'log', event});
+  addLogEntry(clientKind, event);
 }
 
 
@@ -112,14 +121,15 @@ ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
   } else if (msg.type === 'backlog') {
+    console.log('Backlog', msg);
     let firstTime = !didInit;
     state.replaying = true;
     msg.body.forEach(msg => {
       state.handleEvent(msg);
-      hasMessagesUpTo[msg.kind] = (hasMessagesUpTo[msg.kind] || 0) + 1;
+      addLogEntry(msg.kind, msg);
     });
     state.replaying = false;
-    updateBacklogIndices();
+    updateBacklog();
     if (firstTime) {
       init();
       didInit = true;
@@ -128,6 +138,7 @@ ws.onmessage = function(msg) {
     console.log('otherEvent', msg.event);
     // Keep all the clients in lock-step.
     state.handleEvent(msg.event);
+    addLogEntry(msg.event.kind, msg.event);
   }
 };
 

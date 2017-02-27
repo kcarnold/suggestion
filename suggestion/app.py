@@ -154,14 +154,15 @@ class WebsocketHandler(MyWSHandler):
                     assert all(x in string.hexdigits for x in participant_id)
                     self.participant = Participant.get_participant(participant_id)
                     self.participant.connected(self)
-                    self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
-                    hasMessagesUpTo = request.get('hasMessagesUpTo', {})
+                    # self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
+                    messageCount = request.get('messageCount', {})
+                    print("Client", participant_id, self.kind, "connecting with messages", messageCount)
                     backlog = []
                     cur_msg_idx = {}
                     for entry in self.participant.get_log_entries():
                         kind = entry['kind']
                         idx = cur_msg_idx.get(kind, 0)
-                        if idx > hasMessagesUpTo.get(kind, -1):
+                        if idx >= messageCount.get(kind, 0):
                             backlog.append(entry)
                         cur_msg_idx[kind] = idx + 1
                     self.send_json(type='backlog', body=backlog)
