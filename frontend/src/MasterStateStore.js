@@ -29,7 +29,7 @@ const namedConditions = {
     sugFlags: ngramFlags,
     showPhrase: true
   },
-  rareButRealPhrase: {
+  rarePhrase: {
     sugFlags: {
       useSufarr: true,
       rare_word_bonus: 1,
