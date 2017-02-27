@@ -346,7 +346,7 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
 
-def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=None):
+def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None):
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [BeamEntry(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
     for i in range(length):
@@ -363,10 +363,10 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
                 else:
                     last_state = entry.penultimate_state
                 probs = None
-                if i == 0 and prefix_probs is not None:
+                if i == 0 and prefix_logprobs is not None:
                     next_words = []
                     probs = []
-                    for prob, prefix in prefix_probs:
+                    for prob, prefix in prefix_logprobs:
                         for word, word_idx in model.vocab_trie.items(prefix):
                             next_words.append(word_idx)
                             probs.append(prob)
@@ -385,7 +385,7 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_probs=Non
                     word = model.id2str[word_idx]
                     new_words = entry.words + [word]
                     new_num_chars = entry.num_chars + prefix_chars + len(word)
-                    yield BeamEntry(new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars)
+                    yield BeamEntry(new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None)
         beam = heapq.nlargest(beam_width, candidates())
     return beam
 
@@ -447,13 +447,13 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
     # print(stats)
     return beam
 
-def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, temperature, beam_width=50):
+def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, beam_width=50):
     first_word_ents = beam_search_phrases(model, context_toks, beam_width=10, length=1, prefix_logprobs=prefix_logprobs)[:n]
-    return [ent.words + beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars).words
+    return [(ent.words + beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars)[0].words, None)
         for ent in first_word_ents]
 
 
-def generate_by_beamsearch_sufarr(model, context_toks, n, length, use_sufarr, prefix='', **kw):
+def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **kw):
     state, _ = model.get_state(context_toks)
     ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
     result = [ents.pop(0)]

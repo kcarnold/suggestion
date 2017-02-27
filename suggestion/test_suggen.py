@@ -16,3 +16,23 @@ def test_collect_words_in_range():
 
     ref = sorted(collect_words_in_range_slow(start, end, 2))
     assert ref == suggestion_generator.collect_words_in_range(start, end, 2)
+
+
+def test_get_suggestions():
+    # A smoke test.
+    configs = [
+        dict(rare_word_bonus=1.0, use_sufarr=True, temperature=0.),
+        dict(rare_word_bonus=0.0, use_sufarr=True, temperature=0.),
+        dict(rare_word_bonus=None, use_sufarr=False, temperature=0.),
+        #dict(rare_word_bonus=None, use_sufarr=False, temperature=.5)
+        ]
+    for config in configs:
+        result = suggestion_generator.get_suggestions(
+            sofar="one day , ",
+            cur_word=[],
+            domain='yelp_train',
+            **config)
+        assert len(result) > 0
+        phrase, probs = result[0]
+        assert len(phrase) > 0
+        assert isinstance(phrase[0], str)
