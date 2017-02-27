@@ -259,7 +259,8 @@ const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, 
 
 const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
   name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
-  onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}} />));
+  onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}}
+  renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 const screenViews = {
   Consent: () => <div>
