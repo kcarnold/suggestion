@@ -8,7 +8,12 @@ html {
 }
 
 /*** Overall layout ****/
-.ExperimentScreen {
+.App > div {
+    padding: 10px;
+}
+
+.App > .ExperimentScreen {
+    padding: 0;
     height: calc(100vh - 75px);
     display: flex;
     flex-flow: column nowrap;
