@@ -302,11 +302,11 @@ const screenViews = {
   LookAtComputer: () => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>,
   SetupPairingComputer: () => <div>
     <p>For this experiment, you'll need a smartphone.</p>
-    <p>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>.</p>
+    <p>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>. There will be a button on that page to continue.</p>
     <p>If you have a barcode reader on your phone, you can use scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></p>
   </div>,
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
-  ConfirmPairing: () => <div>Just to test that everything is working right, click this button and both your phone and computer should advance: <NextBtn /></div>,
+  ConfirmPairing: () => <div>Just to test that everything is working, click this button and both your phone and computer should advance: <NextBtn /></div>,
 };
 
 
