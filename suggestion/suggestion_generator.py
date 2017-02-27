@@ -520,7 +520,7 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
 
 
-def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature):
+def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -529,13 +529,13 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
     if temperature == 0:
         if use_sufarr:
             return generate_by_beamsearch_sufarr(
-                model, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus)
+                model, toks, n=3, beam_width=100, length=30, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
         else:
             return generate_by_beamsearch_ngram(
-                model, toks, n=3, beam_width=50, length=30, prefix_logprobs=prefix_logprobs)
+                model, toks, n=3, beam_width=50, length=30, prefix_logprobs=prefix_logprobs, **kw)
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
-            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature, use_sufarr=use_sufarr)
+            domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature, use_sufarr=use_sufarr, **kw)
     return phrases
 
