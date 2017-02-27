@@ -10,7 +10,7 @@ import {MasterStateStore} from './MasterStateStore';
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 
-// Request params if needed.
+// Get client id and kind from params or asking the user.
 var [clientId, clientKind] = (function() {
   let params = window.location.search.slice(1);
   let match = params.match(/^(\w+)-(\w+)$/);
@@ -20,24 +20,20 @@ var [clientId, clientKind] = (function() {
     kind = match[2];
     return [clientId, kind];
   }
-  if (params === 'gen') {
-    while(true) {
-      kind = prompt("Enter the letter 'c' if this is your computer, 'p' if this is your phone.");
-      if (!kind || kind.length === 0) continue;
-      break;
-    }
+  let code = prompt("If you have a code alreday, enter it here, otherwise press OK:");
+  if (!code) {
+    // Generate a code.
     clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
-    window.location.search = '?' +  clientId + '-' + kind;
-    // That should cause a reload, once the rest of this script finishes.
-  } else {
-    let code = prompt("Enter your code:");
-    if (!code) code = 'gen';
-    window.location.search = '?' + code;
+    code = clientId + '-' + 'c';
   }
+  window.location.search = '?' + code;
+  // That should cause a reload, once the rest of this script finishes.
   return [null, null];
 })();
 
-ws.sendHello({type: 'init', participantId: clientId, kind: clientKind});
+if (clientId) {
+  ws.sendHello({type: 'init', participantId: clientId, kind: clientKind});
+}
 
 
 /**** Event dispatching
