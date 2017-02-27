@@ -20,7 +20,7 @@ var [clientId, clientKind] = (function() {
     kind = match[2];
     return [clientId, kind];
   }
-  let code = prompt("If you have a code alreday, enter it here, otherwise press OK:");
+  let code = prompt("If you have a code alreday, enter it here, otherwise just press OK:");
   if (!code) {
     // Generate a code.
     clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
