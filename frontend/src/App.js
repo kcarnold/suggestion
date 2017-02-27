@@ -213,7 +213,7 @@ const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
   if (!props.confirm || confirm("Are you sure?")) {
     advance(props.state, props.dispatch);
   }
-  }}>{props.children || "Next"}</button>);
+  }} disabled={props.disabled}>{props.children || "Next"}</button>);
 
 function approxTime(remain) {
   if (remain > 60)
@@ -256,7 +256,7 @@ const Timer = inject('dispatch', 'state')(observer(class Timer extends Component
 }));
 
 const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <input
-  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} value={state.controlledInputs.get(name)} />));
+  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} value={state.controlledInputs.get(name) || ''} />));
 
 const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
   name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
@@ -273,7 +273,7 @@ const screenViews = {
     <p>Waiting for consent on computer. If you're seeing this on your phone, you probably mistyped your code.</p>
   </div>,
 
-  SelectRestaurants: () => <div>
+  SelectRestaurants: inject('state')(observer(({state}) => <div>
     <p>Think of 2 restaurants or cafes you've been to recently.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
@@ -281,8 +281,9 @@ const screenViews = {
     <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
       <br />How would you rate that visit? <ControlledStarRating name="star2" />
     </div>
-    <NextBtn />
-    </div>,
+    <p>(The Next button will be enabled once all fields are filled out.)</p>
+    <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2'.split(' '), x => state.controlledInputs.get(x))} />
+  </div>)),
 
   Instructions: inject('state')(observer(({state}) => <div>
     <h1>Instructions</h1>
