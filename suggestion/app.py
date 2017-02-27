@@ -91,6 +91,18 @@ class Participant:
         print(client.kind, 'close', self.participant_id)
 
 
+class DemoParticipant:
+    participant_id = 'DEMO'
+
+    def get_log_entries(self):
+        return []
+
+    def log(self, event): return
+    def broadcast(self, *a, **kw): return
+    def connected(self, *a, **kw): return
+    def disconnected(self, *a, **kw): return
+
+
 class MyWSHandler(tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         # Non-None enables compression with default options.
@@ -122,8 +134,11 @@ class WebsocketHandler(MyWSHandler):
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
                 phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
-                    request['sofar'], request['cur_word'], domain=request.get('domain', 'yelp_train'),
-                    rare_word_bonus=request.get('rare_word_bonus', 1.0))
+                    request['sofar'], request['cur_word'],
+                    domain=request.get('domain', 'yelp_train'),
+                    rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                    use_sufarr=request.get('useSufarr', False),
+                    temperature=request.get('temperature', 0.))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
                 result['next_word'] = suggestion_generator.phrases_to_suggs(phrases)
                 self.send_json(**result)
@@ -135,10 +150,13 @@ class WebsocketHandler(MyWSHandler):
             elif request['type'] == 'init':
                 participant_id = request['participantId']
                 self.kind = request['kind']
-                assert all(x in string.hexdigits for x in participant_id)
-                self.participant = Participant.get_participant(participant_id)
-                self.participant.connected(self)
-                self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
+                if participant_id.startswith('demo'):
+                    self.participant = DemoParticipant()
+                else:
+                    assert all(x in string.hexdigits for x in participant_id)
+                    self.participant = Participant.get_participant(participant_id)
+                    self.participant.connected(self)
+                    self.participant.broadcast(dict(type='otherEvent', event=dict(type='connected', kind=self.kind)), exclude_conn=self)
             elif request['type'] == 'log':
                 event = request['event']
                 self.participant.log(event)

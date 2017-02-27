@@ -52,17 +52,12 @@ All server communication comes in this way too.
  */
 
 var eventHandlers = [];
-var dispatchDisabled = false;
 
 function registerHandler(fn) {
   eventHandlers.push(fn);
 }
 
 function dispatch(event) {
-  if (dispatchDisabled) {
-    console.warn("Skipping event because dispatch disabled:", event);
-    return;
-  }
   console.log(event);
   event.jsTimestamp = +new Date();
   event.kind = clientKind;
@@ -113,9 +108,11 @@ ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
   } else if (msg.type === 'backlog') {
+    state.replaying = true;
     msg.body.forEach(msg => {
       state.handleEvent(msg);
     });
+    state.replaying = false;
     init();
   } else if (msg.type === 'otherEvent') {
     console.log('otherEvent', msg.event);
@@ -124,13 +121,10 @@ ws.onmessage = function(msg) {
   }
 };
 
-dispatchDisabled = true;
-
 // Kick it off with a request for the backlog. The handler for the response message will call 'init'.
 ws.send({type: 'requestBacklog'});
 
 function init() {
-    dispatchDisabled = false;
     if (clientKind === 'p') {
       startRequestingSuggestions();
       setSize();
@@ -168,6 +162,7 @@ class Suggestion extends Component {
 const SuggestionsBar = inject('expState', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
     const {expState, dispatch} = this.props;
+    let {showPhrase} = expState.condition;
     return <div className="SuggestionsBar">
       {expState.visibleSuggestions.map((sugg, i) => <Suggestion
         key={i}
@@ -177,7 +172,7 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
           evt.stopPropagation();
         }}
         word={sugg.words[0]}
-        preview={sugg.words.slice(1)}
+        preview={showPhrase ? sugg.words.slice(1) : []}
         isValid={sugg.isValid} />
       )}
     </div>;
@@ -213,6 +208,7 @@ const Timer = inject('dispatch', 'state')(observer(class Timer extends Component
   state = {remain: Infinity};
   tick = () => {
     let {dispatch, state} = this.props;
+    if (!state.timerStartedAt) return;
     let elapsed = (+new Date() - state.timerStartedAt) / 1000;
     let remain = state.timerDur - elapsed;
     this.setState({remain});
@@ -319,6 +315,7 @@ const screenViews = {
 
 const App = observer(class App extends Component {
   render() {
+    if (state.replaying) return <div>Loading...</div>;
     let screenName;
     let screenDesc = state.screens[state.screenNum];
     if (clientKind === 'c') {

@@ -36,8 +36,9 @@ visibleSuggestions is a pure computation based on the last suggestions received 
 
 */
 export class ExperimentStateStore {
-  constructor() {
+  constructor(condition) {
     this.__version__ = 1;
+    this.condition = condition;
     M.extendObservable(this, {
       curText: '',
       tapLocations: [],
