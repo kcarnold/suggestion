@@ -348,20 +348,21 @@ BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last
 
 def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None):
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [BeamEntry(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
+    beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
         prefix_chars = 1 if i > 0 else 0
         def candidates():
             for entry in beam:
-                if entry.done:
+                score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
+                if done:
                     yield entry
                     continue
                 if i > 0:
                     last_state = kenlm.State()
-                    model.model.base_score_from_idx(entry.penultimate_state, entry.last_word_idx, last_state)
+                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
                 else:
-                    last_state = entry.penultimate_state
+                    last_state = penultimate_state
                 probs = None
                 if i == 0 and prefix_logprobs is not None:
                     next_words = []
@@ -372,7 +373,7 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                             probs.append(prob)
                 else:
                     # print(id2str[last_word])
-                    next_words = bigrams.get(entry.last_word_idx, [])
+                    next_words = bigrams.get(last_word_idx, [])
                 new_state = kenlm.State()
                 for next_idx, word_idx in enumerate(next_words):
                     if word_idx == model.eos_idx or word_idx == model.eop_idx:
@@ -381,13 +382,13 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                         prob = probs[next_idx]
                     else:
                         prob = 0.
-                    new_score = entry.score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    new_score = score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     word = model.id2str[word_idx]
-                    new_words = entry.words + [word]
-                    new_num_chars = entry.num_chars + prefix_chars + len(word)
-                    yield BeamEntry(new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None)
+                    new_words = words + [word]
+                    new_num_chars = num_chars + prefix_chars + len(word)
+                    yield new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None
         beam = heapq.nlargest(beam_width, candidates())
-    return beam
+    return [BeamEntry(*ent) for ent in beam]
 
 
 # TODO: cache this!?
