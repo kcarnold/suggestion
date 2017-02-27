@@ -12,8 +12,8 @@ function experimentBlock({block, prewriteTimer, editTimer}) {
   ];
 }
 
-const prewriteTimer = 120;
-const editTimer = 120;
+const prewriteTimer = 60 * 3;
+const editTimer = 60 * 2;
 
 const ngramFlags = {
   useSufarr: false,
