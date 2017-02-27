@@ -7,6 +7,7 @@ function experimentBlock({block, prewriteTimer, editTimer}) {
   return [
     {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
     {screen: 'ExperimentScreen', timer: prewriteTimer},
+    {screen: 'BreakBeforeEditPhone', controllerScreen: 'BreakBeforeEdit'},
     {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {controllerScreen: 'PostTaskSurvey'},
   ];
@@ -75,6 +76,9 @@ export class MasterStateStore {
           {controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
         ];
+      },
+      get nextScreen() {
+        return this.screens[this.screenNum + 1];
       },
       get places() {
         let {controlledInputs} = this;

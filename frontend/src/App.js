@@ -198,7 +198,7 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
 }));
 
 function advance(state, dispatch) {
-  let nextScreen = state.screens[state.screenNum + 1];
+  let nextScreen = state.nextScreen;
   if (nextScreen.preEvent) {
     dispatch(nextScreen.preEvent);
   }
@@ -293,7 +293,7 @@ const screenViews = {
       <li>Type out a very rough draft. Here we won't be concerned about grammar, coherence, accuracy, etc.</li>
       <li>Edit what you wrote into a good review.</li>
     </ol>
-    <p>Tap Next when you're ready to start typing the rough draft.</p>
+    <p>Tap Next when you're ready to start typing the rough draft. You will have {state.nextScreen.timer / 60} minutes (note the timer on top).</p>
     <NextBtn /></div>)),
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
@@ -311,6 +311,14 @@ const screenViews = {
       </div>
       </Provider>;
     })),
+
+  BreakBeforeEdit: inject('state')(observer(({state}) => <div>
+    <p>Time is up for the rough draft. Next, you'll get a chance to edit what you wrote to make it more coherent and accurate. You'll use your computer.</p>
+    <p>You'll have {state.nextScreen.timer / 60} minutes to edit the review.</p>
+    <NextBtn />
+    </div>)),
+
+  BreakBeforeEditPhone: () => <div>Time's up for the rough draft. Follow the instructions on your computer to continue.</div>,
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
