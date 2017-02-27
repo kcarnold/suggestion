@@ -7,9 +7,6 @@ import WSClient from './wsclient';
 import {Keyboard} from './Keyboard';
 import {MasterStateStore} from './MasterStateStore';
 
-//var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
-var ws = new WSClient(`ws://${window.location.host}/ws`);
-
 // Get client id and kind from params or asking the user.
 var [clientId, clientKind] = (function() {
   let params = window.location.search.slice(1);
@@ -31,10 +28,19 @@ var [clientId, clientKind] = (function() {
   return [null, null];
 })();
 
-if (clientId) {
-  ws.sendHello({type: 'init', participantId: clientId, kind: clientKind});
+//var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
+var ws = new WSClient(`ws://${window.location.host}/ws`);
+
+var hasMessagesUpTo = {}
+
+function updateBacklogIndices() {
+  ws.setHello([{type: 'init', participantId: clientId, kind: clientKind, hasMessagesUpTo: hasMessagesUpTo}]);
 }
 
+if (clientId) {
+  updateBacklogIndices();
+  ws.connect();
+}
 
 /**** Event dispatching
 
@@ -100,16 +106,24 @@ function startRequestingSuggestions() {
   });
 }
 
+var didInit = false;
+
 ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
   } else if (msg.type === 'backlog') {
+    let firstTime = !didInit;
     state.replaying = true;
     msg.body.forEach(msg => {
       state.handleEvent(msg);
+      hasMessagesUpTo[msg.kind] = (hasMessagesUpTo[msg.kind] || 0) + 1;
     });
     state.replaying = false;
-    init();
+    updateBacklogIndices();
+    if (firstTime) {
+      init();
+      didInit = true;
+    }
   } else if (msg.type === 'otherEvent') {
     console.log('otherEvent', msg.event);
     // Keep all the clients in lock-step.
@@ -117,9 +131,7 @@ ws.onmessage = function(msg) {
   }
 };
 
-// Kick it off with a request for the backlog. The handler for the response message will call 'init'.
-ws.send({type: 'requestBacklog'});
-
+// The handler for the first backlog call 'init'.
 function init() {
     if (clientKind === 'p') {
       startRequestingSuggestions();

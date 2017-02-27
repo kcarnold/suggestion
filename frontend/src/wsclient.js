@@ -4,7 +4,7 @@ export default function WSClient(path) {
   self.waitingToReconnect = false;
   self.helloMsgs = [];
 
-  function tryConnect() {
+  self.connect = () => {
     self.attempts++;
     self.waitingToReconnect = false;
     self.ws = new WebSocket(path);
@@ -12,7 +12,7 @@ export default function WSClient(path) {
     self.ws.onclose = onclose;
     self.ws.onerror = onerror;
     self.ws.onmessage = onmessage;
-  }
+  };
 
   self.queue = [];
 
@@ -37,7 +37,7 @@ export default function WSClient(path) {
   function backoffReconnect() {
     if (self.waitingToReconnect) return;
     self.waitingToReconnect = true;
-    setTimeout(tryConnect, Math.min(10, Math.pow(2, self.attempts - 2)) * 1000);
+    setTimeout(self.connect, Math.min(10, Math.pow(2, self.attempts - 2)) * 1000);
   }
 
   function onclose() {
@@ -65,13 +65,13 @@ export default function WSClient(path) {
     }
   }
 
-  self.sendHello = function(msg) {
-    self.helloMsgs.push(msg);
-    if (self.ws.readyState === WebSocket.OPEN) {
-        self.ws.send(JSON.stringify(msg));
-    }
-  }
+  self.isOpen = function() {
+    return self.ws.readyState === WebSocket.OPEN;
+  };
 
-  tryConnect();
+  self.setHello = function(msgs) {
+    self.helloMsgs = msgs;
+  };
+
   return self;
 }
