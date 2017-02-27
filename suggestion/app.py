@@ -94,14 +94,13 @@ class Participant:
 class DemoParticipant:
     participant_id = 'DEMO'
 
-    def log(self, event):
-        return
-
     def get_log_entries(self):
         return []
 
-    def broadcast(self, *a, **kw):
-        return
+    def log(self, event): return
+    def broadcast(self, *a, **kw): return
+    def connected(self, *a, **kw): return
+    def disconnected(self, *a, **kw): return
 
 
 class MyWSHandler(tornado.websocket.WebSocketHandler):
