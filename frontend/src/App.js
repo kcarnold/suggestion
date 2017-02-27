@@ -301,7 +301,7 @@ const screenViews = {
       return <Provider expState={experimentState}>
         <div className="ExperimentScreen">
         <div style={{backgroundColor: '#ccc', color: 'black'}}>
-          Rough draft of {state.curPlace.stars}-star review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <Timer />
         </div>
         <div className="CurText">{experimentState.curText}<span className="Cursor"></span>
