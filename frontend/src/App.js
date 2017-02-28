@@ -201,13 +201,6 @@ const SuggestionsBar = inject('expState', 'dispatch')(observer(class Suggestions
 }));
 
 function advance(state, dispatch) {
-  let nextScreen = state.nextScreen;
-  if (nextScreen.preEvent) {
-    dispatch(nextScreen.preEvent);
-  }
-  if (nextScreen.timer) {
-    dispatch({type: 'setTimer', start: +new Date(), dur: nextScreen.timer});
-  }
   dispatch({type: 'next'})
 }
 

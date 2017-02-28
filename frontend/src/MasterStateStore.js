@@ -117,10 +117,11 @@ export class MasterStateStore {
     }
   }
 
-  handleEvent = (event) => {
+  handleEvent = M.action((event) => {
     if (this.experimentState) {
       this.experimentState.handleEvent(event);
     }
+    let screenAtStart = this.screenNum;
     switch (event.type) {
     case 'externalAction':
       if (event.externalAction === 'completeSurvey') {
@@ -135,21 +136,28 @@ export class MasterStateStore {
     case 'setScreen':
       this.screenNum = event.screen;
       break;
-    case 'setupExperiment':
-      this.block = event.block;
-      this.experimentState = new ExperimentStateStore(this.condition);
-      break;
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);
       break;
-    case 'setEditFromExperiment':
-      this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
-      break;
-    case 'setTimer':
-      this.timerStartedAt = event.start;
-      this.timerDur = event.dur;
-      break;
     default:
     }
-  }
+    if (this.screenNum !== screenAtStart) {
+      // Execute start-of-screen actions.
+      let screen = this.screens[this.screenNum];
+      switch ((screen.preEvent || {}).type) {
+      case 'setupExperiment':
+        this.block = screen.preEvent.block;
+        this.experimentState = new ExperimentStateStore(this.condition);
+        break;
+      case 'setEditFromExperiment':
+        this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
+        break;
+      default:
+      }
+      if (screen.timer) {
+        this.timerStartedAt = event.jsTimestamp;
+        this.timerDur = screen.timer;
+      }
+    }
+  });
 }
