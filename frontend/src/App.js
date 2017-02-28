@@ -4,7 +4,7 @@ import M from 'mobx';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
-import {screenViews} from './Views';
+import {MasterView} from './Views';
 
 
 // Get client id and kind from params or asking the user.
@@ -176,21 +176,9 @@ window.addEventListener('resize', function() {
 
 const App = observer(class App extends Component {
   render() {
-    if (state.replaying) return <div>Loading...</div>;
-    let screenName;
-    let screenDesc = state.screens[state.screenNum];
-    if (clientKind === 'c') {
-      screenName = screenDesc.controllerScreen || 'LookAtPhone';
-    } else {
-      screenName = screenDesc.screen || 'LookAtComputer';
-    }
-
     return (
       <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind}>
-        <div className="App">
-          {React.createElement(screenViews[screenName])}
-          <div className="clientId">{clientId}</div>
-        </div>
+        <MasterView />
       </Provider>
     );
   }

@@ -197,3 +197,19 @@ export const screenViews = {
   </div>),
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
 };
+
+export const MasterView = inject('state')(observer(({state}) => {
+  if (state.replaying) return <div>Loading...</div>;
+  let screenDesc = state.screens[state.screenNum];
+  let screenName;
+  if (state.kind === 'c') {
+    screenName = screenDesc.controllerScreen || 'LookAtPhone';
+  } else {
+    screenName = screenDesc.screen || 'LookAtComputer';
+  }
+  return (
+    <div className="App">
+      {React.createElement(screenViews[screenName])}
+      <div className="clientId">{state.clientId}</div>
+    </div>);
+}));
