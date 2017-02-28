@@ -69,7 +69,6 @@ export class MasterStateStore {
         return [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-          {controllerScreen: 'ConfirmPairing'},
           {controllerScreen: 'SelectRestaurants'},
           ...experimentBlock({block: 0, prewriteTimer, editTimer}),
           ...experimentBlock({block: 1, prewriteTimer, editTimer}),

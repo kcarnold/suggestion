@@ -282,6 +282,7 @@ const screenViews = {
   </div>)),
 
   Instructions: inject('state')(observer(({state}) => <div>
+    <p>Great, the phone is paired. Let's get ready for the experiment.</p>
     <h1>Instructions</h1>
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
@@ -334,7 +335,6 @@ const screenViews = {
     <p>If you have a barcode reader on your phone, you can use scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></p>
   </div>,
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
-  ConfirmPairing: () => <div>Just to test that everything is working, click this button and both your phone and computer should advance: <NextBtn /></div>,
 };
 
 
