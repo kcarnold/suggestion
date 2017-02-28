@@ -8,14 +8,14 @@ import {Keyboard} from './Keyboard';
 import {MasterStateStore} from './MasterStateStore';
 
 // Get client id and kind from params or asking the user.
-var [clientId, clientKind] = (function() {
-  let params = window.location.search.slice(1);
+var [clientId, clientKind, externalAction] = (function() {
+  let [params, externalAction] = window.location.search.slice(1).split('&');
   let match = params.match(/^(\w+)-(\w+)$/);
   let clientId, kind;
   if (match) {
     clientId = match[1];
     kind = match[2];
-    return [clientId, kind];
+    return [clientId, kind, externalAction];
   }
   let code = prompt("If you have a code alreday, enter it here, otherwise just press OK:");
   if (!code) {
@@ -147,6 +147,9 @@ function init() {
     if (clientKind === 'p') {
       startRequestingSuggestions();
       setSize();
+    }
+    if (externalAction) {
+      dispatch({type: 'externalAction', externalAction});
     }
 }
 

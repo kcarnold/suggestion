@@ -122,6 +122,13 @@ export class MasterStateStore {
       this.experimentState.handleEvent(event);
     }
     switch (event.type) {
+    case 'externalAction':
+      if (event.externalAction === 'completeSurvey') {
+        this.screenNum++;
+      } else {
+        alert("Unknown externalAction: "+event.externalAction);
+      }
+      break;
     case 'next':
       this.screenNum++;
       break;
