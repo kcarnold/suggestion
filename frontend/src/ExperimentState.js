@@ -76,7 +76,7 @@ export class ExperimentStateStore {
             isValid: true,
           });
         }
-        return suggestions;
+        return suggestions.slice(0, 3);
       },
       insertText: M.action((toInsert, charsToDelete, taps) => {
         let cursorPos = this.curText.length;
