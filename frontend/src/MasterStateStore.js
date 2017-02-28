@@ -67,7 +67,7 @@ export class MasterStateStore {
       get screens() {
         if (isDemo) return [{screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
-          {controllerScreen: 'Consent', screen: 'ProbablyWrongCode'},
+          {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'ConfirmPairing'},
           {controllerScreen: 'SelectRestaurants'},

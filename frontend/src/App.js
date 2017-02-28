@@ -266,8 +266,8 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 const screenViews = {
-  Consent: () => <div>
-    <h1>Informed Consent</h1>
+  Welcome: () => <div>
+    <h1>Welcome</h1>
     <p>By continuing, you agree that you have been provided with the consent form
     for this study and agree to its terms.</p>
     <NextBtn /></div>,
