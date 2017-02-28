@@ -7,6 +7,11 @@ import WSClient from './wsclient';
 import {Keyboard} from './Keyboard';
 import {MasterStateStore} from './MasterStateStore';
 
+const surveyURLs = {
+  postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8FWK07Bfg4Xv2br',
+}
+
+
 // Get client id and kind from params or asking the user.
 var [clientId, clientKind, externalAction] = (function() {
   let [params, externalAction] = window.location.search.slice(1).split('&');
@@ -128,6 +133,10 @@ ws.onmessage = function(msg) {
       state.handleEvent(msg);
       addLogEntry(msg.kind, msg);
     });
+    // This needs to happen here so that we don't temporarily display the redirect page.
+    if (externalAction) {
+      dispatch({type: 'externalAction', externalAction});
+    }
     state.replaying = false;
     updateBacklog();
     if (firstTime) {
@@ -147,9 +156,6 @@ function init() {
     if (clientKind === 'p') {
       startRequestingSuggestions();
       setSize();
-    }
-    if (externalAction) {
-      dispatch({type: 'externalAction', externalAction});
     }
 }
 
@@ -258,6 +264,27 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}}
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
+
+class Redirect extends Component {
+  componentDidMount() {
+    // This timeout is necessary to give the current page enough time to log the event that caused this render.
+    // 2 seconds is probably overdoing it, but on the safe side.
+    this.timeout = setTimeout(() => {
+      let nextURL = `${window.location.protocol}//${window.location.host}/?${clientId}-${clientKind}&${this.props.afterEvent}`;
+      window.location.href = this.props.url + "&nextURL=" + encodeURIComponent(nextURL);
+    }, 2000);
+  }
+
+  componentWillUnmount() {
+    // Just in case.
+    clearTimeout(this.timeout);
+  }
+
+  render() {
+    return <div>redirecting...</div>;
+  }
+}
+
 const screenViews = {
   Welcome: () => <div>
     <h1>Welcome</h1>
@@ -324,7 +351,7 @@ const screenViews = {
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
 
-  PostTaskSurvey: () => <div>The post-task survey would go here. For now, just click <NextBtn /></div>,
+  PostTaskSurvey: () => <Redirect url={surveyURLs.postTask} afterEvent={'completeSurvey'} />,
   PostExpSurvey: () => <div>The post-experiment survey would go here. For now, just click <NextBtn /></div>,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
   LookAtPhone: () => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>,
