@@ -13,14 +13,14 @@ const surveyURLs = {
 
 
 // Get client id and kind from params or asking the user.
-var [clientId, clientKind, externalAction] = (function() {
-  let [params, externalAction] = window.location.search.slice(1).split('&');
+var [clientId, clientKind] = (function() {
+  let params = window.location.search.slice(1);
   let match = params.match(/^(\w+)-(\w+)$/);
   let clientId, kind;
   if (match) {
     clientId = match[1];
     kind = match[2];
-    return [clientId, kind, externalAction];
+    return [clientId, kind];
   }
   let code = prompt("If you have a code alreday, enter it here, otherwise just press OK:");
   if (!code) {
@@ -32,6 +32,9 @@ var [clientId, clientKind, externalAction] = (function() {
   // That should cause a reload, once the rest of this script finishes.
   return [null, null];
 })();
+
+let externalAction = window.location.hash.slice(1);
+window.location.hash = '';
 
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
@@ -270,8 +273,8 @@ class Redirect extends Component {
     // This timeout is necessary to give the current page enough time to log the event that caused this render.
     // 2 seconds is probably overdoing it, but on the safe side.
     this.timeout = setTimeout(() => {
-      let nextURL = `${window.location.protocol}//${window.location.host}/?${clientId}-${clientKind}&${this.props.afterEvent}`;
-      window.location.href = this.props.url + "&nextURL=" + encodeURIComponent(nextURL);
+      let nextURL = `${window.location.protocol}//${window.location.host}/?${clientId}-${clientKind}#${this.props.afterEvent}`;
+      window.location.href = `${this.props.url}&clientId=${clientId}&nextURL=${encodeURIComponent(nextURL)}`;
     }, 2000);
   }
 
