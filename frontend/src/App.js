@@ -268,7 +268,7 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 
-class Redirect extends Component {
+class RedirectToSurvey extends Component {
   componentDidMount() {
     // This timeout is necessary to give the current page enough time to log the event that caused this render.
     // 2 seconds is probably overdoing it, but on the safe side.
@@ -354,7 +354,7 @@ const screenViews = {
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
 
-  PostTaskSurvey: () => <Redirect url={surveyURLs.postTask} afterEvent={'completeSurvey'} />,
+  PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} afterEvent={'completeSurvey'} />,
   PostExpSurvey: () => <div>The post-experiment survey would go here. For now, just click <NextBtn /></div>,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
   LookAtPhone: () => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>,
