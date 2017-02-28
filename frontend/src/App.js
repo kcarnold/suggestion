@@ -9,6 +9,7 @@ import {MasterStateStore} from './MasterStateStore';
 
 const surveyURLs = {
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8FWK07Bfg4Xv2br',
+  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
 }
 
 
@@ -355,7 +356,7 @@ const screenViews = {
   </div>)),
 
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} afterEvent={'completeSurvey'} />,
-  PostExpSurvey: () => <div>The post-experiment survey would go here. For now, just click <NextBtn /></div>,
+  PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} afterEvent={'completeSurvey'} />,
   Done: () => <div>Thanks! Your code is {clientId}.</div>,
   LookAtPhone: () => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>,
   LookAtComputer: () => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>,
