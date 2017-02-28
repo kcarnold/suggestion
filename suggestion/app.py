@@ -81,6 +81,7 @@ class Participant:
         for conn in self.connections:
             if conn is not exclude_conn:
                 conn.send_json(**msg)
+        Panopticon.spy(msg)
 
     def connected(self, client):
         self.connections.append(client)
@@ -101,6 +102,29 @@ class DemoParticipant:
     def broadcast(self, *a, **kw): return
     def connected(self, *a, **kw): return
     def disconnected(self, *a, **kw): return
+
+class Panopticon:
+    participant_id = 'panopt'
+    connections = []
+
+    @classmethod
+    def spy(cls, msg):
+        for conn in cls.connections:
+            conn.send_json(**msg)
+
+    def get_log_entries(self):
+        entries = []
+        for participant in active_participants.values():
+            entries.extend(participant.get_log_entries())
+        return entries
+
+    def log(self, event): return
+    def broadcast(self, *a, **kw): return
+    def connected(self, client):
+        Panopticon.connections.append(client)
+    def disconnected(self, client):
+        Panopticon.connections.remove(client)
+
 
 
 class MyWSHandler(tornado.websocket.WebSocketHandler):
@@ -150,10 +174,12 @@ class WebsocketHandler(MyWSHandler):
                 self.kind = request['kind']
                 if participant_id.startswith('demo'):
                     self.participant = DemoParticipant()
+                elif self.kind == 'panopt' and participant_id == '42':
+                    self.participant = Panopticon()
                 else:
                     assert all(x in string.hexdigits for x in participant_id)
                     self.participant = Participant.get_participant(participant_id)
-                    self.participant.connected(self)
+                self.participant.connected(self)
                 messageCount = request.get('messageCount', {})
                 print("Client", participant_id, self.kind, "connecting with messages", messageCount)
                 backlog = []
