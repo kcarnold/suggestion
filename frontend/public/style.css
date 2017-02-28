@@ -37,7 +37,7 @@ html {
 
 /*** TEXT ***/
 .CurText {
-    white-space: pre-line;
+    white-space: pre-wrap;
     flex: 1 1 auto;
     padding: 1px;
     overflow: hidden;
