@@ -76,6 +76,9 @@ export class MasterStateStore {
           {screen: 'Done', controllerScreen: 'Done'},
         ];
       },
+      get curScreen() {
+        return this.screens[this.screenNum];
+      },
       get nextScreen() {
         return this.screens[this.screenNum + 1];
       },
@@ -104,9 +107,12 @@ export class MasterStateStore {
       get curEditText() {
         return this.controlledInputs.get(this.curEditTextName);
       },
+      get conditionName() {
+        if (isDemo) return clientId.slice(4);
+        return this.conditions[this.block];
+      },
       get condition() {
-        if (isDemo) return namedConditions[clientId.slice(4)];
-        return namedConditions[this.conditions[this.block]];
+        return namedConditions[this.conditionName];
       }
     });
 
