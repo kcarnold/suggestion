@@ -45,16 +45,16 @@ import tornado.autoreload
 tornado.autoreload.add_reload_hook(process_pool.shutdown)
 
 
-active_participants = {}
+known_participants = {}
 
 
 class Participant:
     @classmethod
     def get_participant(cls, participant_id):
-        if participant_id in active_participants:
-            return active_participants[participant_id]
+        if participant_id in known_participants:
+            return known_participants[participant_id]
         participant = cls(participant_id)
-        active_participants[participant_id] = participant
+        known_participants[participant_id] = participant
         return participant
 
     def __init__(self, participant_id):
@@ -104,6 +104,7 @@ class DemoParticipant:
     def disconnected(self, *a, **kw): return
 
 class Panopticon:
+    is_panopticon = True
     participant_id = 'panopt'
     connections = []
 
@@ -114,7 +115,7 @@ class Panopticon:
 
     def get_log_entries(self):
         entries = []
-        for participant in active_participants.values():
+        for participant in known_participants.values():
             entries.extend(participant.get_log_entries())
         return entries
 
@@ -191,6 +192,12 @@ class WebsocketHandler(MyWSHandler):
                         backlog.append(entry)
                     cur_msg_idx[kind] = idx + 1
                 self.send_json(type='backlog', body=backlog)
+            elif request['type'] == 'get_logs':
+                assert self.participant.is_panopticon
+                participant_id = request['participantId']
+                assert all(x in string.hexdigits for x in participant_id)
+                participant = Participant.get_participant(participant_id)
+                self.send_json(type='logs', participant_id=participant_id, logs=participant.get_log_entries())
             elif request['type'] == 'log':
                 event = request['event']
                 self.participant.log(event)
