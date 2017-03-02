@@ -40,10 +40,9 @@ const namedConditions = {
 };
 
 export class MasterStateStore {
-  constructor(clientId, kind) {
+  constructor(clientId) {
     this.__version__ = 1;
     this.clientId = clientId;
-    this.kind = kind;
 
     this.rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.

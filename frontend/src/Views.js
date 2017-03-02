@@ -198,11 +198,11 @@ export const screenViews = {
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
 };
 
-export const MasterView = inject('state')(observer(({state}) => {
+export const MasterView = inject('state')(observer(({state, kind}) => {
   if (state.replaying) return <div>Loading...</div>;
   let screenDesc = state.screens[state.screenNum];
   let screenName;
-  if (state.kind === 'c') {
+  if (kind === 'c') {
     screenName = screenDesc.controllerScreen || 'LookAtPhone';
   } else {
     screenName = screenDesc.screen || 'LookAtComputer';

@@ -85,7 +85,7 @@ function log(event) {
 }
 
 
-var state = new MasterStateStore(clientId, clientKind);
+var state = new MasterStateStore(clientId);
 registerHandler(state.handleEvent);
 
 
@@ -178,7 +178,7 @@ const App = observer(class App extends Component {
   render() {
     return (
       <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind}>
-        <MasterView />
+        <MasterView kind={clientKind} />
       </Provider>
     );
   }
