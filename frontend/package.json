@@ -4,7 +4,7 @@
   "private": true,
   "proxy": "http://localhost:5000",
   "devDependencies": {
-    "react-scripts": "0.8.4"
+    "react-scripts": "0.9.3"
   },
   "dependencies": {
     "lodash": "^4.17.2",
