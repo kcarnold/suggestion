@@ -51,7 +51,9 @@ function replay(log, state) {
     // console.log(toLog);
     state.handleEvent(event);
     if (event.type === 'receivedSuggestions') {
-      console.log('rtt', event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id]);
+      let rtt = event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id];
+      // if (_.isNaN(rtt)) debugger;
+      console.log('rtt', rtt);
     }
     if (idx === log.length - 1) return;
     setTimeout(tick, Math.min(500, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 2));
