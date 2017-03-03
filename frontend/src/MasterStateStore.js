@@ -153,6 +153,9 @@ export class MasterStateStore {
       switch ((screen.preEvent || {}).type) {
       case 'setupExperiment':
         this.block = screen.preEvent.block;
+        if (this.experimentState) {
+          this.experimentState.dispose();
+        }
         this.experimentState = new ExperimentStateStore(this.condition);
         break;
       case 'setEditFromExperiment':
