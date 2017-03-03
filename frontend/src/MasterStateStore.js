@@ -113,6 +113,21 @@ export class MasterStateStore {
       },
       get condition() {
         return namedConditions[this.conditionName];
+      },
+      get suggestionRequest() {
+        let {experimentState} = this;
+        if (!experimentState)
+          return null;
+
+        let seqNum = experimentState.contextSequenceNum;
+        let {prefix, curWord} = experimentState.getSuggestionContext();
+        return {
+          type: 'requestSuggestions',
+          request_id: seqNum,
+          sofar: prefix,
+          cur_word: curWord,
+          ...this.suggestionRequestParams
+        };
       }
     });
 

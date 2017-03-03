@@ -28,7 +28,7 @@ readStdin(function(err, res) {
     state.handleEvent(entry);
     if (state.experimentState && state.experimentState.curText !== lastText) {
       annotated.push({...entry, curText: state.experimentState.curText});
-      requests.push({...state.experimentState.getSuggestionContext(), ...state.suggestionRequestParams});
+      requests.push(state.suggestionRequest);
       lastText = state.curText;
     }
     let curScreen = state.curScreen;

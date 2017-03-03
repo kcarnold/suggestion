@@ -92,29 +92,12 @@ registerHandler(state.handleEvent);
 function startRequestingSuggestions() {
   // Auto-runner to watch the context and request suggestions.
   M.autorun(() => {
-    let {experimentState} = state;
-    if (!experimentState)
+    let {suggestionRequest} = state;
+    if (!suggestionRequest)
       return;
 
-    let seqNum = experimentState.contextSequenceNum;
-
-    // Abort if we already have the suggestions for this context.
-    if (experimentState.lastSuggestionsFromServer.length > 0 &&
-        experimentState.lastSuggestionsFromServer[0].contextSequenceNum === seqNum)
-      return;
-
-    // The only dependency is contextSequenceNum; other details don't matter.
-    M.untracked(() => {
-      let context = experimentState.getSuggestionContext();
-      let {prefix, curWord} = context;
-      ws.send({
-        type: 'requestSuggestions',
-        request_id: seqNum,
-        sofar: prefix,
-        cur_word: curWord,
-        ...state.suggestionRequestParams
-      });
-    });
+    console.log('requesting', suggestionRequest);
+    ws.send(suggestionRequest);
   });
 }
 

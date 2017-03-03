@@ -10,11 +10,13 @@ args = parser.parse_args()
 data = json.load(open(args.source))
 def do_request(request):
     start = time.time()
-    prefix = request['prefix']
-    curWord = request['curWord']
+    # copy-and-paste from app.py, somewhat yuk but whatever.
     phrases = suggestion_generator.get_suggestions(
-        sofar=prefix, cur_word=curWord,
-        domain='yelp_train', rare_word_bonus=request['rare_word_bonus'])
+                    request['sofar'], request['cur_word'],
+                    domain=request.get('domain', 'yelp_train'),
+                    rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                    use_sufarr=request.get('useSufarr', False),
+                    temperature=request.get('temperature', 0.))
     dur = time.time() - start
     return dur, phrases
 
@@ -23,6 +25,6 @@ results = []
 for request in data['requests']:
     dur, phrases = do_request(request)
     results.append((request, dur, phrases))
-    print('{prefix}\t{curWord}\t{rare_word_bonus}\t{dur:.2f}\t{phrases}'.format(
-        prefix=request['prefix'], curWord=request['curWord'], rare_word_bonus=request['rare_word_bonus'],
+    print('{prefix}\t{curWord}\t{dur:.2f}\t{phrases}'.format(
+        prefix=request['sofar'], curWord=request['cur_word'],
         dur=dur, phrases=json.dumps(phrases)))
