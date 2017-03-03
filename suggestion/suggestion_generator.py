@@ -352,12 +352,13 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
         prefix_chars = 1 if i > 0 else 0
-        def candidates():
-            for entry in beam:
-                score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
-                if done:
-                    yield entry
-                    continue
+        DONE = 2
+        new_beam = [ent for ent in beam if ent[DONE]]
+        for entry in beam:
+            score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
+            if done:
+                continue
+            else:
                 if i > 0:
                     last_state = kenlm.State()
                     model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
@@ -386,9 +387,16 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                     word = model.id2str[word_idx]
                     new_words = words + [word]
                     new_num_chars = num_chars + prefix_chars + len(word)
-                    yield new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None
-        beam = heapq.nlargest(beam_width, candidates())
-    return [BeamEntry(*ent) for ent in beam]
+                    new_entry = (new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None)
+                    if len(new_beam) == beam_width:
+                        heapq.heapreplace(new_beam, new_entry)
+                    else:
+                        new_beam.append(new_entry)
+                        if len(new_beam) == beam_width:
+                            heapq.heapify(new_beam)
+                    assert len(new_beam) <= beam_width
+        beam = new_beam
+    return [BeamEntry(*ent) for ent in sorted(beam, reverse=True)]
 
 
 # TODO: cache this!?
