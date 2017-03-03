@@ -155,9 +155,9 @@ class WebsocketHandler(MyWSHandler):
     @tornado.gen.coroutine
     def on_message(self, message):
         try:
-            start = time.time()
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
+                start = time.time()
                 phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
                     request['sofar'], request['cur_word'],
                     domain=request.get('domain', 'yelp_train'),
@@ -166,8 +166,11 @@ class WebsocketHandler(MyWSHandler):
                     temperature=request.get('temperature', 0.))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
                 result['next_word'] = suggestion_generator.phrases_to_suggs(phrases)
+                dur = time.time() - start
+                result['dur'] = dur
                 self.send_json(**result)
-                print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
+                self.participant.log(dict(type="requestSuggestions", kind="meta", request=request))
+                print('{type} in {dur:.2f}'.format(type=request['type'], dur=dur))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
             elif request['type'] == 'init':
