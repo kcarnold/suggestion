@@ -42,19 +42,57 @@ function replay(log, state) {
   if (log.length === 0) return;
   let idx = 0;
   function tick() {
-    state.handleEvent(log[idx]);
+    let event = log[idx];
+    let toLog = {...event};
+    delete toLog.participant_id;
+    delete toLog.timestamp;
+    delete toLog.kind;
+    delete toLog.jsTimestamp;
+    // console.log(toLog);
+    state.handleEvent(event);
+    if (event.type === 'receivedSuggestions') {
+      console.log('rtt', event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id]);
+    }
     if (idx === log.length - 1) return;
-    setTimeout(tick, Math.min(1000, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 10));
+    setTimeout(tick, Math.min(500, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 2));
     idx++;
   }
   tick();
+}
+
+var requestTimes = {};
+
+function trackRtts(participantId) {
+  // Mimic the autorunner
+  let state = store.states.get(participantId);
+  let times = (requestTimes[participantId] = {});
+
+  // Auto-runner to watch the context and request suggestions.
+  M.autorun(() => {
+    let {experimentState} = state;
+    if (!experimentState)
+      return;
+
+    let seqNum = experimentState.contextSequenceNum;
+
+    // Abort if we already have the suggestions for this context.
+    // FIXME: this makes multiple requests if the server returned empty suggestions!!!!!
+    if (experimentState.lastSuggestionsFromServer.length > 0 &&
+        experimentState.lastSuggestionsFromServer[0].contextSequenceNum === seqNum)
+      return;
+
+    // If we get here, we would have made a request.
+    // if (seqNum in times) debugger;
+    times[seqNum] = state.lastEventTimestamp;
+  });
 }
 
 ws.onmessage = function(msg) {
   if (msg.type === 'logs') {
     let participantId = msg.participant_id;
     logs[participantId] = msg.logs;
-    let state = new MasterStateStore(participantId);
+    let state = store.states.get(participantId);
+    trackRtts(participantId);
     replay(msg.logs, state);
     state.replaying = false;
     // store.startTimes.set(participantId, msg.logs[0].jsTimestamp);
@@ -63,7 +101,6 @@ ws.onmessage = function(msg) {
     //   state.handleEvent(msg);
     // });
     // state.replaying = false;
-    store.states.set(participantId, state);
   }
 };
 

@@ -56,6 +56,7 @@ export class MasterStateStore {
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
 
     M.extendObservable(this, {
+      lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
       block: null,
@@ -122,6 +123,7 @@ export class MasterStateStore {
   }
 
   handleEvent = M.action((event) => {
+    this.lastEventTimestamp = event.jsTimestamp;
     if (this.experimentState) {
       this.experimentState.handleEvent(event);
     }
