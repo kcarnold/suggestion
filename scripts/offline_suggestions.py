@@ -3,11 +3,6 @@ import argparse
 import time
 from suggestion import suggestion_generator
 
-parser = argparse.ArgumentParser()
-parser.add_argument('source')
-args = parser.parse_args()
-
-data = json.load(open(args.source))
 def do_request(request):
     start = time.time()
     # copy-and-paste from app.py, somewhat yuk but whatever.
@@ -20,7 +15,11 @@ def do_request(request):
     dur = time.time() - start
     return dur, phrases
 
+parser = argparse.ArgumentParser()
+parser.add_argument('source')
+args = parser.parse_args()
 
+data = json.load(open(args.source))
 results = []
 for request in data['requests']:
     dur, phrases = do_request(request)
