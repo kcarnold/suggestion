@@ -448,10 +448,18 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
     # print(stats)
     return beam
 
+
 def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, beam_width=50):
     first_word_ents = beam_search_phrases(model, context_toks, beam_width=10, length=1, prefix_logprobs=prefix_logprobs)[:n]
-    return [(ent.words + beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars)[0].words, None)
-        for ent in first_word_ents]
+    result = []
+    for ent in first_word_ents:
+        continuations = beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars)
+        if len(continuations) > 0:
+            continuation = continuations[0].words
+        else:
+            continuation = []
+        result.append((ent.words + continuation, None))
+    return result
 
 
 def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **kw):

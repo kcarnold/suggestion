@@ -36,3 +36,13 @@ def test_get_suggestions():
         phrase, probs = result[0]
         assert len(phrase) > 0
         assert isinstance(phrase[0], str)
+
+
+def test_curword_with_no_followers():
+    suggestion_generator.get_suggestions(
+        'some other foods since the ',
+        [{'letter': let} for let in 'servic'],
+        domain='yelp_train',
+        rare_word_bonus=1.0,
+        use_sufarr=False,
+        temperature=0.)
