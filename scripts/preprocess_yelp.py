@@ -1,4 +1,5 @@
 import gzip
+from sys import intern
 import ujson as json
 import tqdm
 import joblib
@@ -40,12 +41,12 @@ def tokenized_review(text):
         if bad_eos in line:
             print("Subbing", bad_eos)
             line = line.replace(bad_eos, bad_eos.replace('</S> <S> ', ''))
-    return line.split()
+    return [intern(word) for word in line.split()]
 
 tokenized_reviews = [tokenized_review(review['text']) for review in tqdm.tqdm(restaurant_reviews, desc="Tokenizing")]
-print("Dumping reviews as JSON")
-with open('models/tokenized_reviews.json', 'w') as f:
-    json.dump(tokenized_reviews, f)
+print("Saving reviews")
+with open('models/tokenized_reviews.pkl', 'wb') as f:
+    pickle.dump(tokenized_reviews, f, -1)
 
 with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt', 'w') as fp_test, open('models/yelp-char.txt', 'w') as f_char:
     for i, review in enumerate(tqdm.tqdm(tokenized_reviews, desc="Writing")):

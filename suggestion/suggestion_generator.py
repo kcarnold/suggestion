@@ -199,7 +199,7 @@ def get_model(name):
 
 
 print("Loading docs...", end='', file=sys.stderr, flush=True)
-docs = json.load(open(os.path.join(paths.models, 'tokenized_reviews.json')))
+docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
 print(', suffix array...', end='', file=sys.stderr, flush=True)
 sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
 print(" Done.", file=sys.stderr)
