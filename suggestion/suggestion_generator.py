@@ -409,44 +409,45 @@ def get_unigram_probs(model):
 def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix=''):
     unigram_probs = get_unigram_probs(model)
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [BeamEntry(0., [], False, start_state, None, 0, [])]
+    beam = [(0., [], False, start_state, None, 0, [])]
     stats = []
     for i in range(length):
         prefix_chars = 1 if i > 0 else 0
         def candidates():
             for entry in beam:
-                if entry.done:
+                score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
+                if done:
                     yield entry
                     continue
-                if entry.last_word_idx is not None:
+                if last_word_idx is not None:
                     last_state = kenlm.State()
-                    model.model.base_score_from_idx(entry.penultimate_state, entry.last_word_idx, last_state)
+                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
                 else:
-                    last_state = entry.penultimate_state
-                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(entry.words) + (prefix,))
+                    last_state = penultimate_state
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,))
                 next_words = collect_words_in_range(start_idx, end_idx, i + 1)
                 stats.append((end_idx - start_idx, len(next_words)))
                 if len(next_words) == 0:
-                    assert model.id2str[entry.last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
+                    assert model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
                     continue
                 new_state = kenlm.State()
                 for next_idx, word in enumerate(next_words):
                     is_punct = word[0] in '<.!?'
                     is_special = word[0] == '<'
                     word_idx = model.model.vocab_index(word)
-                    new_words = entry.words + [word]
-                    new_num_chars = entry.num_chars + (0 if is_special else prefix_chars + len(word))
+                    new_words = words + [word]
+                    new_num_chars = num_chars + (0 if is_special else prefix_chars + len(word))
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word_idx > 4 and not is_punct and word not in entry.words else 0.
+                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word_idx > 4 and not is_punct and word not in words else 0.
 
-                    new_score = entry.score + logprob + unigram_bonus
+                    new_score = score + logprob + unigram_bonus
                     done = new_num_chars >= length
-                    yield BeamEntry(new_score, new_words, done, last_state, word_idx, new_num_chars, entry.bonuses + [unigram_bonus])
+                    yield BeamEntry(new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus])
         beam = heapq.nlargest(beam_width, candidates())
         prefix = ''
     # nlargest guarantees that its result is sorted descending.
     # print(stats)
-    return beam
+    return [BeamEntry(*ent) for ent in beam]
 
 
 def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, beam_width=50):
