@@ -19,9 +19,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('source')
 args = parser.parse_args()
 
-data = json.load(open(args.source))
+entries = (json.loads(line) for line in open(args.source) if line)
+requests = [entry['request'] for entry in entries if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions']
+
 results = []
-for request in data['requests']:
+for request in requests:
     dur, phrases = do_request(request)
     results.append((request, dur, phrases))
     print('{prefix}\t{curWord}\t{dur:.2f}\t{phrases}'.format(
