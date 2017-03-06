@@ -45,16 +45,16 @@ import tornado.autoreload
 tornado.autoreload.add_reload_hook(process_pool.shutdown)
 
 
-active_participants = {}
+known_participants = {}
 
 
 class Participant:
     @classmethod
     def get_participant(cls, participant_id):
-        if participant_id in active_participants:
-            return active_participants[participant_id]
+        if participant_id in known_participants:
+            return known_participants[participant_id]
         participant = cls(participant_id)
-        active_participants[participant_id] = participant
+        known_participants[participant_id] = participant
         return participant
 
     def __init__(self, participant_id):
@@ -81,6 +81,7 @@ class Participant:
         for conn in self.connections:
             if conn is not exclude_conn:
                 conn.send_json(**msg)
+        Panopticon.spy(msg)
 
     def connected(self, client):
         self.connections.append(client)
@@ -101,6 +102,30 @@ class DemoParticipant:
     def broadcast(self, *a, **kw): return
     def connected(self, *a, **kw): return
     def disconnected(self, *a, **kw): return
+
+class Panopticon:
+    is_panopticon = True
+    participant_id = 'panopt'
+    connections = []
+
+    @classmethod
+    def spy(cls, msg):
+        for conn in cls.connections:
+            conn.send_json(**msg)
+
+    def get_log_entries(self):
+        entries = []
+        for participant in known_participants.values():
+            entries.extend(participant.get_log_entries())
+        return entries
+
+    def log(self, event): return
+    def broadcast(self, *a, **kw): return
+    def connected(self, client):
+        Panopticon.connections.append(client)
+    def disconnected(self, client):
+        Panopticon.connections.remove(client)
+
 
 
 class MyWSHandler(tornado.websocket.WebSocketHandler):
@@ -130,9 +155,9 @@ class WebsocketHandler(MyWSHandler):
     @tornado.gen.coroutine
     def on_message(self, message):
         try:
-            start = time.time()
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
+                start = time.time()
                 phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
                     request['sofar'], request['cur_word'],
                     domain=request.get('domain', 'yelp_train'),
@@ -141,8 +166,11 @@ class WebsocketHandler(MyWSHandler):
                     temperature=request.get('temperature', 0.))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
                 result['next_word'] = suggestion_generator.phrases_to_suggs(phrases)
+                dur = time.time() - start
+                result['dur'] = dur
                 self.send_json(**result)
-                print('{type} in {dur:.2f}'.format(type=request['type'], dur=time.time() - start))
+                self.participant.log(dict(type="requestSuggestions", kind="meta", request=request))
+                print('{type} in {dur:.2f}'.format(type=request['type'], dur=dur))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
             elif request['type'] == 'init':
@@ -150,10 +178,12 @@ class WebsocketHandler(MyWSHandler):
                 self.kind = request['kind']
                 if participant_id.startswith('demo'):
                     self.participant = DemoParticipant()
+                elif self.kind == 'panopt' and participant_id == '42':
+                    self.participant = Panopticon()
                 else:
                     assert all(x in string.hexdigits for x in participant_id)
                     self.participant = Participant.get_participant(participant_id)
-                    self.participant.connected(self)
+                self.participant.connected(self)
                 messageCount = request.get('messageCount', {})
                 print("Client", participant_id, self.kind, "connecting with messages", messageCount)
                 backlog = []
@@ -165,6 +195,12 @@ class WebsocketHandler(MyWSHandler):
                         backlog.append(entry)
                     cur_msg_idx[kind] = idx + 1
                 self.send_json(type='backlog', body=backlog)
+            elif request['type'] == 'get_logs':
+                assert self.participant.is_panopticon
+                participant_id = request['participantId']
+                assert all(x in string.hexdigits for x in participant_id)
+                participant = Participant.get_participant(participant_id)
+                self.send_json(type='logs', participant_id=participant_id, logs=participant.get_log_entries())
             elif request['type'] == 'log':
                 event = request['event']
                 self.participant.log(event)

@@ -99,8 +99,9 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 
-const RedirectToSurvey = inject('clientId', 'clientKind')(class RedirectToSurvey extends Component {
+const RedirectToSurvey = inject('clientId', 'clientKind', 'spying')(class RedirectToSurvey extends Component {
   componentDidMount() {
+    if (this.props.spying) return;
     // This timeout is necessary to give the current page enough time to log the event that caused this render.
     // 2 seconds is probably overdoing it, but on the safe side.
     this.timeout = setTimeout(() => {
@@ -198,11 +199,11 @@ export const screenViews = {
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
 };
 
-export const MasterView = inject('state')(observer(({state}) => {
+export const MasterView = inject('state')(observer(({state, kind}) => {
   if (state.replaying) return <div>Loading...</div>;
   let screenDesc = state.screens[state.screenNum];
   let screenName;
-  if (state.kind === 'c') {
+  if (kind === 'c') {
     screenName = screenDesc.controllerScreen || 'LookAtPhone';
   } else {
     screenName = screenDesc.screen || 'LookAtComputer';

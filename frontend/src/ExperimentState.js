@@ -89,7 +89,7 @@ export class ExperimentStateStore {
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         let toInsert = event.key;
         let taps = [{x: event.x, y: event.y}];
-        let autoSpace = isNonWord && event.key !== "'" && event.key !== '-';
+        let autoSpace = isNonWord && event.key !== " " && event.key !== "'" && event.key !== '-';
         if (autoSpace) {
           toInsert += " ";
           taps.push({});

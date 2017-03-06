@@ -8,13 +8,22 @@ html {
 }
 
 /*** Overall layout ****/
+#root {
+    height: 100vh;
+}
+
+.App {
+    height: 100%;
+    position: relative;
+}
+
 .App > div {
     padding: 10px;
 }
 
 .App > .ExperimentScreen {
     padding: 0;
-    height: calc(100vh - 75px);
+    height: calc(100% - 75px);
     display: flex;
     flex-flow: column nowrap;
 }
@@ -29,7 +38,7 @@ html {
 }
 
 .clientId {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     right: 0;
     font-size: 6px;

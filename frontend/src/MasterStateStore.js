@@ -40,10 +40,9 @@ const namedConditions = {
 };
 
 export class MasterStateStore {
-  constructor(clientId, kind) {
+  constructor(clientId) {
     this.__version__ = 1;
     this.clientId = clientId;
-    this.kind = kind;
 
     this.rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
@@ -57,6 +56,7 @@ export class MasterStateStore {
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
 
     M.extendObservable(this, {
+      lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
       block: null,
@@ -138,6 +138,7 @@ export class MasterStateStore {
   }
 
   handleEvent = M.action((event) => {
+    this.lastEventTimestamp = event.jsTimestamp;
     if (this.experimentState) {
       this.experimentState.handleEvent(event);
     }
@@ -167,6 +168,9 @@ export class MasterStateStore {
       switch ((screen.preEvent || {}).type) {
       case 'setupExperiment':
         this.block = screen.preEvent.block;
+        if (this.experimentState) {
+          this.experimentState.dispose();
+        }
         this.experimentState = new ExperimentStateStore(this.condition);
         break;
       case 'setEditFromExperiment':
