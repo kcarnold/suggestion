@@ -8,7 +8,8 @@ def collect_words_in_range_slow(start, after_end, word_idx):
 
 
 def test_collect_words_in_range():
-    start, end = suggestion_generator.sufarr.search_range(tuple('<D> my'.split()) + ('',))
+    sufarr = suggestion_generator.sufarr
+    start, end = sufarr.search_range(tuple('<D> my'.split()) + ('',))
     assert [] == suggestion_generator.collect_words_in_range(start, start, 1)
 
     ref = sorted(collect_words_in_range_slow(start, end, 1))
@@ -16,6 +17,17 @@ def test_collect_words_in_range():
 
     ref = sorted(collect_words_in_range_slow(start, end, 2))
     assert ref == suggestion_generator.collect_words_in_range(start, end, 2)
+
+    import random
+    rng = random.Random(0)
+    for i in range(10):
+        word_idx = rng.randrange(2, 4)
+        suf = sufarr.get_suffix_by_idx(rng.randrange(0, len(suggestion_generator.sufarr.doc_idx)))[:word_idx]
+
+        start, end = sufarr.search_range(tuple(suf) + ('',))
+        ref = sorted(collect_words_in_range_slow(start, end, word_idx))
+        assert ref == suggestion_generator.collect_words_in_range(start, end, word_idx)
+
 
 
 def test_get_suggestions():

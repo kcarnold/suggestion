@@ -204,18 +204,28 @@ print(', suffix array...', end='', file=sys.stderr, flush=True)
 sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
 print(" Done.", file=sys.stderr)
 
+import numba
+@numba.jit
+def _next_elt_le(arr, criterion, start, end):
+    for i in range(start, end):
+        if arr[i] <= criterion:
+            return i
+    return end
+
 def collect_words_in_range(start, after_end, word_idx):
     words = []
     if start == after_end:
         return words
     word = sufarr.docs[sufarr.doc_idx[start]][sufarr.tok_idx[start] + word_idx]
     words.append(word)
-    for i in range(start + 1, after_end):
-        # Invariant: words contains all words at offset word_idx in suffixes from
-        # start to i.
-        if sufarr.lcp[i - 1] <= word_idx:
-            word = sufarr.docs[sufarr.doc_idx[i]][sufarr.tok_idx[i] + word_idx]
-            words.append(word)
+    while True:
+        before_next_idx = _next_elt_le(sufarr.lcp, word_idx, start, after_end - 1)
+        if before_next_idx == after_end - 1:
+            break
+        next_idx = before_next_idx + 1
+        word = sufarr.docs[sufarr.doc_idx[next_idx]][sufarr.tok_idx[next_idx] + word_idx]
+        words.append(word)
+        start = next_idx
     return words
 
 
