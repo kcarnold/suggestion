@@ -11,14 +11,18 @@ class DocSuffixArray:
 
     @classmethod
     def construct(cls, docs):
+        END_OF_DOC = '\u0000'
         print("Prepare suffix array")
         num_sa_toks = sum(len(doc) for doc in docs)
+        # Account for the end-of-doc token.
+        num_sa_toks += len(docs)
         sa_doc_idx = np.empty(num_sa_toks, dtype=int)
         sa_tok_idx = np.empty(num_sa_toks, dtype=int)
         ptr = 0
         master_token_list = []
         for doc_idx, doc in enumerate(docs):
             tok_list = [tok.lower() for tok in doc]
+            tok_list.append(END_OF_DOC)
             sa_doc_idx[ptr:ptr+len(tok_list)] = doc_idx
             sa_tok_idx[ptr:ptr+len(tok_list)] = np.arange(len(tok_list))
             master_token_list.extend(tok_list)
@@ -26,7 +30,6 @@ class DocSuffixArray:
 
         print("Building vocabulary")
         assert len(master_token_list) == num_sa_toks
-        # FIXME: sort end-of-document at the end. (or beginning??)
         vocab = sorted(set(master_token_list))
         word2idx = {word: idx for idx, word in enumerate(vocab)}
         print("Mapping vocabulary")
