@@ -37,6 +37,9 @@ export class PanoptStore {
 }
 
 var store = new PanoptStore();
+var requestTimes = {};
+var rtts = [];
+window.rtts = rtts;
 
 function replay(log, state) {
   if (log.length === 0) return;
@@ -53,16 +56,18 @@ function replay(log, state) {
     if (event.type === 'receivedSuggestions') {
       let rtt = event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id];
       // if (_.isNaN(rtt)) debugger;
+      if (rtt) {
+        rtts.push(rtt);
+      }
       console.log('rtt', rtt);
     }
     if (idx === log.length - 1) return;
-    setTimeout(tick, Math.min(500, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 2));
+    setTimeout(tick, Math.min(500, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 10));
     idx++;
   }
   tick();
 }
 
-var requestTimes = {};
 
 function trackRtts(participantId) {
   // Mimic the autorunner
