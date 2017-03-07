@@ -160,7 +160,7 @@ window.addEventListener('resize', function() {
 const App = observer(class App extends Component {
   render() {
     return (
-      <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind}>
+      <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind} spying={false}>
         <MasterView kind={clientKind} />
       </Provider>
     );
