@@ -49,7 +49,7 @@ html {
     white-space: pre-wrap;
     flex: 1 1 auto;
     padding: 1px;
-    overflow: hidden;
+    overflow: scroll;
 }
 
 .Cursor {

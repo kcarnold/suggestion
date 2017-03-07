@@ -123,6 +123,20 @@ const RedirectToSurvey = inject('clientId', 'clientKind', 'spying')(class Redire
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
 
+class CurText extends Component {
+  componentDidMount() {
+    this.cursor.scrollIntoView();
+  }
+
+  componentDidUpdate() {
+    this.cursor.scrollIntoView();
+  }
+
+  render() {
+    return <div className="CurText">{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></div>;
+  }
+}
+
 export const screenViews = {
   Welcome: () => <div>
     <h1>Welcome</h1>
@@ -165,7 +179,7 @@ export const screenViews = {
           Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <Timer />
         </div>
-        <div className="CurText">{experimentState.curText}<span className="Cursor"></span></div>
+        <CurText text={experimentState.curText} />
         <SuggestionsBar />
         <Keyboard dispatch={dispatch} />
       </div>;
@@ -174,7 +188,7 @@ export const screenViews = {
   PracticePhone: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     return <div className="ExperimentScreen">
-      <div className="CurText">{experimentState.curText}<span className="Cursor"></span></div>
+      <CurText text={experimentState.curText} />
       <SuggestionsBar />
       <Keyboard dispatch={dispatch} />
     </div>;
