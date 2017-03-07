@@ -193,6 +193,8 @@ class WebsocketHandler(MyWSHandler):
                 cur_msg_idx = {}
                 for entry in self.participant.get_log_entries():
                     kind = entry['kind']
+                    if kind == 'meta':
+                        continue
                     idx = cur_msg_idx.get(kind, 0)
                     if idx >= messageCount.get(kind, 0):
                         backlog.append(entry)
