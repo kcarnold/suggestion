@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
-import {observer, inject, Provider} from 'mobx-react';
+import {observer, inject} from 'mobx-react';
 import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
 
@@ -20,9 +20,10 @@ class Suggestion extends Component {
   }
 }
 
-const SuggestionsBar = inject('expState', 'dispatch')(observer(class SuggestionsBar extends Component {
+const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {expState, dispatch} = this.props;
+    const {state, dispatch} = this.props;
+    let expState = state.experimentState;
     let {showPhrase} = expState.condition;
     return <div className="SuggestionsBar">
       {expState.visibleSuggestions.map((sugg, i) => <Suggestion
@@ -157,8 +158,7 @@ export const screenViews = {
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
-      return <Provider expState={experimentState}>
-        <div className="ExperimentScreen">
+      return <div className="ExperimentScreen">
         <div style={{backgroundColor: '#ccc', color: 'black'}}>
           Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <Timer />
@@ -167,8 +167,7 @@ export const screenViews = {
         </div>
         <SuggestionsBar />
         <Keyboard dispatch={dispatch} />
-      </div>
-      </Provider>;
+      </div>;
     })),
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
