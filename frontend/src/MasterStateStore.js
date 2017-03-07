@@ -3,6 +3,46 @@ import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 import seedrandom from 'seedrandom';
 
+class TutorialTasks {
+  constructor() {
+    M.extendObservable(this, {
+      lastTapInSlot: {},
+      consectutiveTaps: null,
+      tasks: {
+        tapSuggestion: false,
+        doubleTap: false,
+        tripleTap: false,
+        typeKeyboard: false
+      }
+    });
+  }
+
+  handleEvent(event) {
+    switch(event.type) {
+    case 'tapSuggestion':
+      if (event.slot === 0) {
+        this.tasks['tapSuggestion'] = true;
+      }
+      this.lastTapInSlot[event.slot] = event.jsTimestamp;
+      if (this.consectutiveTaps && this.consectutiveTaps.slot === event.slot) {
+        this.consectutiveTaps.times++;
+        if (this.consectutiveTaps.times === 2 && event.slot === 1) {
+          this.tasks.doubleTap = true;
+        } else if (this.consectutiveTaps.times === 3 && event.slot === 2) {
+          this.tasks.tripleTap = true;
+        }
+      } else {
+        this.consectutiveTaps = {slot: event.slot, times: 1};
+      }
+      break;
+    case 'tapKey':
+      this.tasks.typeKeyboard = true;
+      break;
+    default:
+    }
+  }
+}
+
 function experimentBlock({block, prewriteTimer, editTimer}) {
   return [
     {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
@@ -64,11 +104,14 @@ export class MasterStateStore {
       controlledInputs: M.asMap({}),
       timerStartedAt: null,
       timerDur: null,
+      tutorialTasks: new TutorialTasks(),
       get screens() {
         if (isDemo) return [{screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+          {preEvent: {type: 'setupExperiment', block: 0}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+          {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
           {controllerScreen: 'SelectRestaurants'},
           ...experimentBlock({block: 0, prewriteTimer, editTimer}),
           ...experimentBlock({block: 1, prewriteTimer, editTimer}),
@@ -142,6 +185,8 @@ export class MasterStateStore {
     if (this.experimentState) {
       this.experimentState.handleEvent(event);
     }
+    this.tutorialTasks.handleEvent(event);
+
     let screenAtStart = this.screenNum;
     switch (event.type) {
     case 'externalAction':
@@ -162,6 +207,7 @@ export class MasterStateStore {
       break;
     default:
     }
+
     if (this.screenNum !== screenAtStart) {
       // Execute start-of-screen actions.
       let screen = this.screens[this.screenNum];
