@@ -16,6 +16,10 @@ class TutorialTasks {
         doubleTap: false,
         tripleTap: false,
         typeKeyboard: false
+      },
+      get allDone() {
+        let {tasks} = this;
+        return _.every(tasks);
       }
     });
   }
@@ -111,7 +115,7 @@ export class MasterStateStore {
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {preEvent: {type: 'setupExperiment', block: 0}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-          {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+          {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
           {controllerScreen: 'SelectRestaurants'},
           ...experimentBlock({block: 0, prewriteTimer, editTimer}),
           ...experimentBlock({block: 1, prewriteTimer, editTimer}),
