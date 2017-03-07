@@ -3,6 +3,9 @@ import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 import seedrandom from 'seedrandom';
 
+const prewriteTimer = 60 * 5;
+const editTimer = 60 * 5;
+
 class TutorialTasks {
   constructor() {
     M.extendObservable(this, {
@@ -52,9 +55,6 @@ function experimentBlock({block, prewriteTimer, editTimer}) {
     {controllerScreen: 'PostTaskSurvey'},
   ];
 }
-
-const prewriteTimer = 60 * 3;
-const editTimer = 60 * 2;
 
 const ngramFlags = {
   useSufarr: false,
