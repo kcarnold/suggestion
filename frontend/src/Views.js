@@ -145,7 +145,7 @@ export const screenViews = {
     <NextBtn /></div>,
 
   ProbablyWrongCode: () => <div>
-    <p>Waiting for consent on computer. If you're seeing this on your phone, you probably mistyped your code.</p>
+    <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
   </div>,
 
   SelectRestaurants: inject('state')(observer(({state}) => <div>
@@ -166,17 +166,23 @@ export const screenViews = {
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
     <ol>
-      <li>Type out a very rough draft. Here we won't be concerned about grammar, coherence, accuracy, etc.</li>
-      <li>Edit what you wrote into a good review.</li>
+      <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc.</li>
+      <li>Type out the most detailed review you can.</li>
     </ol>
-    <p>Tap Next when you're ready to start typing the rough draft. You will have {state.nextScreen.timer / 60} minutes (note the timer on top).</p>
+    <p>Tap Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top).</p>
     <NextBtn /></div>)),
 
+  RevisionComputer: inject('state')(observer(({state}) => <div>
+      <h1>Revise</h1>
+      <p>Here is what you wrote last time:</p>
+      <div style={{whiteSpace: 'pre-line'}}>{state.prevExperimentState.curText}</div>
+    </div>)),
+
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
-      let {experimentState} = state;
+      let {experimentState, curScreen} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
+          {curScreen.isPrewrite ? "Rough draft" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <div style={{float: 'right'}}><Timer /> ({state.block === 0 ? 'A' : 'B'})</div>
         </div>
         <CurText text={experimentState.curText} />
@@ -202,9 +208,9 @@ export const screenViews = {
       <h1>Practice with Phrase Suggestions (version A)</h1>
       <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
       <p>Notice the 3 boxes above the keyboard.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}><b>Tap</b> the leftmost box  to insert &ldquo;<tt>{suggs[0].words[0]}</tt>&rdquo;.</TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now <b>double-tap</b> the middle box to insert &ldquo;<tt>{suggs[1].words.slice(0,2).join(' ')}</tt>&rdquo;. </TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}><b>Tap</b> the leftmost box  to insert &ldquo;<tt>{suggs && suggs[0].words[0]}</tt>&rdquo;.</TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now <b>double-tap</b> the middle box to insert &ldquo;<tt>{suggs && suggs[1].words.slice(0,2).join(' ')}</tt>&rdquo;. </TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs && suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.  </TutorialTodo>
       {state.tutorialTasks.allDone && <p>
         Now that you know how it works, <b>try writing a few sentences to get some more practice! Use both the keys and the suggestions.</b><br/>
@@ -222,8 +228,8 @@ export const screenViews = {
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
-    <p>Time is up for the rough draft. Next, you'll get a chance to edit what you wrote to make it more coherent and accurate. You'll use your computer.</p>
-    <p>You'll have {state.nextScreen.timer / 60} minutes to edit the review.</p>
+    <p>Time is up! Now, try to write the most detailed review you can. You'll be using the same keyboard.
+    You'll have {state.nextScreen.timer / 60} minutes.</p>
     <NextBtn />
     </div>)),
 

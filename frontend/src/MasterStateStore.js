@@ -4,7 +4,7 @@ import {ExperimentStateStore} from './ExperimentState';
 import seedrandom from 'seedrandom';
 
 const prewriteTimer = 60 * 5;
-const editTimer = 60 * 5;
+const finalTimer = 60 * 5;
 
 class TutorialTasks {
   constructor() {
@@ -50,12 +50,13 @@ class TutorialTasks {
   }
 }
 
-function experimentBlock({block, prewriteTimer, editTimer}) {
+function experimentBlock({block}) {
   return [
     {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
-    {screen: 'ExperimentScreen', timer: prewriteTimer},
-    {screen: 'BreakBeforeEditPhone', controllerScreen: 'BreakBeforeEdit'},
-    {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
+    {screen: 'ExperimentScreen', timer: prewriteTimer, isPrewrite: true},
+    {preEvent: {type: 'setupExperiment', block}, screen: 'BreakBeforeEditPhone', controllerScreen: 'BreakBeforeEdit'},
+    // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
+    {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer, isPrewrite: false},
     {controllerScreen: 'PostTaskSurvey'},
   ];
 }
@@ -104,7 +105,17 @@ export class MasterStateStore {
       replaying: true,
       screenNum: 0,
       block: null,
-      experimentState: null,
+      experiments: [],
+      get experimentState() {
+        if (this.experiments.length) {
+          return this.experiments[this.experiments.length - 1];
+        }
+      },
+      get prevExperimentState() {
+        if (this.experiments.length > 1) {
+          return this.experiments[this.experiments.length - 2];
+        }
+      },
       controlledInputs: M.asMap({}),
       timerStartedAt: null,
       timerDur: null,
@@ -117,8 +128,8 @@ export class MasterStateStore {
           {preEvent: {type: 'setupExperiment', block: 0}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
           {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
           {controllerScreen: 'SelectRestaurants'},
-          ...experimentBlock({block: 0, prewriteTimer, editTimer}),
-          ...experimentBlock({block: 1, prewriteTimer, editTimer}),
+          ...experimentBlock({block: 0}),
+          ...experimentBlock({block: 1}),
           {controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
         ];
@@ -180,7 +191,7 @@ export class MasterStateStore {
 
     if (isDemo) {
       this.block = 0;
-      this.experimentState = new ExperimentStateStore(this.condition);
+      this.experiments.push(new ExperimentStateStore(this.condition));
     }
   }
 
@@ -221,7 +232,7 @@ export class MasterStateStore {
         if (this.experimentState) {
           this.experimentState.dispose();
         }
-        this.experimentState = new ExperimentStateStore(this.condition);
+        this.experiments.push(new ExperimentStateStore(this.condition));
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
