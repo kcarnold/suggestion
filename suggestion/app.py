@@ -15,6 +15,8 @@ import tornado.websocket
 
 from .paths import paths
 
+import subprocess
+git_commit = subprocess.check_output(['git', 'describe', '--always']).decode('ascii').strip()
 
 from tornado.options import define, options
 
@@ -86,6 +88,7 @@ class Participant:
     def connected(self, client):
         self.connections.append(client)
         print(client.kind, 'open', self.participant_id)
+        self.log(dict(kind='meta', type='connected', rev=git_commit))
 
     def disconnected(self, client):
         self.connections.remove(client)
