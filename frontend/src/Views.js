@@ -177,7 +177,7 @@ export const screenViews = {
       return <div className="ExperimentScreen">
         <div className="header">
           Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
-          <Timer />
+          <div style={{float: 'right'}}><Timer /> ({state.block === 0 ? 'A' : 'B'})</div>
         </div>
         <CurText text={experimentState.curText} />
         <SuggestionsBar />
@@ -218,6 +218,7 @@ export const screenViews = {
     <p>There will be two versions of the phrase suggestions. You just tried version A, now try out version B.</p>
 
     <p><b>Try writing a few sentences to get some more practice! Use both the keys and the suggestions.</b></p>
+    <p><NextBtn /></p>
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
