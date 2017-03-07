@@ -175,7 +175,7 @@ export const screenViews = {
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
       return <div className="ExperimentScreen">
-        <div style={{backgroundColor: '#ccc', color: 'black'}}>
+        <div className="header">
           Rough draft review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <Timer />
         </div>
@@ -188,6 +188,7 @@ export const screenViews = {
   PracticePhone: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     return <div className="ExperimentScreen">
+      <div className="header">See computer for instructions. <div style={{float: 'right'}}>({state.block === 0 ? 'A' : 'B'})</div></div>
       <CurText text={experimentState.curText} />
       <SuggestionsBar />
       <Keyboard dispatch={dispatch} />

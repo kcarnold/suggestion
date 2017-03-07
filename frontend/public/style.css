@@ -44,6 +44,12 @@ html {
     font-size: 6px;
 }
 
+.ExperimentScreen .header {
+    overflow: auto;
+    background-color: #ccc;
+    color: black;
+}
+
 /*** TEXT ***/
 .CurText {
     white-space: pre-wrap;
