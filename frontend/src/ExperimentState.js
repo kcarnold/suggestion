@@ -76,6 +76,12 @@ export class ExperimentStateStore {
             isValid: true,
           });
         }
+        while (suggestions.length < 3) {
+          suggestions.push({
+            words: [''],
+            isValid: false
+          });
+        }
         return suggestions.slice(0, 3);
       },
       insertText: M.action((toInsert, charsToDelete, taps) => {

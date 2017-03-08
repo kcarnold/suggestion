@@ -204,6 +204,9 @@ export const screenViews = {
   PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     let suggs = experimentState.visibleSuggestions;
+    if (experimentState.lastSuggestionsFromServer.length === 0 && experimentState.contextSequenceNum === 0) {
+      return <div>Loading...</div>;
+    }
     return <div>
       <h1>Practice with Phrase Suggestions (version A)</h1>
       <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
