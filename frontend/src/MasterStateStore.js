@@ -93,7 +93,7 @@ export class MasterStateStore {
     // Don't disturb the calling sequence of the rng, or state will become invalid.
     this.swapConditionOrder = this.rng() < .5;
     this.swapPlaceOrder = this.rng() < .5;
-    this.conditions = ['word', 'phrase'];
+    this.conditions = ['rarePhrase', 'phrase'];
     if (this.swapConditionOrder) {
       this.conditions.unshift(this.conditions.pop());
     }
