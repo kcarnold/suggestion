@@ -166,8 +166,9 @@ export const screenViews = {
 
   Instructions: inject('state')(observer(({state}) => <div>
     <h1>Ready to write a review?</h1>
+    <p>There will be two writing sessions, Session A and Session B. This is Session {state.block === 0 ? 'A' : 'B'}.</p>
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-    <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
+    <p>Let's write a review of this experience, like you might see on a site like Yelp or TripAdvisor. We'll do this in <b>two steps</b>:</p>
     <ol>
       <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc. ({state.times.prewriteTimer / 60} minutes)</li>
       <li>Type out the <b>most detailed review you can</b>. ({state.times.finalTimer / 60} minutes)</li>
