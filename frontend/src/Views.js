@@ -217,7 +217,7 @@ export const screenViews = {
       <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs && suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.  </TutorialTodo>
       {state.tutorialTasks.allDone && <p>
-        Now that you know how it works, <b>try writing a few sentences to get some more practice! Use both the keys and the suggestions.</b><br/>
+        Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, tap <NextBtn />.</p>}
     </div>;
   })),
@@ -227,17 +227,17 @@ export const screenViews = {
 
     <p>There will be two versions of the phrase suggestions. You just tried version A, now try out version B.</p>
 
-    <p><b>Try writing a few sentences to get some more practice! Use both the keys and the suggestions.</b></p>
+    <p><b>Try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b></p>
     <p><NextBtn /></p>
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
-    <p>Time is up! Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
+    <p>Time is up. Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
     You'll have {state.nextScreen.timer / 60} minutes.</p>
     <NextBtn />
     </div>)),
 
-  BreakBeforeEditPhone: () => <div>Time is up! Follow the instructions on your computer.</div>,
+  BreakBeforeEditPhone: () => <div>Time is up. Follow the instructions on your computer.</div>,
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
