@@ -163,14 +163,14 @@ export const screenViews = {
   </div>)),
 
   Instructions: inject('state')(observer(({state}) => <div>
-    <h1>Instructions</h1>
+    <h1>Ready to write a review?</h1>
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
     <ol>
       <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc. ({state.times.prewriteTimer / 60} minutes)</li>
       <li>Type out the <b>most detailed review you can</b>. ({state.times.finalTimer / 60} minutes)</li>
     </ol>
-    <p>Tap Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top).</p>
+    <p>Tap Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)</p>
     <NextBtn /></div>)),
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
@@ -216,6 +216,7 @@ export const screenViews = {
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now <b>double-tap</b> the middle box to insert &ldquo;<tt>{suggs && suggs[1].words.slice(0,2).join(' ')}</tt>&rdquo;. </TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs && suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.  </TutorialTodo>
+      <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {state.tutorialTasks.allDone && <p>
         Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, tap <NextBtn />.</p>}
@@ -252,7 +253,8 @@ export const screenViews = {
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
   LookAtComputer: inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>),
   SetupPairingComputer: inject('clientId')(({clientId}) => <div>
-    <p>For this experiment, you'll need a smartphone.</p>
+    <p>You will need two devices to complete this study: a <b>laptop/desktop computer</b> (you could use a tablet but we haven't tested it), and a <b>smartphone</b> with a web browser and WiFi (we will not be responsible for any data charges).</p>
+
     <p>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>. There will be a button on that page to continue.</p>
     <p>If you have a barcode reader on your phone, you can use scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></p>
   </div>),
