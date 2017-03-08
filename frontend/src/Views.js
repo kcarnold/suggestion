@@ -211,7 +211,7 @@ export const screenViews = {
     return <div>
       <h1>Practice with Phrase Suggestions (version A)</h1>
       <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
-      <p>Notice the 3 boxes above the keyboard.</p>
+      <p>Notice the 3 boxes above the keyboard. Each one shows a phrase, with the left-most word highlighted. Tapping a box inserts the highlighted word and moves on to the next word in the phrase.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}><b>Tap</b> the leftmost box  to insert &ldquo;<tt>{suggs && suggs[0].words[0]}</tt>&rdquo;.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now <b>double-tap</b> the middle box to insert &ldquo;<tt>{suggs && suggs[1].words.slice(0,2).join(' ')}</tt>&rdquo;. </TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs && suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
