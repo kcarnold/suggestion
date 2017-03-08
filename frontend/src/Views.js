@@ -5,6 +5,7 @@ import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
 
 const surveyURLs = {
+  intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
   // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8FWK07Bfg4Xv2br',
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
@@ -107,7 +108,8 @@ const RedirectToSurvey = inject('clientId', 'clientKind', 'spying')(class Redire
     // This timeout is necessary to give the current page enough time to log the event that caused this render.
     // 2 seconds is probably overdoing it, but on the safe side.
     this.timeout = setTimeout(() => {
-      let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${this.props.afterEvent}`;
+      let afterEvent =  this.props.afterEvent || 'completeSurvey';
+      let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
       window.location.href = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
     }, 2000);
   }
@@ -247,8 +249,9 @@ export const screenViews = {
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>)),
 
-  PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} afterEvent={'completeSurvey'} />,
-  PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} afterEvent={'completeSurvey'} />,
+  IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
+  PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
+  PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
   Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is {clientId}.</div>),
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
   LookAtComputer: inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>),

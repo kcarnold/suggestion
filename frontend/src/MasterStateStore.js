@@ -127,6 +127,7 @@ export class MasterStateStore {
         return [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+          {controllerScreen: 'IntroSurvey'},
           {preEvent: {type: 'setupExperiment', block: 0}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
           {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
           {controllerScreen: 'SelectRestaurants'},
