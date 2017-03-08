@@ -166,8 +166,8 @@ export const screenViews = {
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience (like you might see on a site like Yelp or Google Maps). We'll do this in <b>two steps</b>:</p>
     <ol>
-      <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc.</li>
-      <li>Type out the most detailed review you can.</li>
+      <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc. ({state.times.prewriteTimer / 60} minutes)</li>
+      <li>Type out the <b>most detailed review you can</b>. ({state.times.finalTimer / 60} minutes)</li>
     </ol>
     <p>Tap Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top).</p>
     <NextBtn /></div>)),
@@ -231,12 +231,12 @@ export const screenViews = {
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
-    <p>Time is up! Now, try to write the most detailed review you can. You'll be using the same keyboard.
+    <p>Time is up! Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
     You'll have {state.nextScreen.timer / 60} minutes.</p>
     <NextBtn />
     </div>)),
 
-  BreakBeforeEditPhone: () => <div>Time's up for the rough draft. Follow the instructions on your computer to continue.</div>,
+  BreakBeforeEditPhone: () => <div>Time is up! Follow the instructions on your computer.</div>,
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>

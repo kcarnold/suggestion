@@ -100,6 +100,8 @@ export class MasterStateStore {
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
 
+    this.times = {prewriteTimer, finalTimer};
+
     M.extendObservable(this, {
       lastEventTimestamp: null,
       replaying: true,
