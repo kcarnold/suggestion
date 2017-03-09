@@ -173,7 +173,7 @@ export const screenViews = {
       <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc. ({state.times.prewriteTimer / 60} minutes)</li>
       <li>Type out the <b>most detailed review you can</b>. ({state.times.finalTimer / 60} minutes)</li>
     </ol>
-    <p>Tap Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)</p>
+    <p>Click Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)</p>
     <NextBtn /></div>)),
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
@@ -222,7 +222,7 @@ export const screenViews = {
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {state.tutorialTasks.allDone && <p>
         Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
-        When you're ready to move on, tap <NextBtn />.</p>}
+        When you're ready to move on, click here: <NextBtn />.</p>}
     </div>;
   })),
 
