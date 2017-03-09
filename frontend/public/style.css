@@ -132,8 +132,6 @@ html, body {
 }
 
 .key[data-key=\A] {
-    background-color: #5252FF;
-    color: white;
     flex-basis: auto;
 }
 
