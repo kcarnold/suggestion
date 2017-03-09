@@ -53,6 +53,7 @@ html, body {
     overflow: auto;
     background-color: #ccc;
     color: black;
+    flex: 0 0 auto;
 }
 
 /*** TEXT ***/
@@ -146,6 +147,7 @@ html, body {
     background-color: #ADB5BD;
     height: 42px;
     user-select: none;
+    flex: 0 0 auto;
 }
 
 .Suggestion {
