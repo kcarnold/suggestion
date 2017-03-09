@@ -181,7 +181,7 @@ export const screenViews = {
       return <div className="ExperimentScreen">
         <div className="header">
           {curScreen.isPrewrite ? "Rough draft" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
-          <div style={{float: 'right'}}><Timer /> ({state.block === 0 ? 'A' : 'B'})</div>
+          <div style={{float: 'right'}}><Timer /></div>
         </div>
         <CurText text={experimentState.curText} />
         <SuggestionsBar />
