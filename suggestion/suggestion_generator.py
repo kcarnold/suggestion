@@ -8,7 +8,6 @@ import datrie
 from collections import defaultdict
 import numpy as np
 import nltk
-import ujson as json
 import joblib
 
 from .paths import paths
@@ -474,7 +473,6 @@ def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs
 
 
 def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **kw):
-    state, _ = model.get_state(context_toks)
     ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
     result = [ents.pop(0)]
     first_words = {ent.words[0] for ent in result}
