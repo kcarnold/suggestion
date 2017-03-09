@@ -194,6 +194,13 @@ export const screenViews = {
       </div>;
     })),
 
+  PrewriteInstructionsDuring: () => <div>
+    <h1>Brainstorm what you might want to say</h1>
+
+    <p>Type anything that comes to mind. Don't worry about grammar, coherence, accuracy, or anything else.</p>
+  </div>,
+
+
   PracticePhone: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     return <div className="ExperimentScreen">
