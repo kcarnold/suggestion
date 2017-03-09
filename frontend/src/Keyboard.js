@@ -3,7 +3,8 @@ import _ from 'lodash';
 
 var KEYLABELS = {
     ' ': 'space',
-    '\n': '⏎',
+    '⌫': '',
+    '\n': 'return',
 };
 
 function getClosestKey(keyRects, touchX, touchY) {
