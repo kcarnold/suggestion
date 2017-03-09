@@ -166,7 +166,6 @@ export const screenViews = {
 
   Instructions: inject('state')(observer(({state}) => <div>
     <h1>Ready to write a review?</h1>
-    <p>There will be two writing sessions, Session A and Session B. This is Session {state.block === 0 ? 'A' : 'B'}.</p>
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
     <p>Let's write a review of this experience, like you might see on a site like Yelp or TripAdvisor. We'll do this in <b>two steps</b>:</p>
     <ol>
@@ -212,7 +211,8 @@ export const screenViews = {
       return <div>Loading...</div>;
     }
     return <div>
-      <h1>Practice with Phrase Suggestions (version A)</h1>
+      <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>
+      <h1>Practice with Phrase Suggestions</h1>
       <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
       <p>Notice the 3 boxes above the keyboard. Each one shows a phrase, with the left-most word highlighted. Tapping a box inserts the highlighted word and moves on to the next word in the phrase.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}><b>Tap</b> the leftmost box  to insert &ldquo;<tt>{suggs && suggs[0].words[0]}</tt>&rdquo;.</TutorialTodo>
@@ -227,12 +227,12 @@ export const screenViews = {
   })),
 
   PracticeComputer2: () => <div>
-    <h1>Practice with Phrase Suggestions (version B)</h1>
+    <h1>Practice with Session B Phrase Suggestions</h1>
 
-    <p>There will be two versions of the phrase suggestions. You just tried version A, now try out version B.</p>
+    <p>We are now starting the second of two writing sessions, Session B. In this session, <b>the suggestions will show different kinds of phrases</b>. Other than that, nothing changed; you'll still tap once per word you want.</p>
 
-    <p><b>Try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b></p>
-    <p><NextBtn /></p>
+    <p>We put up the practice keyboard on your phone again so you can try out the different phrase suggestions. <b>Try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b></p>
+    <p>Once you've gotten some practice, click this button to move on: <NextBtn /></p>
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
