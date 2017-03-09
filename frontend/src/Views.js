@@ -192,7 +192,9 @@ export const screenViews = {
   PrewriteInstructionsDuring: () => <div>
     <h1>Brainstorm what you might want to say</h1>
 
-    <p>Type anything that comes to mind. Don't worry about grammar, coherence, accuracy, or anything else.</p>
+    <p>Use your phone to type anything that comes to mind. Don't worry about grammar, coherence, accuracy, or anything else.</p>
+
+    <p>When time is up, the experiment will automatically advance.</p>
   </div>,
 
 
