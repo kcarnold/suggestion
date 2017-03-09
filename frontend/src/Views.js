@@ -152,7 +152,7 @@ export const screenViews = {
   </div>,
 
   SelectRestaurants: inject('state')(observer(({state}) => <div>
-    <p>Great, the phone is paired. Let's get ready for the experiment.</p>
+    <p>Great! Now let's get ready for the experiment.</p>
     <p>Think of 2 restaurants or cafes you've been to recently.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
