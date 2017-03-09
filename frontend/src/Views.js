@@ -277,6 +277,5 @@ export const MasterView = inject('state')(observer(({state, kind}) => {
   return (
     <div className="App">
       {React.createElement(screenViews[screenName])}
-      <div className="clientId">{state.clientId}</div>
     </div>);
 }));
