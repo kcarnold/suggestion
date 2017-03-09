@@ -6,15 +6,16 @@ import seedrandom from 'seedrandom';
 const prewriteTimer = 60 * 5;
 const finalTimer = 60 * 5;
 
+let multiTapThresholdMs = 500;
+
 class TutorialTasks {
   constructor() {
     M.extendObservable(this, {
-      lastTapInSlot: {},
-      consectutiveTaps: null,
+      consectutiveTaps: {},
       tasks: {
         tapSuggestion: false,
         doubleTap: false,
-        tripleTap: false,
+        quadTap: false,
         typeKeyboard: false
       },
       get allDone() {
@@ -25,25 +26,29 @@ class TutorialTasks {
   }
 
   handleEvent(event) {
+    let timestamp = event.jsTimestamp;
     switch(event.type) {
     case 'tapSuggestion':
-      if (event.slot === 0) {
-        this.tasks['tapSuggestion'] = true;
-      }
-      this.lastTapInSlot[event.slot] = event.jsTimestamp;
-      if (this.consectutiveTaps && this.consectutiveTaps.slot === event.slot) {
+      this.tasks['tapSuggestion'] = true;
+      if (this.consectutiveTaps.slot === event.slot && timestamp - this.consectutiveTaps.lastTimestamp < multiTapThresholdMs) {
         this.consectutiveTaps.times++;
-        if (this.consectutiveTaps.times === 2 && event.slot === 1) {
+        this.consectutiveTaps.lastTimestamp = timestamp;
+        if (this.consectutiveTaps.times >= 2) {
           this.tasks.doubleTap = true;
-        } else if (this.consectutiveTaps.times === 3 && event.slot === 2) {
-          this.tasks.tripleTap = true;
+        }
+        if (this.consectutiveTaps.times >= 4) {
+          this.tasks.quadTap = true;
         }
       } else {
-        this.consectutiveTaps = {slot: event.slot, times: 1};
+        this.consectutiveTaps = {slot: event.slot, times: 1, lastTimestamp: event.jsTimestamp};
       }
       break;
     case 'tapKey':
       this.tasks.typeKeyboard = true;
+      this.consectutiveTaps = {};
+      break;
+    case 'tapBackspace':
+      this.consectutiveTaps = {};
       break;
     default:
     }

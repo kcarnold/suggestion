@@ -206,18 +206,14 @@ export const screenViews = {
 
   PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
-    let suggs = experimentState.visibleSuggestions;
-    if (experimentState.lastSuggestionsFromServer.length === 0 && experimentState.contextSequenceNum === 0) {
-      return <div>Loading...</div>;
-    }
     return <div>
       <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>
       <h1>Practice with Phrase Suggestions</h1>
       <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
-      <p>Notice the 3 boxes above the keyboard. Each one shows a phrase, with the left-most word highlighted. Tapping a box inserts the highlighted word and moves on to the next word in the phrase.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}><b>Tap</b> the leftmost box  to insert &ldquo;<tt>{suggs && suggs[0].words[0]}</tt>&rdquo;.</TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now <b>double-tap</b> the middle box to insert &ldquo;<tt>{suggs && suggs[1].words.slice(0,2).join(' ')}</tt>&rdquo;. </TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.tripleTap}>Now <b>triple-tap</b> the rightmost box to insert &ldquo;<tt>{suggs && suggs[2].words.slice(0,3).join(' ')}</tt>&rdquo;. </TutorialTodo>
+      <p>Notice the 3 boxes above the keyboard. Each one shows a phrase. Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
+      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> to insert a word.</TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Now try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.  </TutorialTodo>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {state.tutorialTasks.allDone && <p>
