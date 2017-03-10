@@ -57,13 +57,13 @@ class TutorialTasks {
 
 function experimentBlock({block}) {
   return [
-    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
-    {screen: 'ExperimentScreen', controllerScreen: 'PrewriteInstructionsDuring', timer: prewriteTimer, isPrewrite: true},
-    {controllerScreen: 'PostFreewriteSurvey'},
-    {preEvent: {type: 'setupExperiment', block}, screen: 'BreakBeforeEditPhone', controllerScreen: 'BreakBeforeEdit'},
+    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions', isPrewrite: true},
+    {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer, isPrewrite: true},
+    {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
+    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions', isPrewrite: false},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer, isPrewrite: false},
-    {controllerScreen: 'PostTaskSurvey'},
+    {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
   ];
 }
 

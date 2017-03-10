@@ -11,6 +11,11 @@ const surveyURLs = {
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
 }
 
+const texts = {
+  brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
+  revisionInstructions: <span>Type out the <b>most detailed review you can</b>.</span>,
+};
+
 class Suggestion extends Component {
   render() {
     let {onTap, word, preview, isValid} = this.props;
@@ -163,19 +168,26 @@ export const screenViews = {
     <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2'.split(' '), x => state.controlledInputs.get(x))} />
   </div>)),
 
-  Instructions: inject('state')(observer(({state}) => <div>
-    <h1>Ready to write a review?</h1>
-    <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-    <p>Let's write a review of this experience, like you might see on a site like Yelp or TripAdvisor. We'll do this in <b>two steps</b>:</p>
-    <ol>
-      <li style={{paddingBottom: '1em'}}><b>Explore what you might want to talk about</b> by typing whatever comes to mind. Don't worry about grammar, coherence, accuracy, etc. ({state.times.prewriteTimer / 60} minutes)</li>
-      <li>Type out the <b>most detailed review you can</b>. ({state.times.finalTimer / 60} minutes)</li>
-    </ol>
-    <p>Click Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)</p>
-    <NextBtn /></div>)),
+  Instructions: inject('state')(observer(({state}) => {
+    let inExperiment = state.curScreen.screen === 'ExperimentScreen';
+    let {isPrewrite} = state.curScreen;
+    return <div>
+      <h1>Let's write a review!</h1>
+      <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
+      <p>Let's write a review of this experience, like you might see on a site like Yelp or TripAdvisor. We'll do this in <b>two steps</b>:</p>
+      <ol>
+        <li style={{paddingBottom: '1em', color: isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
+        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
+      </ol>
+      <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+      {inExperiment
+        ? <p>Use your phone to start typing out {isPrewrite ? 'your ideas' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
+        : <p>Click Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>}
+    </div>;
+  })),
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
-      <h1>Revise</h1>
+      {texts.revisionInstructions}
       <p>Here is what you wrote last time:</p>
       <div style={{whiteSpace: 'pre-line'}}>{state.prevExperimentState.curText}</div>
     </div>)),
@@ -184,7 +196,7 @@ export const screenViews = {
       let {experimentState, curScreen} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          {curScreen.isPrewrite ? "Rough draft" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
+          {curScreen.isPrewrite ? "Brainstorming for your" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <div style={{float: 'right'}}><Timer /></div>
         </div>
         <CurText text={experimentState.curText} />
@@ -192,15 +204,6 @@ export const screenViews = {
         <Keyboard dispatch={dispatch} />
       </div>;
     })),
-
-  PrewriteInstructionsDuring: () => <div>
-    <h1>Brainstorm what you might want to say</h1>
-
-    <p>Use your phone to type anything that comes to mind. Don't worry about grammar, coherence, accuracy, or anything else.</p>
-
-    <p>When time is up, the experiment will automatically advance.</p>
-  </div>,
-
 
   PracticePhone: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
@@ -239,13 +242,7 @@ export const screenViews = {
     <p>Once you've gotten some practice, click this button to move on: <NextBtn /></p>
   </div>,
 
-  BreakBeforeEdit: inject('state')(observer(({state}) => <div>
-    <p>Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
-    You'll have {state.nextScreen.timer / 60} minutes.</p>
-    <NextBtn />
-    </div>)),
-
-  BreakBeforeEditPhone: () => <div>Time is up. Follow the instructions on your computer.</div>,
+  TimesUpPhone: () => <div>Time is up. Follow the instructions on your computer.</div>,
 
   EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
