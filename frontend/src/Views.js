@@ -216,7 +216,6 @@ export const screenViews = {
   })),
 
   PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let {experimentState} = state;
     return <div>
       <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>
       <h1>Practice with Phrase Suggestions</h1>
