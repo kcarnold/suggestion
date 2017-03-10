@@ -12,6 +12,9 @@ for (let i=1; i<screens.length; i++) {
   let newState = new MasterStateStore('zzzzzz');
   for (let j=0; j<i; j++) {
     newState.handleEvent({type: 'next'});
+    if (newState.curScreen.screen === 'ExperimentScreen') {
+      _.forEach(`${j}`, chr => newState.handleEvent({type: 'tapKey', key: chr}));
+    }
   }
   states.push(newState);
   newState.replaying = false;

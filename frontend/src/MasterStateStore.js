@@ -57,10 +57,10 @@ class TutorialTasks {
 
 function experimentBlock({block}) {
   return [
-    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions', isPrewrite: true},
+    {preEvent: {type: 'setupExperiment', block, name: `pre-${block}`}, controllerScreen: 'Instructions', isPrewrite: true},
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer, isPrewrite: true},
     {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
-    {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions', isPrewrite: false},
+    {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', isPrewrite: false},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer, isPrewrite: false},
     {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
@@ -113,15 +113,11 @@ export class MasterStateStore {
       replaying: true,
       screenNum: 0,
       block: null,
-      experiments: [],
+      experiments: M.asMap({}),
+      curExperiment: null,
       get experimentState() {
-        if (this.experiments.length) {
-          return this.experiments[this.experiments.length - 1];
-        }
-      },
-      get prevExperimentState() {
-        if (this.experiments.length > 1) {
-          return this.experiments[this.experiments.length - 2];
+        if (this.curExperiment) {
+          return this.experiments.get(this.curExperiment);
         }
       },
       controlledInputs: M.asMap({}),
@@ -139,17 +135,17 @@ export class MasterStateStore {
         }
       },
       get screens() {
-        if (isDemo) return [{screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
+        if (isDemo) return [{preEvent: {type: 'setupExperiment', block: 0, name: 'demo'}, screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'IntroSurvey'},
-          {preEvent: {type: 'setupExperiment', block: 0}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+          {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
           {controllerScreen: 'SelectRestaurants'},
           ...experimentBlock({block: 0}),
-          {preEvent: {type: 'setupExperiment', block: 1}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
+          {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
           ...experimentBlock({block: 1}),
-          {controllerScreen: 'PostExpSurvey'},
+          {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
         ];
       },
@@ -207,10 +203,30 @@ export class MasterStateStore {
         };
       }
     });
+    this.initScreen();
+  }
 
-    if (isDemo) {
-      this.block = 0;
-      this.experiments.push(new ExperimentStateStore(this.condition));
+  initScreen() {
+    // Execute start-of-screen actions.
+    let screen = this.screens[this.screenNum];
+    let event = screen.preEvent || {};
+    switch (event.type) {
+    case 'setupExperiment':
+      this.block = screen.preEvent.block;
+      if (this.experimentState) {
+        this.experimentState.dispose();
+      }
+      this.curExperiment = event.name;
+      this.experiments.set(event.name, new ExperimentStateStore(this.condition));
+      break;
+    case 'setEditFromExperiment':
+      this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
+      break;
+    default:
+    }
+    if (screen.timer) {
+      this.timerStartedAt = event.jsTimestamp;
+      this.timerDur = screen.timer;
     }
   }
 
@@ -243,25 +259,7 @@ export class MasterStateStore {
     }
 
     if (this.screenNum !== screenAtStart) {
-      // Execute start-of-screen actions.
-      let screen = this.screens[this.screenNum];
-      switch ((screen.preEvent || {}).type) {
-      case 'setupExperiment':
-        this.block = screen.preEvent.block;
-        if (this.experimentState) {
-          this.experimentState.dispose();
-        }
-        this.experiments.push(new ExperimentStateStore(this.condition));
-        break;
-      case 'setEditFromExperiment':
-        this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
-        break;
-      default:
-      }
-      if (screen.timer) {
-        this.timerStartedAt = event.jsTimestamp;
-        this.timerDur = screen.timer;
-      }
+      this.initScreen();
     }
   });
 }

@@ -182,14 +182,14 @@ export const screenViews = {
       <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
       {inExperiment
         ? <p>Use your phone to start typing out {isPrewrite ? 'your ideas' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
-        : <p>Click Next when you're ready to start Step 1. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>}
+        : <p>Click Next when you're ready to start Step {isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>}
     </div>;
   })),
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
       {texts.revisionInstructions}
       <p>Here is what you wrote last time:</p>
-      <div style={{whiteSpace: 'pre-line'}}>{state.prevExperimentState.curText}</div>
+      <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
     </div>)),
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
@@ -265,6 +265,16 @@ export const screenViews = {
     <p>If you have a barcode reader on your phone, you can use scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></p>
   </div>),
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
+
+  ShowReviews: inject('state')(observer(({state}) => <div>
+    <p>Here are the reviews you wrote:</p>
+    <h1>Session A ({state.places[0].name})</h1>
+    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('pre-0').curText}</div>
+
+    <h1>Session B ({state.places[1].name})</h1>
+    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('pre-1').curText}</div>
+
+  </div>)),
 };
 
 const shouldShowLabelOnScreen = {
