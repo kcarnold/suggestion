@@ -128,6 +128,16 @@ export class MasterStateStore {
       timerStartedAt: null,
       timerDur: null,
       tutorialTasks: new TutorialTasks(),
+      get blockName() {
+        switch (this.block) {
+        case 0:
+          return 'A';
+        case 1:
+          return 'B';
+        default:
+          return null;
+        }
+      },
       get screens() {
         if (isDemo) return [{screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
