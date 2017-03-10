@@ -59,6 +59,7 @@ function experimentBlock({block}) {
   return [
     {preEvent: {type: 'setupExperiment', block}, controllerScreen: 'Instructions'},
     {screen: 'ExperimentScreen', controllerScreen: 'PrewriteInstructionsDuring', timer: prewriteTimer, isPrewrite: true},
+    {controllerScreen: 'PostFreewriteSurvey'},
     {preEvent: {type: 'setupExperiment', block}, screen: 'BreakBeforeEditPhone', controllerScreen: 'BreakBeforeEdit'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer, isPrewrite: false},

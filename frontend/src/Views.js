@@ -6,7 +6,7 @@ import {Keyboard} from './Keyboard';
 
 const surveyURLs = {
   intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
-  // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8FWK07Bfg4Xv2br',
+  postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
 }
@@ -236,7 +236,7 @@ export const screenViews = {
   </div>,
 
   BreakBeforeEdit: inject('state')(observer(({state}) => <div>
-    <p>Time is up. Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
+    <p>Now, try to write the <b>most detailed review you can</b>. You'll be using the same keyboard as you just used.
     You'll have {state.nextScreen.timer / 60} minutes.</p>
     <NextBtn />
     </div>)),
@@ -251,6 +251,7 @@ export const screenViews = {
   </div>)),
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
+  PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
   Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is {clientId}.</div>),
