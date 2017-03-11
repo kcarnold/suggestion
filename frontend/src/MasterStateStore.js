@@ -227,7 +227,7 @@ export class MasterStateStore {
     }
     this.screenTimes.push({num: this.screenNum, timestamp: this.lastEventTimestamp});
     if (screen.timer) {
-      this.timerStartedAt = event.jsTimestamp;
+      this.timerStartedAt = this.lastEventTimestamp;
       this.timerDur = screen.timer;
     }
   }
