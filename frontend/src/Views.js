@@ -184,17 +184,20 @@ export const screenViews = {
       <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
       <p>We'll do this in <b>two steps</b>:</p>
       <ol>
-        <li style={{paddingBottom: '1em', color: isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
+        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
         <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
       </ol>
       <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
       <hr/>
       {inExperiment
         ? <p>Use your phone to start typing out {isPrewrite ? 'your ideas' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
-        : state.passedQuiz ? <p>Click Next when you're ready to start Step {isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>
+        : state.passedQuiz ? <p></p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
+
+  ReadyPhone: inject('state')(observer(({state}) => <p>
+    Click Next when you're ready to start Step {state.isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>)),
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
       {texts.revisionInstructions}
@@ -261,7 +264,7 @@ export const screenViews = {
   </div>)),
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
-  InstructionsQuiz: () => <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />,
+  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>Great! Have a look at your computer.</p> : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />),
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
