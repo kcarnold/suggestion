@@ -257,6 +257,9 @@ export class MasterStateStore {
     case 'setScreen':
       this.screenNum = event.screen;
       break;
+    case 'setStateVarMagic':
+      this[event.var] = event.val;
+      break;
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);
       break;
