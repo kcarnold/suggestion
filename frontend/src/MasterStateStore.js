@@ -124,6 +124,7 @@ export class MasterStateStore {
       timerStartedAt: null,
       timerDur: null,
       tutorialTasks: new TutorialTasks(),
+      screenTimes: [],
       get blockName() {
         switch (this.block) {
         case 0:
@@ -224,6 +225,7 @@ export class MasterStateStore {
       break;
     default:
     }
+    this.screenTimes.push({num: this.screenNum, timestamp: this.lastEventTimestamp});
     if (screen.timer) {
       this.timerStartedAt = event.jsTimestamp;
       this.timerDur = screen.timer;

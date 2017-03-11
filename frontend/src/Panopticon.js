@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import M from 'mobx';
+import moment from 'moment';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
@@ -115,20 +116,31 @@ ws.onmessage = function(msg) {
 
 const Panopticon = observer(class Panopticon extends Component {
   render() {
-    return <div>{store.showingIds.map(participantId => <div key={participantId}>
-        <h1>{participantId}</h1>
-        <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black'}}>
-          <Provider state={store.states.get(participantId)} dispatch={() => {}} clientId={participantId} clientKind={'p'} spying={true}>
-            <MasterView kind={'p'}/>
-          </Provider>
+    return <div>{store.showingIds.map(participantId => {
+      let state = store.states.get(participantId);
+      return <div key={participantId}>
+        <h1>{participantId} {state.conditions.join(',')}</h1>
+        <div style={{display: 'flex', flexFlow: 'row'}}>
+          <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black'}}>
+            <Provider state={state} dispatch={() => {}} clientId={participantId} clientKind={'p'} spying={true}>
+              <MasterView kind={'p'}/>
+            </Provider>
+          </div>
+          <div style={{overflow: 'hidden', width: 450, height: 500, border: '1px solid black'}}>
+            <Provider state={state} dispatch={() => {}} clientId={participantId} clientKind={'c'} spying={true}>
+              <MasterView kind={'c'} />
+            </Provider>
+          </div>
+          <div style={{flex: '1 1 auto'}}>
+            <table>
+              <tbody>
+                {state.screenTimes.map(({num, timestamp}) => <tr key={num}><td>{state.screens[num].controllerScreen || state.screens[num].screen}</td><td>{moment(timestamp).format('LTS')}</td></tr>)}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black'}}>
-          <Provider state={store.states.get(participantId)} dispatch={() => {}} clientId={participantId} clientKind={'c'} spying={true}>
-            <MasterView kind={'c'} />
-          </Provider>
-        </div>
-      </div>)
-    }</div>;
+      </div>;
+    })}</div>;
   }
 });
 
