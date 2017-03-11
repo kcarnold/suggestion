@@ -57,7 +57,7 @@ class TutorialTasks {
 
 function experimentBlock({block}) {
   return [
-    {preEvent: {type: 'setupExperiment', block, name: `pre-${block}`}, controllerScreen: 'Instructions', isPrewrite: true},
+    {preEvent: {type: 'setupExperiment', block, name: `pre-${block}`}, controllerScreen: 'Instructions', isPrewrite: true, screen: 'InstructionsQuiz'},
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer, isPrewrite: true},
     {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
     {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', isPrewrite: false},
@@ -113,6 +113,7 @@ export class MasterStateStore {
       replaying: true,
       screenNum: 0,
       block: null,
+      passedQuiz: false,
       experiments: M.asMap({}),
       curExperiment: null,
       get experimentState() {
@@ -244,6 +245,8 @@ export class MasterStateStore {
     case 'externalAction':
       if (event.externalAction === 'completeSurvey') {
         this.screenNum++;
+      } else if (event.externalAction === 'passedQuiz') {
+        this.passedQuiz = true;
       } else {
         alert("Unknown externalAction: "+event.externalAction);
       }

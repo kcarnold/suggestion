@@ -187,6 +187,7 @@ class WebsocketHandler(MyWSHandler):
                     assert all(x in string.hexdigits for x in participant_id)
                     self.participant = Participant.get_participant(participant_id)
                 self.participant.connected(self)
+                self.participant.log(dict(kind='meta', type='init', request=request))
                 messageCount = request.get('messageCount', {})
                 print("Client", participant_id, self.kind, "connecting with messages", messageCount)
                 backlog = []

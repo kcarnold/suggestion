@@ -6,6 +6,7 @@ import {Keyboard} from './Keyboard';
 
 const surveyURLs = {
   intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
+  instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
   postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
@@ -187,9 +188,11 @@ export const screenViews = {
         <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
       </ol>
       <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+      <hr/>
       {inExperiment
         ? <p>Use your phone to start typing out {isPrewrite ? 'your ideas' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
-        : <p>Click Next when you're ready to start Step {isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>}
+        : state.passedQuiz ? <p>Click Next when you're ready to start Step {isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>
+        : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
 
@@ -258,6 +261,7 @@ export const screenViews = {
   </div>)),
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
+  InstructionsQuiz: () => <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />,
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,

@@ -37,8 +37,27 @@ var ws = new WSClient(`ws://${window.location.host}/ws`);
 var logs = {};
 window.logs = logs;
 
+var browserMeta = {
+  userAgent: navigator.userAgent,
+  screen: _.fromPairs(_.map('height availHeight width availWidth'.split(' '), x => [x, screen[x]])),
+  window: {
+    devicePixelRatio: window.devicePixelRatio,
+  },
+  documentElement: {
+    clientHeight: document.documentElement.clientHeight,
+    clientWidth: document.documentElement.clientWidth,
+  },
+};
+
+
 function updateBacklog() {
-  ws.setHello([{type: 'init', participantId: clientId, kind: clientKind, messageCount: _.mapValues(logs, v => v.length)}]);
+  ws.setHello([{
+    type: 'init',
+    participantId: clientId,
+    kind: clientKind,
+    browserMeta,
+    messageCount: _.mapValues(logs, v => v.length),
+  }]);
 }
 
 function addLogEntry(kind, event) {
