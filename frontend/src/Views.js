@@ -272,10 +272,10 @@ export const screenViews = {
   ShowReviews: inject('state')(observer(({state}) => <div>
     <p>Here are the reviews you wrote:</p>
     <h1>Session A ({state.places[0].name})</h1>
-    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('pre-0').curText}</div>
+    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-0').curText}</div>
 
     <h1>Session B ({state.places[1].name})</h1>
-    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('pre-1').curText}</div>
+    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-1').curText}</div>
 
   </div>)),
 };
