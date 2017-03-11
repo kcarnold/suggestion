@@ -130,19 +130,23 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
 
-class CurText extends Component {
+const CurText = inject('spying')(observer(class CurText extends Component {
   componentDidMount() {
-    this.cursor.scrollIntoView();
+    if (!this.props.spying) {
+      this.cursor.scrollIntoView();
+    }
   }
 
   componentDidUpdate() {
-    this.cursor.scrollIntoView();
+    if (!this.props.spying) {
+      this.cursor.scrollIntoView();
+    }
   }
 
   render() {
     return <div className="CurText">{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></div>;
   }
-}
+}));
 
 export const screenViews = {
   Welcome: () => <div>
