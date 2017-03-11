@@ -12,6 +12,7 @@ const surveyURLs = {
 }
 
 const texts = {
+  overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
   brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
   revisionInstructions: <span>Type out the <b>most detailed review you can</b>.</span>,
 };
@@ -165,6 +166,7 @@ export const screenViews = {
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
     </div>
+    <br/>
     <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
       <br />How would you rate that visit? <ControlledStarRating name="star2" />
     </div>
@@ -178,7 +180,8 @@ export const screenViews = {
     return <div>
       <h1>Let's write a review!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-      <p>Let's write a review of this experience, like you might see on a site like Yelp or TripAdvisor. We'll do this in <b>two steps</b>:</p>
+      <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
+      <p>We'll do this in <b>two steps</b>:</p>
       <ol>
         <li style={{paddingBottom: '1em', color: isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
         <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
