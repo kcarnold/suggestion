@@ -208,7 +208,7 @@ export const screenViews = {
     </div>)),
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
-      let {experimentState, curScreen} = state;
+      let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
           {state.isPrewrite ? "Brainstorming for your" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
