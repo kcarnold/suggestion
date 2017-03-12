@@ -136,6 +136,7 @@ ws.onmessage = function(msg) {
     // This needs to happen here so that we don't temporarily display the redirect page.
     if (externalAction) {
       dispatch({type: 'externalAction', externalAction});
+      externalAction = '';
     }
     state.replaying = false;
     updateBacklog();
