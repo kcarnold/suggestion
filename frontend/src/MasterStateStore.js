@@ -56,13 +56,17 @@ class TutorialTasks {
 }
 
 function experimentBlock({block}) {
+
   return [
-    {preEvent: {type: 'setupExperiment', block, name: `pre-${block}`}, controllerScreen: 'Instructions', isPrewrite: true, screen: 'InstructionsQuiz'},
-    {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer, isPrewrite: true},
+    {
+      controllerScreen: 'Instructions', screen: 'ReadyPhone',
+      preEvent: {type: 'setupExperiment', block, name: `pre-${block}`},
+    },
+    {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
-    {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', isPrewrite: false},
+    {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
-    {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer, isPrewrite: false},
+    {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
   ];
 }
@@ -113,7 +117,6 @@ export class MasterStateStore {
       replaying: true,
       screenNum: 0,
       block: null,
-      passedQuiz: false,
       experiments: M.asMap({}),
       curExperiment: null,
       get experimentState() {
@@ -121,11 +124,15 @@ export class MasterStateStore {
           return this.experiments.get(this.curExperiment);
         }
       },
+      get isPrewrite() {
+        return this.curExperiment.slice(0, 3) === 'pre';
+      },
       controlledInputs: M.asMap({}),
       timerStartedAt: null,
       timerDur: null,
       tutorialTasks: new TutorialTasks(),
       screenTimes: [],
+      passedQuiz: false,
       get blockName() {
         switch (this.block) {
         case 0:

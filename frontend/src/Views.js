@@ -177,7 +177,7 @@ export const screenViews = {
 
   Instructions: inject('state')(observer(({state}) => {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
-    let {isPrewrite} = state.curScreen;
+    let {isPrewrite} = state;
     return <div>
       <h1>Let's write a review!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
@@ -189,15 +189,17 @@ export const screenViews = {
       </ol>
       <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
       <hr/>
-      {inExperiment
-        ? <p>Use your phone to start typing out {isPrewrite ? 'your ideas' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
-        : state.passedQuiz ? <p></p>
+      {state.passedQuiz || inExperiment
+        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
 
-  ReadyPhone: inject('state')(observer(({state}) => <p>
-    Click Next when you're ready to start Step {state.isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>)),
+  ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <p>
+    Tap Next when you're ready to start Step {state.isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>
+    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />)),
+
+/*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
       {texts.revisionInstructions}
@@ -209,7 +211,7 @@ export const screenViews = {
       let {experimentState, curScreen} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          {curScreen.isPrewrite ? "Brainstorming for your" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
+          {state.isPrewrite ? "Brainstorming for your" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <div style={{float: 'right'}}><Timer /></div>
         </div>
         <CurText text={experimentState.curText} />
@@ -264,7 +266,6 @@ export const screenViews = {
   </div>)),
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
-  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>Great! Have a look at your computer.</p> : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />),
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
