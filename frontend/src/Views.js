@@ -269,7 +269,7 @@ export const screenViews = {
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
   PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
-  Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is {clientId}.</div>),
+  Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>),
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
   LookAtComputer: inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>),
   SetupPairingComputer: inject('clientId')(({clientId}) => <div>
