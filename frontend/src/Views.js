@@ -278,7 +278,7 @@ export const screenViews = {
     <div>How to pair your phone (they're all the same, pick the easiest one for you):</div>
     <ul>
       <li>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>.</li>
-      <li>Send this link to yourself: <input style={{fontFamily: 'monospace', width: '25em'}} value={`http://megacomplete.net/?${clientId}-p`} /></li>
+      <li>Send this link to yourself: <input readOnly={true} style={{fontFamily: 'monospace', width: '25em'}} value={`http://megacomplete.net/?${clientId}-p`} /></li>
       <li>Scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></li>
     </ul>
     <p>Once your phone is paired, there will be a button on that page to continue.</p>
