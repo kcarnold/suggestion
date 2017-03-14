@@ -112,7 +112,7 @@ ws.onmessage = function(msg) {
   }
 };
 
-
+const nullDispatch = () => {};
 
 const Panopticon = observer(class Panopticon extends Component {
   render() {
@@ -121,22 +121,26 @@ const Panopticon = observer(class Panopticon extends Component {
       return <div key={participantId}>
         <h1>{participantId} {state.conditions.join(',')}</h1>
         <div style={{display: 'flex', flexFlow: 'row'}}>
-          <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black'}}>
-            <Provider state={state} dispatch={() => {}} clientId={participantId} clientKind={'p'} spying={true}>
+          <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black', flex: '0 0 auto'}}>
+            <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'p'} spying={true}>
               <MasterView kind={'p'}/>
             </Provider>
           </div>
-          <div style={{overflow: 'hidden', width: 450, height: 500, border: '1px solid black'}}>
-            <Provider state={state} dispatch={() => {}} clientId={participantId} clientKind={'c'} spying={true}>
+          <div style={{overflow: 'hidden', width: 450, height: 500, border: '1px solid black', flex: '0 0 auto'}}>
+            <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'c'} spying={true}>
               <MasterView kind={'c'} />
             </Provider>
           </div>
-          <div style={{flex: '1 1 auto'}}>
+          <div style={{flex: '0 0 auto'}}>
             <table>
               <tbody>
                 {state.screenTimes.map(({num, timestamp}) => <tr key={num}><td>{state.screens[num].controllerScreen || state.screens[num].screen}</td><td>{moment(timestamp).format('LTS')}</td></tr>)}
               </tbody>
             </table>
+          </div>
+          <div style={{flex: '1 1 auto'}}>
+            {state.experiments.entries().map(([name, expState]) => <div key={name}>
+              <b>{name}</b><br/>{expState.curText}</div>)}
           </div>
         </div>
       </div>;
