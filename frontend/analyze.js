@@ -22,7 +22,7 @@ readStdin(function(err, res) {
     let experiment = participants.get(participant_id);
     if (!experiment) {
       experiment = {
-        state: new MasterStateStore(),
+        state: new MasterStateStore(participant_id),
         annotated: [],
         requests: [],
       };
