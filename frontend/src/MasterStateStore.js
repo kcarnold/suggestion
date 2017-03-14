@@ -1,3 +1,5 @@
+// @flow
+
 import M from 'mobx';
 import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
@@ -9,6 +11,9 @@ const finalTimer = 60 * 5;
 let multiTapThresholdMs = 500;
 
 class TutorialTasks {
+  tasks: {[name: string]: boolean} ;
+  consectutiveTaps: Object;
+
   constructor() {
     M.extendObservable(this, {
       consectutiveTaps: {},
@@ -55,7 +60,13 @@ class TutorialTasks {
   }
 }
 
-function experimentBlock({block}) {
+type Screen = {
+  controllerScreen: string,
+  screen: string,
+  preEvent?: Object
+};
+
+function experimentBlock({block}:{block: number}): Array<Screen> {
 
   return [
     {
@@ -95,14 +106,27 @@ const namedConditions = {
 };
 
 export class MasterStateStore {
-  constructor(clientId) {
-    this.__version__ = 1;
+  clientId: string;
+  swapConditionOrder: boolean;
+  swapPlaceOrder: boolean;
+  conditions: Array<string>;
+  lastEventTimestamp: number;
+  replaying: boolean;
+  block: number;
+  times: {[name: string]: number};
+  screenTimes: Array<{num: number, timestamp: number}>;
+  screens: Array<Screen>;
+  screenNum: number;
+  curExperiment: string;
+  condition: string;
+
+  constructor(clientId:string) {
     this.clientId = clientId;
 
-    this.rng = seedrandom(clientId);
+    let rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
-    this.swapConditionOrder = this.rng() < .5;
-    this.swapPlaceOrder = this.rng() < .5;
+    this.swapConditionOrder = rng() < .5;
+    this.swapPlaceOrder = rng() < .5;
     this.conditions = ['rarePhrase', 'phrase'];
     if (this.swapConditionOrder) {
       this.conditions.unshift(this.conditions.pop());
@@ -218,20 +242,22 @@ export class MasterStateStore {
   initScreen() {
     // Execute start-of-screen actions.
     let screen = this.screens[this.screenNum];
-    let event = screen.preEvent || {};
-    switch (event.type) {
-    case 'setupExperiment':
-      this.block = screen.preEvent.block;
-      if (this.experimentState) {
-        this.experimentState.dispose();
+    if (screen.preEvent) {
+      let event = screen.preEvent;
+      switch (event.type) {
+      case 'setupExperiment':
+        this.block = screen.preEvent.block;
+        if (this.experimentState) {
+          this.experimentState.dispose();
+        }
+        this.curExperiment = event.name;
+        this.experiments.set(event.name, new ExperimentStateStore(this.condition));
+        break;
+      case 'setEditFromExperiment':
+        this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
+        break;
+      default:
       }
-      this.curExperiment = event.name;
-      this.experiments.set(event.name, new ExperimentStateStore(this.condition));
-      break;
-    case 'setEditFromExperiment':
-      this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
-      break;
-    default:
     }
     this.screenTimes.push({num: this.screenNum, timestamp: this.lastEventTimestamp});
     if (screen.timer) {
