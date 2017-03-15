@@ -192,6 +192,24 @@ class Model:
         logprobs *= LOG10
         return logprobs
 
+    def _get_unigram_probs(self):
+        logprobs = np.empty(len(self.id2str))
+        state = self.null_context_state
+        state2 = kenlm.State()
+        for i, word in enumerate(self.id2str):
+            if i < 4:
+                logprobs[i] = -np.inf
+            else:
+                logprobs[i] = self.model.base_score_from_idx(state, i, state2)
+        logprobs *= np.log(10)
+        return logprobs
+
+    @property
+    def unigram_probs(self):
+        if not hasattr(self, '_unigram_probs'):
+            self._unigram_probs = self._get_unigram_probs()
+        return self._unigram_probs
+
 
 models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train']}
 def get_model(name):
@@ -401,26 +419,11 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
     return [BeamEntry(*ent) for ent in beam]
 
 
-# TODO: cache this!?
-def get_unigram_probs(model):
-    logprobs = np.empty(len(model.id2str))
-    state = model.null_context_state
-    state2 = kenlm.State()
-    for i, word in enumerate(model.id2str):
-        if i < 4:
-            logprobs[i] = -np.inf
-        else:
-            logprobs[i] = model.model.base_score_from_idx(state, i, state2)
-    logprobs *= np.log(10)
-    return logprobs
-
-
-
 def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix='', latency_budget=.3):
     start_time = time.time()
     time_per_iter = []
     last_iter_time = start_time
-    unigram_probs = get_unigram_probs(model)
+    unigram_probs = model.unigram_probs
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(0., [], False, start_state, None, 0, [])]
     stats = []
