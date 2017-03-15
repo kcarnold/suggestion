@@ -157,6 +157,7 @@ export class MasterStateStore {
       tutorialTasks: new TutorialTasks(),
       screenTimes: [],
       passedQuiz: false,
+      phoneSize: {width: 360, height: 500},
       get blockName() {
         switch (this.block) {
         case 0:
@@ -295,6 +296,11 @@ export class MasterStateStore {
       break;
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);
+      break;
+    case 'resized':
+      if (event.kind === 'p') {
+        this.phoneSize = {width: event.width, height: event.height};
+      }
       break;
     default:
     }

@@ -121,7 +121,7 @@ const Panopticon = observer(class Panopticon extends Component {
       return <div key={participantId}>
         <h1>{participantId} {state.conditions.join(',')}</h1>
         <div style={{display: 'flex', flexFlow: 'row'}}>
-          <div style={{overflow: 'hidden', width: 360, height: 500, border: '1px solid black', flex: '0 0 auto'}}>
+          <div style={{overflow: 'hidden', width: state.phoneSize.width, height: state.phoneSize.height, border: '1px solid black', flex: '0 0 auto'}}>
             <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'p'} spying={true}>
               <MasterView kind={'p'}/>
             </Provider>
