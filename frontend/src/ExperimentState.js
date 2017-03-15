@@ -150,7 +150,10 @@ export class ExperimentStateStore {
         let {msg} = event;
         // Only update suggestions if the data is valid.
         if (msg.request_id !== this.contextSequenceNum) {
-          console.warn("Discarding outdated suggestions", msg.request_id, this.contextSequenceNum);
+          // Only warn if we're more than one context behind.
+          if (this.contextSequenceNum - msg.request_id > 1) {
+            console.warn("Discarding outdated suggestions", msg.request_id, this.contextSequenceNum);
+          }
           return;
         }
 
