@@ -15,7 +15,7 @@ const surveyURLs = {
 const texts = {
   overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
   brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
-  revisionInstructions: <span>Type out the <b>most detailed review you can</b>.</span>,
+  revisionInstructions: <span>Type out the <b>most detailed true story you can</b> about your experience.</span>,
 };
 
 class Suggestion extends Component {
@@ -179,7 +179,7 @@ export const screenViews = {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
     let {isPrewrite} = state;
     return <div>
-      <h1>Let's write a review!</h1>
+      <h1>Let's write about your experience!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
       <p>We'll do this in <b>two steps</b>:</p>
@@ -190,7 +190,7 @@ export const screenViews = {
       <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
       <hr/>
       {state.passedQuiz || inExperiment
-        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : 'your revised review'}. The experiment will automatically advance when time is up.</p>
+        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : 'your revised story'}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
@@ -211,7 +211,7 @@ export const screenViews = {
       let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          {state.isPrewrite ? "Brainstorming for your" : "Revised"} review for your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
+          {state.isPrewrite ? "Brainstorming for your" : "Revised"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
           <div style={{float: 'right'}}><Timer /></div>
         </div>
         <CurText text={experimentState.curText} />
@@ -286,7 +286,7 @@ export const screenViews = {
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
 
   ShowReviews: inject('state')(observer(({state}) => <div>
-    <p>Here are the reviews you wrote:</p>
+    <p>Here are the stories you wrote:</p>
     <h1>Session A ({state.places[0].name})</h1>
     <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-0').curText}</div>
 
