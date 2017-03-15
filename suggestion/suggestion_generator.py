@@ -418,13 +418,18 @@ def get_unigram_probs(model):
 
 def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix='', latency_budget=.3):
     start_time = time.time()
+    time_per_iter = []
+    last_iter_time = start_time
     unigram_probs = get_unigram_probs(model)
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(0., [], False, start_state, None, 0, [])]
     stats = []
     for i in range(length):
-        if time.time() - start_time > latency_budget:
-            print("Exceeded latency budget at iter", i)
+        cur_time = time.time()
+        time_per_iter.append(cur_time - last_iter_time)
+        last_iter_time = cur_time
+        if cur_time - start_time > latency_budget:
+            print("Exceeded latency budget at iter", i, time_per_iter)
             # Make do with what has been generated so far.
             break
         prefix_chars = 1 if i > 0 else 0
