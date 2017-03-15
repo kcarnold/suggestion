@@ -24,6 +24,7 @@ export class PanoptStore {
       states: M.asMap({}),
       startTimes: M.asMap({}),
       times: M.asMap({}),
+      acceleration: 10,
     });
   }
 
@@ -63,7 +64,7 @@ function replay(log, state) {
       console.log('rtt', rtt);
     }
     if (idx === log.length - 1) return;
-    setTimeout(tick, Math.min(500, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / 10));
+    setTimeout(tick, Math.min(1000, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / store.acceleration));
     idx++;
   }
   tick();
