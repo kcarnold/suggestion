@@ -3,6 +3,9 @@ import argparse
 import time
 import traceback
 from suggestion import suggestion_generator
+import pandas as pd
+import seaborn as sns
+import numpy as np
 
 def do_request(request):
     start = time.time()
@@ -48,14 +51,14 @@ def analyze_requests_from_parsed_logfile(requests):
     import pickle
     pickle.dump(responses, open('responses_2017-03-14-15-12.pkl','wb'), -1)
     #%%
+    # Find the longest queries.
+    durs = [dur for req, dur, resp in responses]
+    [requests[i] for i in np.argsort(durs)[-10:]]
+    #%%
     model = suggestion_generator.get_model('yelp_train')
     unigram_probs = suggestion_generator.get_unigram_probs(model)
     #%%
     #responses_by_page = [(page, list(responses)) for page, responses in itertools.groupby(responses, lambda response: response[0]['page'])]
-    import pandas as pd
-    import seaborn as sns
-    import numpy as np
-
     df = []
     for request, dur, phrases in responses:
         if phrases is None or phrases == []: continue
@@ -77,4 +80,4 @@ def analyze_requests_from_parsed_logfile(requests):
 if False:
 #%%
     analyzed = dict(json.load(open('frontend/analyzed.json')))
-    requests = [r for r in analyzed['cf35a8']['requests'] if not r['cur_word']]
+    requests = [r for r in analyzed['cf35a8']['requests'] if True]#not r['cur_word']]
