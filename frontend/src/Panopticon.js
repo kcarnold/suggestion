@@ -78,21 +78,20 @@ function trackRtts(participantId) {
 
   // Auto-runner to watch the context and request suggestions.
   M.autorun(() => {
-    let {experimentState} = state;
-    if (!experimentState)
+    let {suggestionRequest} = state;
+    if (!suggestionRequest) {
       return;
-
-    let seqNum = experimentState.contextSequenceNum;
-
-    // Abort if we already have the suggestions for this context.
-    // FIXME: this makes multiple requests if the server returned empty suggestions!!!!!
-    if (experimentState.lastSuggestionsFromServer.length > 0 &&
-        experimentState.lastSuggestionsFromServer[0].contextSequenceNum === seqNum)
-      return;
+    }
 
     // If we get here, we would have made a request.
-    // if (seqNum in times) debugger;
-    times[seqNum] = state.lastEventTimestamp;
+    M.untracked(() => {
+      if (suggestionRequest.request_id === 0) {
+        times = requestTimes[participantId] = {};
+      }
+      if (suggestionRequest.request_id in times) debugger;
+      times[suggestionRequest.request_id] = state.lastEventTimestamp;
+    });
+
   });
 }
 
