@@ -23,6 +23,7 @@ var [clientId, clientKind] = (function() {
     clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
     code = clientId + '-c';
   }
+  code = code.toLowerCase();
   window.location.search = '?' + code;
   // That should cause a reload, once the rest of this script finishes.
   return [null, null];
