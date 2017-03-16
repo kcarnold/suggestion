@@ -48,8 +48,9 @@ print("Saving reviews")
 with open('models/tokenized_reviews.pkl', 'wb') as f:
     pickle.dump(tokenized_reviews, f, -1)
 
-with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt', 'w') as fp_test, open('models/yelp-char.txt', 'w') as f_char:
-    for i, review in enumerate(tqdm.tqdm(tokenized_reviews, desc="Writing")):
+with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt', 'w') as fp_test:#, open('models/yelp-char.txt', 'w') as f_char:
+    for i, line in enumerate(tqdm.tqdm(tokenized_reviews, desc="Writing")):
+        line = ' '.join(line)
         if i % 10 == 0:
             print(line, file=fp_test)
         else:
