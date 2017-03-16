@@ -160,7 +160,7 @@ html, body {
     white-space: nowrap;
     position: relative;
     padding: 0 4px;
-    line-height: 30px;
+    /* line-height: 20px; */
     cursor: pointer;
     width: 33.33333%;
     height: 100%;
@@ -176,7 +176,14 @@ html, body {
 
 .preview {
   color: black;
-  margin-left: 4px;
   font-weight: 100;
   font-size: 12px;
+  display: block;
+  margin: 2px 0 0 0;
+}
+
+span.word {
+    display: block;
+    margin: 4px 0;
+    text-align: center;
 }
