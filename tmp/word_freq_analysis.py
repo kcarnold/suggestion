@@ -9,10 +9,11 @@ import pickle
 import numpy as np
 #%% Load all the reviews.
 data = pickle.load(open('yelp_preproc/all_data.pkl','rb'))
-vocab, freqs = data['vocab']
+vocab, counts = data['vocab']
 reviews = data['data'].reset_index(drop=True)
 del data
 #%%
+freqs = counts / counts.sum()
 word2idx = {word: idx for idx, word in enumerate(vocab)}
 log_freqs = np.log(freqs)
 #%%
@@ -51,3 +52,4 @@ to_plot = mean_min_llk.dropna()
 clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
+plt.xlabel("Mean min unigram log likelihood")
