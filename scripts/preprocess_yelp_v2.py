@@ -73,7 +73,7 @@ def build_vocab(tokenized_texts, min_occur_count):
 
 
 
-def main(cmdline):
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--path',
                         help='Path to Yelp dataset',
@@ -92,7 +92,7 @@ def main(cmdline):
 #    parser.add_argument('--max-vocab-size', type=int,
 #                        default=5000,
 #                        help="Maximum number of words in vocab")
-    args = parser.parse_args(cmdline)
+    args = parser.parse_args()
 
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
@@ -118,20 +118,13 @@ def main(cmdline):
     train_indices = segment_indices[0]
 
     all_vocab = build_vocab(data['tokenized'], min_occur_count=2)
-    with open(os.path.join(args.outdir, 'all_vocab.txt'), 'w') as fp:
-        for word, count in all_vocab:
-            fp.write('{}\t{}\n'.format(word, count))
+    pickle.dump(dict(
+        vocab=all_vocab, data=data), open(os.path.join(args.outdir, 'all_data.pkl'), 'wb'), -1)
 
     train_vocab = build_vocab(
         data['tokenized'].iloc[train_indices],
         args.min_word_count)
-    with open(os.path.join(args.outdir, 'vocab.txt'), 'w') as fp:
-        for word, count in train_vocab:#[:args.max_vocab_size]:
-            fp.write('{}\t{}\n'.format(word, count))
 
     for name, indices in zip(names, segment_indices):
-        cur_data = data.iloc[indices].reset_index(drop=True)
+        cur_data = dict(vocab=train_vocab, data=data.iloc[indices].reset_index(drop=True))
         pickle.dump(cur_data, open(os.path.join(args.outdir, '{}_data.pkl'.format(name)), 'wb'), -1)
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
