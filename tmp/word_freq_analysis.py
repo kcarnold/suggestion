@@ -48,8 +48,18 @@ yelp_is_best = (reviews.review_count >= median_review_count) & (reviews.total_vo
 #%%
 import seaborn as sns
 import matplotlib.pyplot as plt
+#%%
 to_plot = mean_min_llk.dropna()
 clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean min unigram log likelihood")
+plt.savefig('figures/mean_min_unigram_llk.pdf')
+
+#%%
+to_plot = mean_mean_llk.dropna()
+clip = np.percentile(to_plot, [2.5, 97.5])
+sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
+sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
+plt.xlabel("Mean mean unigram log likelihood")
+plt.savefig('figures/mean_mean_unigram_llk.pdf')
