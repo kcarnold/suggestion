@@ -180,15 +180,17 @@ export const screenViews = {
       <h1>Let's write about your experience!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
-      <p>We'll do this in <b>two steps</b>:</p>
-      <ol>
+      {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
+      {state.prewrite &&  <ol>
         <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
         <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
-      </ol>
-      <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+      </ol>}
+      {state.prewrite
+        ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+        : <p>{false && texts.revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
       <hr/>
       {state.passedQuiz || inExperiment
-        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : 'your revised story'}. The experiment will automatically advance when time is up.</p>
+        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
@@ -201,8 +203,10 @@ export const screenViews = {
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
       {texts.revisionInstructions}
-      <p>Here is what you wrote last time:</p>
-      <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
+      {state.prewrite && <div>
+        <p>Here is what you wrote last time:</p>
+        <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
+      </div>}
     </div>)),
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
