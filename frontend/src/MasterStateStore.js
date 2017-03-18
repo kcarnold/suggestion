@@ -67,20 +67,28 @@ type Screen = {
   timer?: number,
 };
 
-function experimentBlock({block}:{block: number}): Array<Screen> {
-
-  return [
+function experimentBlock(block:number, includePrewrite: boolean): Array<Screen> {
+  let prewritePhase = [
     {
       controllerScreen: 'Instructions', screen: 'ReadyPhone',
       preEvent: {type: 'setupExperiment', block, name: `pre-${block}`},
     },
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
+  ];
+
+  let finalPhase = [
     {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
   ];
+
+  if (includePrewrite) {
+    return prewritePhase.concat(finalPhase);
+  } else {
+    return finalPhase;
+  }
 }
 
 const ngramFlags = {
@@ -106,7 +114,20 @@ const namedConditions = {
   }
 };
 
+const MASTER_CONFIG = {
+  study1: {
+    baseConditions: ['word', 'phrase'],
+    prewrite: false,
+  },
+  study2: {
+    baseConditions: ['rarePhrase', 'phrase'],
+    prewrite: true,
+  }
+}['study1'];
+
 export class MasterStateStore {
+  masterConfig: Object;
+  prewrite: boolean;
   clientId: string;
   swapConditionOrder: boolean;
   swapPlaceOrder: boolean;
@@ -124,13 +145,15 @@ export class MasterStateStore {
   timerStartedAt: number;
 
   constructor(clientId:string) {
+    this.masterConfig = MASTER_CONFIG;
+    this.prewrite = MASTER_CONFIG.prewrite;
     this.clientId = clientId;
 
     let rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
     this.swapConditionOrder = rng() < .5;
     this.swapPlaceOrder = rng() < .5;
-    this.conditions = ['rarePhrase', 'phrase'];
+    this.conditions = this.masterConfig.baseConditions.slice();
     if (this.swapConditionOrder) {
       this.conditions.unshift(this.conditions.pop());
     }
@@ -179,9 +202,9 @@ export class MasterStateStore {
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'IntroSurvey'},
           {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-          ...experimentBlock({block: 0}),
+          ...experimentBlock(0, this.prewrite),
           {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
-          ...experimentBlock({block: 1}),
+          ...experimentBlock(1, this.prewrite),
           {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
         ];
