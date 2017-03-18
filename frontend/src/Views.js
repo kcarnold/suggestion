@@ -153,8 +153,7 @@ const CurText = inject('spying')(observer(class CurText extends Component {
 export const screenViews = {
   Welcome: () => <div>
     <h1>Welcome</h1>
-    <p>By continuing, you agree that you have been provided with the consent form
-    for this study and agree to its terms.</p>
+    <p>By continuing, you agree that you have been provided with the consent form for this study and agree to its terms.</p>
     <NextBtn /></div>,
 
   ProbablyWrongCode: () => <div>
@@ -162,8 +161,7 @@ export const screenViews = {
   </div>,
 
   SelectRestaurants: inject('state')(observer(({state}) => <div>
-    <p>Great! Now let's get ready for the experiment.</p>
-    <p>Think of 2 restaurants or cafes you've been to recently.</p>
+    <p>Think of 2 <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written a review of</b>.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
     </div>
