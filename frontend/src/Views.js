@@ -112,7 +112,11 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
     this.timeout = setTimeout(() => {
       let afterEvent =  this.props.afterEvent || 'completeSurvey';
       let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
-      window.location.href = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
+      let url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`
+      if (this.props.extraParams) {
+        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      }
+      window.location.href = url;
     }, 2000);
   }
 
@@ -124,6 +128,9 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
   render() {
     if (this.props.spying) {
       let url = this.props.url;
+      if (this.props.extraParams) {
+        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      }
       return <div>(survey: {this.props.state.curScreen.controllerScreen}) <a href={url}>{url}</a></div>;
     }
     return <div>redirecting...</div>;
@@ -197,7 +204,7 @@ export const screenViews = {
 
   ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <p>
     Tap Next when you're ready to start Step {state.isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>
-    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />)),
+    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
