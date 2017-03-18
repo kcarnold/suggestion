@@ -63,7 +63,8 @@ class TutorialTasks {
 type Screen = {
   controllerScreen: string,
   screen: string,
-  preEvent?: Object
+  preEvent?: Object,
+  timer?: number,
 };
 
 function experimentBlock({block}:{block: number}): Array<Screen> {
@@ -119,6 +120,8 @@ export class MasterStateStore {
   screenNum: number;
   curExperiment: string;
   condition: string;
+  timerDur: number;
+  timerStartedAt: number;
 
   constructor(clientId:string) {
     this.clientId = clientId;
