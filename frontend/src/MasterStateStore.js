@@ -172,10 +172,10 @@ export class MasterStateStore {
         if (isDemo) return [{preEvent: {type: 'setupExperiment', block: 0, name: 'demo'}, screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
         return [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
+          {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'IntroSurvey'},
           {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-          {controllerScreen: 'SelectRestaurants'},
           ...experimentBlock({block: 0}),
           {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
           ...experimentBlock({block: 1}),
