@@ -276,7 +276,7 @@ export const screenViews = {
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
-  PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
+  PostTaskSurvey: inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />),
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
   Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>),
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
