@@ -24,7 +24,7 @@ class Suggestion extends Component {
     return <div
       className={"Suggestion" + (isValid ? '' : ' invalid')}
       onTouchStart={isValid ? onTap : null}>
-      {word}<span className="preview">{preview.join(' ')}</span>
+      <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>
     </div>;
   }
 }
