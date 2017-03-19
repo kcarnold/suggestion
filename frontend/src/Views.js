@@ -15,7 +15,7 @@ const surveyURLs = {
 const texts = {
   overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
   brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
-  revisionInstructions: <span>Type out the <b>most detailed true story you can</b> about your experience.</span>,
+  revisionInstructions: <span>Type the <b>most detailed true story you can</b> about your experience.</span>,
 };
 
 class Suggestion extends Component {
@@ -184,7 +184,7 @@ export const screenViews = {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
     let {isPrewrite} = state;
     return <div>
-      <h1>Let's write about your experience!</h1>
+      <h1>Let's write about your experience at {state.curPlace.name}!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
       {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
