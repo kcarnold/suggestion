@@ -205,7 +205,7 @@ class Model:
         state2 = kenlm.State()
         for i, word in enumerate(self.id2str):
             if i < 4:
-                logprobs[i] = -np.inf
+                logprobs[i] = 0.
             else:
                 logprobs[i] = self.model.base_score_from_idx(state, i, state2)
         logprobs *= np.log(10)
