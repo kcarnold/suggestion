@@ -35,6 +35,9 @@ window.location.hash = '';
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 
+var state = new MasterStateStore(clientId);
+
+
 var logs = {};
 window.logs = logs;
 
@@ -58,6 +61,7 @@ function updateBacklog() {
     kind: clientKind,
     browserMeta,
     messageCount: _.mapValues(logs, v => v.length),
+    masterConfig: state.masterConfig,
   }]);
 }
 
@@ -105,7 +109,6 @@ function log(event) {
 }
 
 
-var state = new MasterStateStore(clientId);
 registerHandler(state.handleEvent);
 
 

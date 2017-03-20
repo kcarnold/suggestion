@@ -15,7 +15,7 @@ const surveyURLs = {
 const texts = {
   overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
   brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
-  revisionInstructions: <span>Type out the <b>most detailed true story you can</b> about your experience.</span>,
+  revisionInstructions: <span>Type the <b>most detailed true story you can</b> about your experience.</span>,
 };
 
 class Suggestion extends Component {
@@ -24,7 +24,7 @@ class Suggestion extends Component {
     return <div
       className={"Suggestion" + (isValid ? '' : ' invalid')}
       onTouchStart={isValid ? onTap : null}>
-      {word}<span className="preview">{preview.join(' ')}</span>
+      <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>
     </div>;
   }
 }
@@ -112,7 +112,11 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
     this.timeout = setTimeout(() => {
       let afterEvent =  this.props.afterEvent || 'completeSurvey';
       let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
-      window.location.href = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
+      let url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`
+      if (this.props.extraParams) {
+        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      }
+      window.location.href = url;
     }, 2000);
   }
 
@@ -124,6 +128,9 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
   render() {
     if (this.props.spying) {
       let url = this.props.url;
+      if (this.props.extraParams) {
+        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      }
       return <div>(survey: {this.props.state.curScreen.controllerScreen}) <a href={url}>{url}</a></div>;
     }
     return <div>redirecting...</div>;
@@ -153,8 +160,7 @@ const CurText = inject('spying')(observer(class CurText extends Component {
 export const screenViews = {
   Welcome: () => <div>
     <h1>Welcome</h1>
-    <p>By continuing, you agree that you have been provided with the consent form
-    for this study and agree to its terms.</p>
+    <p>By continuing, you agree that you have been provided with the consent form for this study and agree to its terms.</p>
     <NextBtn /></div>,
 
   ProbablyWrongCode: () => <div>
@@ -162,8 +168,7 @@ export const screenViews = {
   </div>,
 
   SelectRestaurants: inject('state')(observer(({state}) => <div>
-    <p>Great! Now let's get ready for the experiment.</p>
-    <p>Think of 2 restaurants or cafes you've been to recently.</p>
+    <p>Think of 2 <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written a review of</b>.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
     </div>
@@ -179,32 +184,37 @@ export const screenViews = {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
     let {isPrewrite} = state;
     return <div>
-      <h1>Let's write about your experience!</h1>
+      <h1>Let's write about your experience at {state.curPlace.name}!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
-      <p>We'll do this in <b>two steps</b>:</p>
-      <ol>
+      {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
+      {state.prewrite &&  <ol>
         <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
         <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
-      </ol>
-      <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+      </ol>}
+      {state.prewrite
+        ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
+        : <p>{false && texts.revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
       <hr/>
       {state.passedQuiz || inExperiment
-        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : 'your revised story'}. The experiment will automatically advance when time is up.</p>
+        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   })),
 
-  ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <p>
-    Tap Next when you're ready to start Step {state.isPrewrite ? '1' : '2'}. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p>
-    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} />)),
+  ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <div>
+    <p>{state.isPrewrite ? texts.brainstormingInstructions : texts.revisionInstructions}</p>
+    <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p></div>
+    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
       {texts.revisionInstructions}
-      <p>Here is what you wrote last time:</p>
-      <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
+      {state.prewrite && <div>
+        <p>Here is what you wrote last time:</p>
+        <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
+      </div>}
     </div>)),
 
   ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
@@ -230,18 +240,39 @@ export const screenViews = {
     </div>;
   })),
 
-  PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+  PracticeWord: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+    let tasks = {
+      typeKeyboard: 'Type a few words on the keyboard.',
+      backspace: 'Try deleting a few letters.',
+      specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
+      tapSuggestion: 'Try tapping a box to insert the word.',
+    };
+    let allTasksDone = _.every(_.map(tasks, (task, name) => state.tutorialTasks.tasks[name]));
     return <div>
-      <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>
-      <h1>Practice with Phrase Suggestions</h1>
-      <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>
-      <p>Notice the 3 boxes above the keyboard. Each one shows a phrase. Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
+      <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.</p>
+      <p>Let's get a little practice with it:</p>
+      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tasks[name]}</TutorialTodo>)}
+      <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
+
+      <p>Notice the 3 boxes above the keyboard. Each one shows a word, tap a word to insert it.</p>
+      {['tapSuggestion'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tasks[name]}</TutorialTodo>)}
+      {allTasksDone && <p>When you're ready, click here to move on: <NextBtn />.</p>}
+    </div>;
+  })),
+
+  PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+    let {isStudy1} = state.masterConfig;
+      // <h1>Practice with Phrase Suggestions</h1>
+    return <div>
+      {!isStudy1 && <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>}
+      {!isStudy1 && <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>}
+      <p>{isStudy1 ? "In some conditions, the boxes above the keyboard will show a complete phrase, starting with the highlighted word." : "Notice the 3 boxes above the keyboard. Each one shows a phrase."} Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> to insert a word.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Now try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.  </TutorialTodo>
+      <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.</TutorialTodo>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {state.tutorialTasks.allDone && <p>
+      {_.every(['tapSuggestion', 'doubleTap', 'quadTap', 'typeKeyboard'].map(name => state.tutorialTasks.tasks[name])) && <p>
         Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p>}
     </div>;
@@ -267,7 +298,7 @@ export const screenViews = {
 
   IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
   PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
-  PostTaskSurvey: () => <RedirectToSurvey url={surveyURLs.postTask} />,
+  PostTaskSurvey: inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />),
   PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
   Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>),
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),

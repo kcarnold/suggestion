@@ -21,7 +21,9 @@ class TutorialTasks {
         tapSuggestion: false,
         doubleTap: false,
         quadTap: false,
-        typeKeyboard: false
+        typeKeyboard: false,
+        backspace: false,
+        specialChars: false,
       },
       get allDone() {
         let {tasks} = this;
@@ -49,11 +51,16 @@ class TutorialTasks {
       }
       break;
     case 'tapKey':
-      this.tasks.typeKeyboard = true;
+      if (event.key === ' ') {
+        this.tasks.typeKeyboard = true;
+      } else if (event.key.match(/[-.,!'\?]/)) {
+        this.tasks.specialChars = true;
+      }
       this.consectutiveTaps = {};
       break;
     case 'tapBackspace':
       this.consectutiveTaps = {};
+      this.tasks.backspace = true;
       break;
     default:
     }
@@ -63,23 +70,32 @@ class TutorialTasks {
 type Screen = {
   controllerScreen: string,
   screen: string,
-  preEvent?: Object
+  preEvent?: Object,
+  timer?: number,
 };
 
-function experimentBlock({block}:{block: number}): Array<Screen> {
-
-  return [
+function experimentBlock(block:number, conditionName: string, includePrewrite: boolean): Array<Screen> {
+  let prewritePhase = [
     {
       controllerScreen: 'Instructions', screen: 'ReadyPhone',
-      preEvent: {type: 'setupExperiment', block, name: `pre-${block}`},
+      preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `pre-${block}`},
     },
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
-    {preEvent: {type: 'setupExperiment', block, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
+  ];
+
+  let finalPhase = [
+    {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
     {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
   ];
+
+  if (includePrewrite) {
+    return prewritePhase.concat(finalPhase);
+  } else {
+    return finalPhase;
+  }
 }
 
 const ngramFlags = {
@@ -105,7 +121,22 @@ const namedConditions = {
   }
 };
 
+const MASTER_CONFIG = {
+  study1: {
+    baseConditions: ['word', 'phrase'],
+    prewrite: false,
+    isStudy1: true,
+  },
+  study2: {
+    baseConditions: ['rarePhrase', 'phrase'],
+    prewrite: true,
+    isStudy1: false,
+  }
+}['study1'];
+
 export class MasterStateStore {
+  masterConfig: Object;
+  prewrite: boolean;
   clientId: string;
   swapConditionOrder: boolean;
   swapPlaceOrder: boolean;
@@ -119,15 +150,19 @@ export class MasterStateStore {
   screenNum: number;
   curExperiment: string;
   condition: string;
+  timerDur: number;
+  timerStartedAt: number;
 
   constructor(clientId:string) {
+    this.masterConfig = MASTER_CONFIG;
+    this.prewrite = MASTER_CONFIG.prewrite;
     this.clientId = clientId;
 
     let rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
     this.swapConditionOrder = rng() < .5;
     this.swapPlaceOrder = rng() < .5;
-    this.conditions = ['rarePhrase', 'phrase'];
+    this.conditions = this.masterConfig.baseConditions.slice();
     if (this.swapConditionOrder) {
       this.conditions.unshift(this.conditions.pop());
     }
@@ -141,6 +176,7 @@ export class MasterStateStore {
       replaying: true,
       screenNum: 0,
       block: null,
+      conditionName: null,
       experiments: M.asMap({}),
       curExperiment: null,
       get experimentState() {
@@ -154,7 +190,7 @@ export class MasterStateStore {
       controlledInputs: M.asMap({}),
       timerStartedAt: null,
       timerDur: null,
-      tutorialTasks: new TutorialTasks(),
+      tutorialTasks: null,
       screenTimes: [],
       passedQuiz: false,
       phoneSize: {width: 360, height: 500},
@@ -169,19 +205,39 @@ export class MasterStateStore {
         }
       },
       get screens() {
-        if (isDemo) return [{preEvent: {type: 'setupExperiment', block: 0, name: 'demo'}, screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'}];
-        return [
+        if (isDemo) {
+          let demoConditionName = clientId.slice(4);
+          return [{
+            preEvent: {type: 'setupExperiment', block: 0, condition: demoConditionName, name: 'demo'},
+            screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
+          }];
+        }
+        let result = [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
+          {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
           {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
           {controllerScreen: 'IntroSurvey'},
-          {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-          {controllerScreen: 'SelectRestaurants'},
-          ...experimentBlock({block: 0}),
-          {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
-          ...experimentBlock({block: 1}),
+        ];
+        if (this.masterConfig.isStudy1) {
+          result = result.concat([
+            {preEvent: {type: 'setupExperiment', block: null, condition: 'word', name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeWord'},
+            {preEvent: {type: 'setupExperiment', block: null, condition: 'phrase', name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+            ...experimentBlock(0, this.conditions[0], this.prewrite),
+            ...experimentBlock(1, this.conditions[1], this.prewrite),
+          ]);
+        } else {
+          result = result.concat([
+            {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+            ...experimentBlock(0, this.conditions[0], this.prewrite),
+            {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
+            ...experimentBlock(1, this.conditions[1], this.prewrite),
+          ]);
+        }
+        result = result.concat([
           {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
           {screen: 'Done', controllerScreen: 'Done'},
-        ];
+        ]);
+        return result;
       },
       get curScreen() {
         return this.screens[this.screenNum];
@@ -214,10 +270,6 @@ export class MasterStateStore {
       get curEditText() {
         return this.controlledInputs.get(this.curEditTextName);
       },
-      get conditionName() {
-        if (isDemo) return clientId.slice(4);
-        return this.conditions[this.block];
-      },
       get condition() {
         return namedConditions[this.conditionName];
       },
@@ -244,15 +296,17 @@ export class MasterStateStore {
     // Execute start-of-screen actions.
     let screen = this.screens[this.screenNum];
     if (screen.preEvent) {
-      let event = screen.preEvent;
-      switch (event.type) {
+      let {preEvent} = screen;
+      switch (preEvent.type) {
       case 'setupExperiment':
-        this.block = screen.preEvent.block;
+        this.block = preEvent.block;
         if (this.experimentState) {
           this.experimentState.dispose();
         }
-        this.curExperiment = event.name;
-        this.experiments.set(event.name, new ExperimentStateStore(this.condition));
+        this.conditionName = preEvent.condition;
+        this.curExperiment = preEvent.name;
+        this.experiments.set(preEvent.name, new ExperimentStateStore(this.condition));
+        this.tutorialTasks = new TutorialTasks();
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
@@ -272,7 +326,9 @@ export class MasterStateStore {
     if (this.experimentState) {
       this.experimentState.handleEvent(event);
     }
-    this.tutorialTasks.handleEvent(event);
+    if (this.tutorialTasks) {
+      this.tutorialTasks.handleEvent(event);
+    }
 
     let screenAtStart = this.screenNum;
     switch (event.type) {
