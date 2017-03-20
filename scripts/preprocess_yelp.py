@@ -1,3 +1,4 @@
+import pickle
 import gzip
 from sys import intern
 import ujson as json
@@ -50,6 +51,7 @@ with open('models/tokenized_reviews.pkl', 'wb') as f:
 
 with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt', 'w') as fp_test, open('models/yelp-char.txt', 'w') as f_char:
     for i, review in enumerate(tqdm.tqdm(tokenized_reviews, desc="Writing")):
+        line = ' '.join(review)
         if i % 10 == 0:
             print(line, file=fp_test)
         else:
@@ -58,6 +60,6 @@ with open('models/yelp_train.txt', 'w') as fp_train, open('models/yelp_test.txt'
 
 
 print("Build suffix array")
-sufarr = DocSuffixArray.construct(tokenized_reviews, 100)
+sufarr = DocSuffixArray.construct(tokenized_reviews)
 
 joblib.dump(dict(suffix_array=sufarr.suffix_array, doc_idx=sufarr.doc_idx, tok_idx=sufarr.tok_idx, lcp=sufarr.lcp), 'models/yelp_sufarr.joblib')
