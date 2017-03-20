@@ -18,8 +18,19 @@ from . import suffix_array
 LOG10 = np.log(10)
 
 
-def get_arpa_bigrams(filename):
+def get_arpa_data(filename):
     with open(filename) as f:
+        # read unigrams, for vocab
+        while not f.readline().startswith('\\1-grams:'):
+            continue
+        vocab = []
+        for line in f:
+            line = line.strip()
+            if not line:
+                break  # end of 1-grams
+            parts = line.split('\t')
+            vocab.append(parts[1])
+
         while not f.readline().startswith('\\2-grams:'):
             continue
         bigrams = defaultdict(list)
@@ -31,56 +42,52 @@ def get_arpa_bigrams(filename):
             prob = float(parts[0])
             a, b = parts[1].split(' ')
             bigrams[a].append((prob, b))
-        return bigrams
+
+        return vocab, bigrams
 
 
 def encode_bigrams(bigrams, model):
-    id2str = {}
     encoded_bigrams = {}
     for prev, nexts in bigrams.items():
         prev_id = model.vocab_index(prev)
-        id2str[prev_id] = prev
         next_ids = []
         for prob, b in nexts:
             next_id = model.vocab_index(b)
-            id2str[next_id] = b
             next_ids.append((prob, next_id))
         encoded_bigrams[prev_id] = next_ids
     def pull_2nd(lst):
         return [x[1] for x in lst]
     unfiltered_bigrams = {a: pull_2nd(nexts) for a, nexts in encoded_bigrams.items()}
+    # Most common bigrams (sorted by probability)
     filtered_bigrams = {a: pull_2nd(heapq.nlargest(100, nexts)) for a, nexts in encoded_bigrams.items()}
-    return id2str, unfiltered_bigrams, filtered_bigrams
+    return unfiltered_bigrams, filtered_bigrams
 
 
 
 class Model:
-    def __init__(self, model_file, bigrams_file, arpa_file):
+    def __init__(self, model_file, arpadata_file, arpa_file):
         print("Loading model", file=sys.stderr)
         self.model = kenlm.LanguageModel(model_file)
         print("...done.", file=sys.stderr)
 
         # Bigrams
-        if os.path.exists(bigrams_file):
-            print("Loading bigrams pickle", file=sys.stderr)
-            self._bigrams = pickle.load(open(bigrams_file, 'rb'))
+        if os.path.exists(arpadata_file):
+            print("Loading ARPA-data pickle", file=sys.stderr)
+            self._arpadata = pickle.load(open(arpadata_file, 'rb'))
         else:
-            print("Reading ARPA bigrams", file=sys.stderr)
-            bigrams = get_arpa_bigrams(arpa_file)
+            print("Reading raw ARPA data", file=sys.stderr)
+            vocab, bigrams = get_arpa_data(arpa_file)
             print("Encoding bigrams to indices", file=sys.stderr)
-            self._bigrams = encode_bigrams(bigrams, self.model)
-            print("Saving bigrams", file=sys.stderr)
-            with open(bigrams_file, 'wb') as f:
-                pickle.dump(self._bigrams, f, -1)
+            self._arpadata = vocab, encode_bigrams(bigrams, self.model)
+            print("Saving ARPA data", file=sys.stderr)
+            with open(arpadata_file, 'wb') as f:
+                pickle.dump(self._arpadata, f, -1)
 
-        id2str_dict, self.unfiltered_bigrams, self.filtered_bigrams = self._bigrams
-        self.id2str = [None] * (max(id2str_dict.keys()) + 1)
-        for i, s in id2str_dict.items():
-            self.id2str[i] = s
+        self.id2str, (self.unfiltered_bigrams, self.filtered_bigrams) = self._arpadata
 
         # Vocab trie
-        self.vocab_trie = datrie.BaseTrie(set(itertools.chain.from_iterable(id2str_dict.values())))
-        for i, s in id2str_dict.items():
+        self.vocab_trie = datrie.BaseTrie(set(itertools.chain.from_iterable(self.id2str)))
+        for i, s in enumerate(self.id2str):
             self.vocab_trie[s] = i
 
         self.eos_idx = self.model.vocab_index('</S>')
@@ -125,7 +132,7 @@ class Model:
 
     @classmethod
     def from_basename(cls, basename):
-        return cls(model_file=basename + '.kenlm', bigrams_file=basename + '.bigrams.pkl', arpa_file=basename + '.arpa')
+        return cls(model_file=basename + '.kenlm', arpadata_file=basename + '.data.pkl', arpa_file=basename + '.arpa')
 
     @property
     def bos_state(self):
