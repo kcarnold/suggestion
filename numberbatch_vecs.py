@@ -178,8 +178,12 @@ models = [suggestion_generator.Model.from_basename(paths.paths.model_basename('c
 #%% Score the first 5 words of every sentence.
 unique_starts = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in doc_texts})]
 #%%
+unique_start_words = sorted({sent.split()[0] for sent in doc_texts})
+#%%
 import tqdm
 scores_by_cluster = np.array([[model.score_seq(model.bos_state, k)[0] for model in models] for k in tqdm.tqdm(unique_starts)])
+#%%
+scores_by_cluster_words = np.array([[model.score_seq(model.bos_state, [k])[0] for model in models] for k in tqdm.tqdm(unique_start_words)])
 #%%
 from scipy.misc import logsumexp
 sbc_scale = .25 * scores_by_cluster# + 1*scores[:,None] - 1 * unigram_llks_for_start[:,None]
@@ -189,3 +193,53 @@ most_distinctive = np.argmax(scores_by_cluster_debias, axis=0)
 for cluster, sent_idx in enumerate(most_distinctive):
     print('{:4.2f} {}'.format(np.exp(scores_by_cluster_debias[sent_idx, cluster]), ' '.join(unique_starts[sent_idx])))
 #print('\n'.join([) for i in most_distinctive]))
+#%%
+def vectorize_sents(sents):
+    return vectorizer.transform(sents).dot(weighted_cnnb_vecs)
+def normalize_vecs(vecs):
+    return vecs / (np.linalg.norm(vecs, axis=1, keepdims=True) + 1e-7)
+mbk.transform(normalize_vecs(vectorize_sents(['the location was very close to town.', 'the food was good.']))).tolist()
+
+#%%
+import cytoolz
+def normal_lik(x, sigma):
+    return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+def normalize_dists(dists):
+    return dists / np.sum(dists, axis=1, keepdims=True)
+
+#sent = 'the location was very close to town.'
+sent = 'the food was tasty.'
+cluster_dists = cytoolz.thread_first(
+        [sent],
+        vectorize_sents,
+        normalize_vecs,
+        mbk.transform,
+        (normal_lik, .5),
+        normalize_dists
+        )[0]
+for cluster in np.argsort(cluster_dists):
+    print('{:4.2f} {}'.format(cluster_dists[cluster], ' '.join(unique_starts[most_distinctive[cluster]])))
+
+#%% Quick and dirty: suggest the least-covered cluster.
+import nltk
+doc = "I came here last night. I had a chicken burrito. It was not too expensive. The server was a bit rushed. They had some milkshakes but I didn't take any."
+sents = nltk.sent_tokenize(doc)
+how_much_covered = np.zeros(mbk.cluster_centers_.shape[0])
+for sent in sents:
+    cluster_distrib = cytoolz.thread_first(
+        [sent],
+        vectorize_sents,
+        normalize_vecs,
+        mbk.transform,
+        (normal_lik, .5),
+        normalize_dists
+        )[0]
+    how_much_covered += cluster_distrib
+    print(sent)
+    print(np.round(cluster_distrib, 2).tolist())
+
+least_covered = np.argsort(how_much_covered)[:3]
+for cluster_idx in least_covered:
+    print(' '.join(unique_starts[most_distinctive[cluster_idx]]))
+
