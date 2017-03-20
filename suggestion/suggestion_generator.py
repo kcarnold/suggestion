@@ -77,6 +77,8 @@ class Model:
         else:
             print("Reading raw ARPA data", file=sys.stderr)
             vocab, bigrams = get_arpa_data(arpa_file)
+            for i, word in enumerate(vocab):
+                assert self.model.vocab_index(word) == i, i
             print("Encoding bigrams to indices", file=sys.stderr)
             self._arpadata = vocab, encode_bigrams(bigrams, self.model)
             print("Saving ARPA data", file=sys.stderr)
