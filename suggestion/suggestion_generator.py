@@ -482,7 +482,7 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
 
                     new_score = score + logprob + unigram_bonus
                     done = new_num_chars >= length
-                    yield BeamEntry(new_score, new_words, done, last_state, word_idx, new_num_chars, bonuses + [unigram_bonus])
+                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, None#bonuses + [unigram_bonus])
         beam = heapq.nlargest(beam_width, candidates())
         prefix = ''
     # nlargest guarantees that its result is sorted descending.
