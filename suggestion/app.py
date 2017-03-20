@@ -234,7 +234,7 @@ class WebsocketHandler(MyWSHandler):
             else:
                 print("Unknown request type:", request['type'])
             # print(', '.join('{}={}'.format(name, getattr(self.ws_connection, '_'+name)) for name in 'message_bytes_in message_bytes_out wire_bytes_in wire_bytes_out'.split()))
-            print('wire i={wire_bytes_in} o={wire_bytes_out}, msg i={message_bytes_in} o={msg_bytes_out}'.format(**self.__dict__))
+            # print('wire i={wire_bytes_in} o={wire_bytes_out}, msg i={message_bytes_in} o={msg_bytes_out}'.format(**self.__dict__))
         except Exception:
             traceback.print_exc()
 

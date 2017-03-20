@@ -20,7 +20,6 @@ export default function WSClient(path) {
 
   function _send(msg) {
     self.deflater.push(JSON.stringify(msg), pako.Z_SYNC_FLUSH);
-    console.log(self.deflater.result);
     self.ws.send(self.deflater.result);
   }
 
