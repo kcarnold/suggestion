@@ -8,6 +8,9 @@ Created on Fri Mar 17 18:47:36 2017
 import numpy as np
 import joblib
 import attr
+import wordfreq
+import pandas as pd
+import pickle
 #%%
 JOBLIB_FILENAME = '/Data/conceptnet-vector-ensemble/conceptnet-numberbatch-201609-en.joblib'
 
@@ -84,7 +87,6 @@ for topic, vec in topic_vecs.items():
     print(' '.join(show_sim(cnnb, vec)))
     print()
 #%%
-import wordfreq
 def vectorize(sent):
     toks = wordfreq.tokenize(sent, 'en')
     tot_vec = np.zeros(cnnb.ndim)
@@ -103,11 +105,6 @@ def vectorize(sent):
     return None
 
 vectorize('We came here on a Friday night')
-#%%
-
-import pandas as pd
-import pickle
-import numpy as np
 #%% Load all the reviews.
 data = pickle.load(open('yelp_preproc/all_data.pkl','rb'))
 vocab, counts = data['vocab']
@@ -115,7 +112,7 @@ reviews = data['data'].reset_index(drop=True)
 del data
 #%%
 import cytoolz
-sents = list(cytoolz.concat(doc.split('\n') for doc in reviews.tokenized))
+sents = list(cytoolz.concat(doc.lower().split('\n') for doc in reviews.tokenized))
 #%%
 sent_lens = np.array([len(sent.split()) for sent in sents])
 min_sent_len, max_sent_len = np.percentile(sent_lens, [25, 75])
@@ -174,12 +171,17 @@ for cluster_idx, cluster in enumerate(sentences_in_cluster):
     dump_kenlm('cluster_{}'.format(cluster_idx), [s.lower() for s in cluster])
 #%%
 from suggestion import suggestion_generator, paths
+#%%
 models = [suggestion_generator.Model.from_basename(paths.paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(mbk.n_clusters)]
 #%% Score the first 5 words of every sentence.
 unique_starts = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in doc_texts})]
 #%%
+unique_start_words = sorted({sent.split()[0] for sent in doc_texts})
+#%%
 import tqdm
 scores_by_cluster = np.array([[model.score_seq(model.bos_state, k)[0] for model in models] for k in tqdm.tqdm(unique_starts)])
+#%%
+scores_by_cluster_words = np.array([[model.score_seq(model.bos_state, [k])[0] for model in models] for k in tqdm.tqdm(unique_start_words)])
 #%%
 from scipy.misc import logsumexp
 sbc_scale = .25 * scores_by_cluster# + 1*scores[:,None] - 1 * unigram_llks_for_start[:,None]
@@ -189,3 +191,77 @@ most_distinctive = np.argmax(scores_by_cluster_debias, axis=0)
 for cluster, sent_idx in enumerate(most_distinctive):
     print('{:4.2f} {}'.format(np.exp(scores_by_cluster_debias[sent_idx, cluster]), ' '.join(unique_starts[sent_idx])))
 #print('\n'.join([) for i in most_distinctive]))
+#%%
+def vectorize_sents(sents):
+    return vectorizer.transform(sents).dot(weighted_cnnb_vecs)
+def normalize_vecs(vecs):
+    return vecs / (np.linalg.norm(vecs, axis=1, keepdims=True) + 1e-7)
+#%%
+mbk.transform(normalize_vecs(vectorize_sents(['the location was very close to town.', 'the food was good.']))).tolist()
+
+#%%
+import cytoolz
+def normal_lik(x, sigma):
+    return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+def normalize_dists(dists):
+    return dists / np.sum(dists, axis=1, keepdims=True)
+
+#sent = 'the location was very close to town.'
+sent = 'the food was tasty.'
+cluster_dists = cytoolz.thread_first(
+        [sent],
+        vectorize_sents,
+        normalize_vecs,
+        mbk.transform,
+        (normal_lik, .5),
+        normalize_dists
+        )[0]
+for cluster in np.argsort(cluster_dists):
+    print('{:4.2f} {}'.format(cluster_dists[cluster], ' '.join(unique_starts[most_distinctive[cluster]])))
+
+#%% Quick and dirty: suggest the least-covered cluster.
+import nltk
+doc = "I came here last night. I had a chicken burrito. It was not too expensive. The server was a bit rushed. They had some milkshakes but I didn't take any."
+sents = nltk.sent_tokenize(doc)
+how_much_covered = np.zeros(mbk.cluster_centers_.shape[0])
+for sent in sents:
+    cluster_distrib = cytoolz.thread_first(
+        [sent],
+        vectorize_sents,
+        normalize_vecs,
+        mbk.transform,
+        (normal_lik, .5),
+        normalize_dists
+        )[0]
+    how_much_covered += cluster_distrib
+    print(sent)
+    print(np.round(cluster_distrib, 2).tolist())
+
+least_covered = np.argsort(how_much_covered)[:3]
+for cluster_idx in least_covered:
+    print(' '.join(unique_starts[most_distinctive[cluster_idx]]))
+
+#%%
+model = suggestion_generator.get_model('yelp_train')
+scores = np.array([model.score_seq(model.bos_state, start)[0] for start in unique_starts])
+#%%
+unique_start_vecs = normalize_vecs(vectorize_sents([' '.join(s) for s in unique_starts]))
+#%%
+[unique_starts[i] for i in np.argsort(scores)[-10:]]
+#%%
+from scipy.spatial.distance import cdist
+#%%
+import nltk
+doc = "I came here last night. I had a chicken burrito. It was not too expensive. The server was a bit rushed. They had milkshakes but I didn't get one."
+sents = nltk.sent_tokenize(doc.lower())
+sent_vecs = normalize_vecs(vectorize_sents(sents))
+for i, sent in enumerate(['']+sents):
+    print(sent)
+    if i == 0:
+        # TODO
+        continue
+    dists_to_prev = cdist(unique_start_vecs, sent_vecs[:i])
+    min_dist = np.min(dists_to_prev, axis=1)
+    print('suggest',  ' '.join(unique_starts[np.argmax(min_dist)]))
+    print()
