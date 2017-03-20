@@ -63,20 +63,24 @@ class DocSuffixArray:
     def get_suffix_by_idx(self, idx):
         return self.docs[self.doc_idx[idx]][self.tok_idx[idx]:]
 
-    def search_range(self, prefix_lowered):
+    def get_partial_suffix(self, idx, start_offset, length):
+        tok_start = self.tok_idx[idx] + start_offset
+        return self.docs[self.doc_idx[idx]][tok_start:tok_start + length]
+
+    def search_range(self, prefix_lowered, lo=0, hi=None):
         docs = self.docs
         doc_idx = self.doc_idx
         tok_idx = self.tok_idx
         def suf_less_than(x):
             return lambda idx: tuple(docs[doc_idx[idx]][tok_idx[idx]:]) < x
-        N = len(doc_idx)
+        if hi is None:
+            hi = len(doc_idx)
         return (
-            bisect_left(suf_less_than(prefix_lowered), N),
-            bisect_left(suf_less_than(prefix_lowered[:-1] + (prefix_lowered[-1] + '\uffff',)), N))
+            bisect_left(suf_less_than(prefix_lowered), lo, hi),
+            bisect_left(suf_less_than(prefix_lowered[:-1] + (prefix_lowered[-1] + '\uffff',)), lo, hi))
 
 
-def bisect_left(less_than, hi):
-    lo = 0
+def bisect_left(less_than, lo, hi):
     while lo < hi:
         mid = (lo + hi) // 2
         if less_than(mid):
