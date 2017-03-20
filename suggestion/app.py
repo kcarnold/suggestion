@@ -6,6 +6,7 @@ import os
 import traceback
 import datetime
 import io
+import zlib
 
 import tornado.ioloop
 import tornado.gen
@@ -134,7 +135,7 @@ class Panopticon:
 class MyWSHandler(tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         # Non-None enables compression with default options.
-        return {}
+        return None
 
     def send_json(self, **kw):
         self.write_message(json.dumps(kw))
@@ -150,13 +151,30 @@ class WebsocketHandler(MyWSHandler):
         self.log_file = None
         self.participant = None
         self.keyRects = {}
+        self.wire_bytes_in = self.wire_bytes_out = 0
+        self.message_bytes_in = self.msg_bytes_out = 0
         # There will also be a 'kind', which gets set only when the client connects.
 
     def open(self):
-        print('ws open', flush=True)
+        print('ws open, compressed={}'.format(self.ws_connection._compressor is not None), flush=True)
+        self.inflater = zlib.decompressobj()
+        self.deflater = zlib.compressobj()
+
+    def send_json(self, **kw):
+        message = json.dumps(kw)
+        self.msg_bytes_out += len(message)
+        message = self.deflater.compress(message.encode('utf-8'))
+        message += self.deflater.flush(zlib.Z_SYNC_FLUSH)
+        self.wire_bytes_out += len(message)
+        self.write_message(message.decode('latin1'))
 
     @tornado.gen.coroutine
     def on_message(self, message):
+        self.wire_bytes_in += len(message)
+        message = self.inflater.decompress(message.encode('latin1'))
+        message += self.inflater.flush()
+        message = message.decode('utf-8')
+        self.message_bytes_in += len(message)
         try:
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
@@ -215,6 +233,8 @@ class WebsocketHandler(MyWSHandler):
                 pass
             else:
                 print("Unknown request type:", request['type'])
+            # print(', '.join('{}={}'.format(name, getattr(self.ws_connection, '_'+name)) for name in 'message_bytes_in message_bytes_out wire_bytes_in wire_bytes_out'.split()))
+            print('wire i={wire_bytes_in} o={wire_bytes_out}, msg i={message_bytes_in} o={msg_bytes_out}'.format(**self.__dict__))
         except Exception:
             traceback.print_exc()
 

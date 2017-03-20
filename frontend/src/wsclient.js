@@ -1,3 +1,5 @@
+import pako from 'pako';
+
 export default function WSClient(path) {
   var self = this;
   self.attempts = 0;
@@ -16,6 +18,12 @@ export default function WSClient(path) {
 
   self.queue = [];
 
+  function _send(msg) {
+    self.deflater.push(JSON.stringify(msg), pako.Z_SYNC_FLUSH);
+    console.log(self.deflater.result);
+    self.ws.send(self.deflater.result);
+  }
+
   setInterval(function() {
     if (self.ws.readyState === WebSocket.OPEN) {
       self.send({type: 'ping'});
@@ -25,12 +33,14 @@ export default function WSClient(path) {
   function onopen() {
     self.attempts = 0;
     console.log('ws open', self.ws.readyState, self.queue);
+    self.deflater = new pako.Deflate({to: 'string'});
+    self.inflater = new pako.Inflate({to: 'string'});
     self.stateChanged && self.stateChanged('open');
     for (var i=0; i<self.helloMsgs.length; i++) {
-        self.ws.send(JSON.stringify(self.helloMsgs[i]));
+        _send(self.helloMsgs[i]);
     }
     while(self.queue.length) {
-      self.ws.send(JSON.stringify(self.queue.shift()));
+      _send(self.queue.shift());
     }
   }
 
@@ -52,14 +62,15 @@ export default function WSClient(path) {
   }
 
   function onmessage(message) {
-    var data = JSON.parse(message.data);
+    self.inflater.push(message.data, pako.Z_SYNC_FLUSH);
+    var data = JSON.parse(self.inflater.result);
     self.onmessage(data);
   }
 
   self.send = function(msg) {
     msg = {timestamp: +new Date(), ...msg};
     if (self.ws.readyState === WebSocket.OPEN) {
-        self.ws.send(JSON.stringify(msg));
+        _send(msg);
     } else {
         self.queue.push(msg);
     }
