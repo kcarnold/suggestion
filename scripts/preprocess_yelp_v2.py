@@ -8,13 +8,11 @@ __author__ = "Kenneth C. Arnold <kcarnold@alum.mit.edu>"
 
 
 import os
-import sys
 import argparse
 import gzip
 import ujson as json
 import pickle
 import numpy as np
-import nltk
 import pandas as pd
 import tqdm
 import cytoolz
@@ -110,7 +108,7 @@ if __name__ == '__main__':
 
     print("Loading Yelp...", flush=True)
     data = join_yelp(load_yelp(path=args.path))
-    data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=1024), desc="Tokenizing", total=len(data)))
+    data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=128), desc="Tokenizing", total=len(data)))
     data = data[data.tokenized.str.len() > 0]
 
     print("Splitting into train, validation, and test...", flush=True)
