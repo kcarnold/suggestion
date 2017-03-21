@@ -68,12 +68,24 @@ def encode_bigrams(bigrams, model):
 
 class Model:
     def __init__(self, model_file, arpa_file):
+        self.model_file = model_file
+        self.arpa_file = arpa_file
+        self._load()
+
+    def __getstate__(self):
+        return dict(model_file=self.model_file, arpa_file=self.arpa_file)
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._load()
+
+    def _load(self):
         print("Loading model", file=sys.stderr)
-        self.model = kenlm.LanguageModel(model_file)
+        self.model = kenlm.LanguageModel(self.model_file)
         print("...done.", file=sys.stderr)
 
         print("Reading raw ARPA data", file=sys.stderr)
-        self.id2str, self.unigram_probs, bigrams = get_arpa_data(arpa_file)
+        self.id2str, self.unigram_probs, bigrams = get_arpa_data(self.arpa_file)
         for i, word in enumerate(self.id2str):
             assert self.model.vocab_index(word) == i, i
         print("Encoding bigrams to indices", file=sys.stderr)
