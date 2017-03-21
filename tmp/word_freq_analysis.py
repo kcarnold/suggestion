@@ -7,6 +7,8 @@ Created on Fri Mar 17 13:32:52 2017
 import pandas as pd
 import pickle
 import numpy as np
+import cytoolz
+
 #%% Load all the reviews.
 data = pickle.load(open('yelp_preproc/all_data.pkl','rb'))
 vocab, counts = data['vocab']
@@ -29,7 +31,6 @@ def min_log_freq(indices):
 
 doc_sentence_indices = [[lookup_indices(sent.split()) for sent in doc.split('\n')] for doc in reviews.tokenized]
 #%%
-import cytoolz
 mean_llk = [list(cytoolz.filter(None, [mean_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
 min_llk = [list(cytoolz.filter(None, [min_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
 #%%
@@ -44,7 +45,8 @@ reviews['total_votes_rank'] = reviews.groupby('business_id').total_votes.rank(as
 business_review_counts = reviews.groupby('business_id').review_count.mean()
 median_review_count = np.median(business_review_counts)
 yelp_is_best = (reviews.review_count >= median_review_count) & (reviews.total_votes >= 10) & (reviews.total_votes_rank <= 5)
-
+#%%
+num_sents = np.array([len(text.split('\n')) for text in reviews.tokenized])
 #%%
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -54,7 +56,7 @@ clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean min unigram log likelihood")
-plt.savefig('figures/mean_min_unigram_llk.pdf')
+plt.savefig('figures/mean_min_unigram_llk_2.pdf')
 
 #%%
 to_plot = mean_mean_llk.dropna()
@@ -62,4 +64,37 @@ clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean mean unigram log likelihood")
-plt.savefig('figures/mean_mean_unigram_llk.pdf')
+plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
+
+#%% Analyze topic distributions
+from suggestion import clustering
+clizer = clustering.Clusterizer()
+#%%
+def clusters_in_doc(doc_tokenized):
+    vecs = clizer.vectorize_sents(doc_tokenized.split('\n'))
+    norms = np.linalg.norm(vecs, axis=1)
+    vecs = vecs[norms > .5]
+    if len(vecs) == 0:
+        return np.zeros(clizer.n_clusters)
+    return np.bincount(clizer.clusterer.predict(vecs), minlength=clizer.n_clusters)
+
+clusters_in_doc(reviews.tokenized.iloc[50])
+#%%
+import tqdm
+clusters_in_all_docs = np.array([clusters_in_doc(tokenized) for tokenized in tqdm.tqdm(reviews.tokenized)])
+#%%
+cluster_probs = clusters_in_all_docs / (np.sum(clusters_in_all_docs, axis=1, keepdims=True) + 1e-9)
+np.mean(cluster_probs, axis=0)
+#%%
+np.mean(np.sum(cluster_probs, axis=1))
+#%%
+from scipy.special import entr
+entropies = np.sum(entr(cluster_probs), axis=1)
+#%%
+long_enough = pd.Series(num_sents > 2)
+bw=.04
+to_plot = pd.Series(entropies).dropna()
+clip = np.percentile(to_plot, [2.5, 97.5])
+sns.kdeplot(to_plot[yelp_is_best & long_enough], clip=clip, label=f'Yelp best (mean={to_plot[yelp_is_best & long_enough].mean():.2f})', bw=bw)
+sns.kdeplot(to_plot[~yelp_is_best & long_enough].dropna(), clip=clip, label=f'Yelp rest (mean={to_plot[~yelp_is_best & long_enough].mean():.2f})', bw=bw)
+plt.xlabel("Entropy of cluster distribution")
