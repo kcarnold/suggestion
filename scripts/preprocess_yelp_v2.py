@@ -73,14 +73,6 @@ def build_vocab(tokenized_texts, min_occur_count):
     counts = np.array(counts)
     return vocab, counts
 
-def spacy_tok_to_doc(spacy_toked_str):
-    res = []
-    for sent_str in spacy_toked_str.lower().split('\n'):
-        res.append('<S>')
-        res.extend(sent_str)
-        res.append('</S>')
-    return res
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--path',
