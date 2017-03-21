@@ -179,14 +179,19 @@ class WebsocketHandler(MyWSHandler):
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
                 start = time.time()
-                phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
-                    request['sofar'], request['cur_word'],
-                    domain=request.get('domain', 'yelp_train'),
-                    rare_word_bonus=request.get('rare_word_bonus', 1.0),
-                    use_sufarr=request.get('useSufarr', False),
-                    temperature=request.get('temperature', 0.))
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
-                result['next_word'] = suggestion_generator.phrases_to_suggs(phrases)
+                if not request['useSufarr'] and request['temperature'] == 0.:
+                    toks, next_words = yield process_pool.submit(suggestion_generator.get_touch_suggestions, request['sofar'], request['cur_word'], self.keyRects.get('lower', []))
+                    next_word = yield [(process_pool.submit(suggestion_generator.predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words]
+                else:
+                    phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
+                        request['sofar'], request['cur_word'],
+                        domain=request.get('domain', 'yelp_train'),
+                        rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                        use_sufarr=request.get('useSufarr', False),
+                        temperature=request.get('temperature', 0.))
+                    next_word = suggestion_generator.phrases_to_suggs(phrases)
+                result['next_word'] = next_word
                 dur = time.time() - start
                 result['dur'] = dur
                 self.send_json(**result)
