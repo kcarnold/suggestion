@@ -188,6 +188,13 @@ window.addEventListener('resize', function() {
 
 const App = observer(class App extends Component {
   render() {
+    if (clientKind === 'p') {
+      if (state.pingTime === null) {
+        return <div>Please wait while we test your phone's communication with our server.</div>;
+      } else if (state.pingTime > 200) {
+        return <div>Sorry, your phone's connection to our server is too slow (your ping is {Math.round(state.pingTime)} ms). Check your WiFi connection and reload the page.</div>;
+      }
+    }
     return (
       <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind} spying={false}>
         <MasterView kind={clientKind} />

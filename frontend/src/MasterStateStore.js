@@ -194,6 +194,7 @@ export class MasterStateStore {
       screenTimes: [],
       passedQuiz: false,
       phoneSize: {width: 360, height: 500},
+      pingTime: null,
       get blockName() {
         switch (this.block) {
         case 0:
@@ -356,6 +357,11 @@ export class MasterStateStore {
     case 'resized':
       if (event.kind === 'p') {
         this.phoneSize = {width: event.width, height: event.height};
+      }
+      break;
+    case 'pingResults':
+      if (event.kind === 'p') {
+        this.pingTime = event.ping.mean;
       }
       break;
     default:
