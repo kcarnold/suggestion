@@ -63,7 +63,7 @@ def join_yelp(data):
     return result
 
 def tokenize(text):
-    return '\n'.join(' '.join(word.text for word in sent).lower() for sent in nlp(text).sents)
+    return '\n'.join(' '.join(w.text for w in sent if not w.like_url and not w.like_email and not w.is_space) for sent in nlp(text).sents)
 
 def build_vocab(tokenized_texts, min_occur_count):
     word_counts = cytoolz.frequencies(w for doc in tokenized_texts for w in doc.lower().split())
