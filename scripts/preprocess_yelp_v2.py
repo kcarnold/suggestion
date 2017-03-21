@@ -19,7 +19,9 @@ import pandas as pd
 import tqdm
 import cytoolz
 import operator
+import spacy
 
+nlp = None
 
 def flatten_dict(x, prefix=''):
     result = {}
@@ -61,7 +63,7 @@ def join_yelp(data):
     return result
 
 def tokenize(text):
-    return '\n'.join(' '.join(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text))
+    return '\n'.join(' '.join(word.text for word in sent).lower() for sent in nlp(text).sents)
 
 def build_vocab(tokenized_texts, min_occur_count):
     word_counts = cytoolz.frequencies(w for doc in tokenized_texts for w in doc.lower().split())
@@ -71,6 +73,13 @@ def build_vocab(tokenized_texts, min_occur_count):
     counts = np.array(counts)
     return vocab, counts
 
+def spacy_tok_to_doc(spacy_toked_str):
+    res = []
+    for sent_str in spacy_toked_str.lower().split('\n'):
+        res.append('<S>')
+        res.extend(sent_str)
+        res.append('</S>')
+    return res
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
@@ -88,6 +97,8 @@ if __name__ == '__main__':
     parser.add_argument('--min-word-count', type=int,
                         default=10,
                         help="Minimum number of times a word can occur")
+    parser.add_argument('--spacy', help="SpaCy model name",
+                        default="en_core_web_md")
 #    parser.add_argument('--max-vocab-size', type=int,
 #                        default=5000,
 #                        help="Maximum number of words in vocab")
@@ -96,13 +107,16 @@ if __name__ == '__main__':
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
+    print("Loading SpaCy model", args.spacy, flush=True)
+    nlp = spacy.load(args.spacy)
+
     # Consistent train-test splits.
     np.random.seed(0)
 
     from concurrent.futures import ProcessPoolExecutor
     pool = ProcessPoolExecutor()
 
-    print("Loading and parsing Yelp...", flush=True)
+    print("Loading Yelp...", flush=True)
     data = join_yelp(load_yelp(path=args.path))
     data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=1024), desc="Tokenizing", total=len(data)))
     data = data[data.tokenized.str.len() > 0]
