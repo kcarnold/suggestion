@@ -577,7 +577,7 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
     if temperature == 0:
         if use_sufarr:
             return generate_by_beamsearch_sufarr(
-                model, toks, n=3, beam_width=100, length=length, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
+                model, toks, n=3, beam_width=50, length=length, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
         else:
             return generate_by_beamsearch_ngram(
                 model, toks, n=3, beam_width=50, length=length, prefix_logprobs=prefix_logprobs, **kw)
