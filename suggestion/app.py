@@ -132,20 +132,15 @@ class Panopticon:
 
 
 
-class MyWSHandler(tornado.websocket.WebSocketHandler):
+class WebsocketHandler(tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         # Non-None enables compression with default options.
         return None
-
-    def send_json(self, **kw):
-        self.write_message(json.dumps(kw))
 
     def on_close(self):
         if self.participant is not None:
             self.participant.disconnected(self)
 
-
-class WebsocketHandler(MyWSHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
         self.log_file = None
@@ -243,6 +238,17 @@ class WebsocketHandler(MyWSHandler):
         return True
 
 
+class WSPingHandler(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print('pinger open, compressed={}'.format(self.ws_connection._compressor is not None), flush=True)
+
+    def on_message(self, message):
+        self.write_message(message)
+
+    def check_origin(self, origin):
+        """Allow any CORS access."""
+        return True
+
 
 class MainHandler(tornado.web.RequestHandler):
     def head(self):
@@ -257,6 +263,7 @@ class Application(tornado.web.Application):
         handlers = [
             (r'/', MainHandler),
             (r"/ws", WebsocketHandler),
+            (r'/ping', WSPingHandler),
             (r"/(style\.css)", tornado.web.StaticFileHandler, dict(path=paths.ui)),
         ]
         tornado.web.Application.__init__(self, handlers, **settings)

@@ -5,6 +5,7 @@ import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
 import {MasterView} from './Views';
+import * as WSPinger from './WSPinger';
 
 
 // Get client id and kind from params or asking the user.
@@ -32,8 +33,9 @@ var [clientId, clientKind] = (function() {
 let externalAction = window.location.hash.slice(1);
 window.location.hash = '';
 
+var wsURL = `ws://${window.location.host}`;
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
-var ws = new WSClient(`ws://${window.location.host}/ws`);
+var ws = new WSClient(wsURL + '/ws');
 
 var state = new MasterStateStore(clientId);
 
@@ -162,6 +164,9 @@ function init() {
       startRequestingSuggestions();
       setSize();
     }
+  setTimeout(() => WSPinger.doPing(wsURL + '/ping', 5, function(ping) {
+    dispatch({type: 'pingResults', ping});
+  }), 100);
 }
 
 function setSize() {
