@@ -6,13 +6,12 @@ import attr
 import wordfreq
 import pickle
 from suggestion import suggestion_generator, paths
-from suggestion.util import dump_kenlm
+from suggestion.util import dump_kenlm, mem
 import tqdm
 from scipy.misc import logsumexp
 from scipy.spatial.distance import cdist
-
-
-mem = joblib.Memory('cache', mmap_mode='r')
+import logging
+logger = logging.getLogger(__name__)
 
 JOBLIB_FILENAME = '/Data/conceptnet-vector-ensemble/conceptnet-numberbatch-201609-en.joblib'
 
@@ -55,7 +54,7 @@ class ConceptNetNumberBatch:
 cnnb = ConceptNetNumberBatch.load()
 
 def get_all_sents():
-    data = pickle.load(open('yelp_preproc/all_data.pkl','rb'))
+    data = pickle.load(open('yelp_preproc/all_data.pkl', 'rb'))
     reviews = data['data'].reset_index(drop=True)
     return list(cytoolz.concat(doc.lower().split('\n') for doc in reviews.tokenized))
 
@@ -122,21 +121,29 @@ def normalize_dists(dists):
 
 class Clusterizer:
     def __init__(self, n_clusters=10):
+        self.n_clusters = n_clusters
+
+        logger.info("Loading sentences")
         sents = filter_reasonable_length_sents(get_all_sents())
+
+        logger.info("Vectorizing")
         self.vectorizer, raw_vecs = get_vectorizer(sents)
         self.projection_mat = get_projection_mat(self.vectorizer)
         vecs = raw_vecs.dot(self.projection_mat)
         self.sents, self.vecs = filter_by_norm(vecs, sents)
         del vecs
 
+        logger.info("Clustering")
         self.clusterer, cluster_dists = get_clusterer_and_dists(self.vecs, n_clusters=n_clusters)
+
+        logger.info("Training sub-models")
         train_models_per_cluster(self.clusterer, vecs=self.vecs, texts=self.sents)
 
         self.models = [suggestion_generator.Model.from_basename(paths.paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
 
         #%% Score the first 5 words of every sentence.
         self.unique_starts = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in self.sents})]
-        self.scores_by_cluster = np.array([[model.score_seq(model.bos_state, k)[0] for model in models] for k in tqdm.tqdm(self.unique_starts, desc="Score starts")])
+        self.scores_by_cluster = np.array([[model.score_seq(model.bos_state, k)[0] for model in self.models] for k in tqdm.tqdm(self.unique_starts, desc="Score starts")])
 
     def get_distinctive():
         sbc_scale = .25 * scores_by_cluster# + 1*scores[:,None] - 1 * unigram_llks_for_start[:,None]

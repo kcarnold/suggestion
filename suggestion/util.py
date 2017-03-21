@@ -1,3 +1,4 @@
+import joblib
 import subprocess
 
 def spacy_tok_to_doc(spacy_toked_str):
@@ -16,4 +17,7 @@ def dump_kenlm(model_name, tokenized_sentences):
         for toks in tokenized_sentences:
             print(toks, file=f)
     subprocess.run(['./scripts/make_model.sh', model_name])
+
+
+mem = joblib.Memory('cache', mmap_mode='r')
 
