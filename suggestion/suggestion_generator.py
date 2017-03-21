@@ -24,11 +24,13 @@ def get_arpa_data(filename):
         while not f.readline().startswith('\\1-grams:'):
             continue
         vocab = []
+        unigram_probs = []
         for line in f:
             line = line.strip()
             if not line:
                 break  # end of 1-grams
             parts = line.split('\t')
+            unigram_probs.append(float(parts[0]))
             vocab.append(parts[1])
 
         while not f.readline().startswith('\\2-grams:'):
@@ -43,7 +45,7 @@ def get_arpa_data(filename):
             a, b = parts[1].split(' ')
             bigrams[a].append((prob, b))
 
-        return vocab, bigrams
+        return vocab, np.array(unigram_probs) * LOG10, bigrams
 
 
 def encode_bigrams(bigrams, model):
@@ -71,9 +73,8 @@ class Model:
         print("...done.", file=sys.stderr)
 
         print("Reading raw ARPA data", file=sys.stderr)
-        vocab, bigrams = get_arpa_data(arpa_file)
-        self.id2str = vocab
-        for i, word in enumerate(vocab):
+        self.id2str, self.unigram_probs, bigrams = get_arpa_data(arpa_file)
+        for i, word in enumerate(self.id2str):
             assert self.model.vocab_index(word) == i, i
         print("Encoding bigrams to indices", file=sys.stderr)
         self.unfiltered_bigrams, self.filtered_bigrams = encode_bigrams(bigrams, self.model)
@@ -191,24 +192,6 @@ class Model:
             logprobs[next_idx] = self.model.base_score_from_idx(state, word_idx, new_state)
         logprobs *= LOG10
         return logprobs
-
-    def _get_unigram_probs(self):
-        logprobs = np.empty(len(self.id2str))
-        state = self.null_context_state
-        state2 = kenlm.State()
-        for i, word in enumerate(self.id2str):
-            if i < 4:
-                logprobs[i] = 0.
-            else:
-                logprobs[i] = self.model.base_score_from_idx(state, i, state2)
-        logprobs *= np.log(10)
-        return logprobs
-
-    @property
-    def unigram_probs(self):
-        if not hasattr(self, '_unigram_probs'):
-            self._unigram_probs = self._get_unigram_probs()
-        return self._unigram_probs
 
 
 models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train']}
