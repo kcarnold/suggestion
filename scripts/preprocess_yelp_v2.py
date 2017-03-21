@@ -11,7 +11,7 @@ import os
 import sys
 import argparse
 import gzip
-import json
+import ujson as json
 import pickle
 import numpy as np
 import nltk
@@ -72,7 +72,6 @@ def build_vocab(tokenized_texts, min_occur_count):
     return vocab, counts
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--path',
@@ -100,10 +99,12 @@ if __name__ == '__main__':
     # Consistent train-test splits.
     np.random.seed(0)
 
+    from concurrent.futures import ProcessPoolExecutor
+    pool = ProcessPoolExecutor()
+
     print("Loading and parsing Yelp...", flush=True)
     data = join_yelp(load_yelp(path=args.path))
-    data['tokenized'] = [
-        tokenize(text) for text in tqdm.tqdm(data['text'], desc="Tokenizing")]
+    data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=1024), desc="Tokenizing", total=len(data)))
     data = data[data.tokenized.str.len() > 0]
 
     print("Splitting into train, validation, and test...", flush=True)
