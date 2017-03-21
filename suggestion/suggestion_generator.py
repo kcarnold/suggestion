@@ -65,27 +65,18 @@ def encode_bigrams(bigrams, model):
 
 
 class Model:
-    def __init__(self, model_file, arpadata_file, arpa_file):
+    def __init__(self, model_file, arpa_file):
         print("Loading model", file=sys.stderr)
         self.model = kenlm.LanguageModel(model_file)
         print("...done.", file=sys.stderr)
 
-        # Bigrams
-        if os.path.exists(arpadata_file):
-            print("Loading ARPA-data pickle", file=sys.stderr)
-            self._arpadata = pickle.load(open(arpadata_file, 'rb'))
-        else:
-            print("Reading raw ARPA data", file=sys.stderr)
-            vocab, bigrams = get_arpa_data(arpa_file)
-            for i, word in enumerate(vocab):
-                assert self.model.vocab_index(word) == i, i
-            print("Encoding bigrams to indices", file=sys.stderr)
-            self._arpadata = vocab, encode_bigrams(bigrams, self.model)
-            print("Saving ARPA data", file=sys.stderr)
-            with open(arpadata_file, 'wb') as f:
-                pickle.dump(self._arpadata, f, -1)
-
-        self.id2str, (self.unfiltered_bigrams, self.filtered_bigrams) = self._arpadata
+        print("Reading raw ARPA data", file=sys.stderr)
+        vocab, bigrams = get_arpa_data(arpa_file)
+        self.id2str = vocab
+        for i, word in enumerate(vocab):
+            assert self.model.vocab_index(word) == i, i
+        print("Encoding bigrams to indices", file=sys.stderr)
+        self.unfiltered_bigrams, self.filtered_bigrams = encode_bigrams(bigrams, self.model)
 
         # Vocab trie
         self.vocab_trie = datrie.BaseTrie(set(itertools.chain.from_iterable(self.id2str)))
@@ -134,7 +125,7 @@ class Model:
 
     @classmethod
     def from_basename(cls, basename):
-        return cls(model_file=basename + '.kenlm', arpadata_file=basename + '.data.pkl', arpa_file=basename + '.arpa')
+        return cls(model_file=basename + '.kenlm', arpa_file=basename + '.arpa')
 
     @property
     def bos_state(self):
