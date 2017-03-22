@@ -474,7 +474,7 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
             start_idx, end_idx = sufarr.search_range(context_tuple + tuple(words) + (prefix,), lo=prev_start_idx, hi=prev_end_idx)
             next_word_ids = collect_words_in_range(start_idx, end_idx, iteration_num + 1, docs_by_id)
             if len(next_word_ids) == 0:
-                assert model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
+                assert iteration_num == 0 or model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
                 continue
             bound_indices = start_idx, end_idx
             new_state = kenlm.State()
@@ -618,10 +618,14 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
                 if all(ent[2] for ent in beam):
                     break
             ents = [BeamEntry(*ent) for ent in beam]
-            result = [ents.pop(0)]
+            result = []
             first_words = {ent.words[0] for ent in result}
             while len(result) < 3 and len(ents) > 0:
-                ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
+                if len(first_words) > 0:
+                    ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
+                else:
+                    # The entities were already sorted by the earlier call to nlargest.
+                    pass
                 best = ents.pop(0)
                 first_words.add(best.words[0])
                 result.append(best)
