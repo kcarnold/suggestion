@@ -20,18 +20,24 @@ def get_suggestions(*a, **kw):
         res = next(generator)
         if isinstance(res, Future):
             generator.send(res.result())
+        elif isinstance(res, list) and len(res) > 0 and isinstance(res[0], Future):
+            results = [fut.result() for fut in res]
+            generator.send(results)
         return res
+
+def do_request_raw(request):
+    return get_suggestions(
+        sofar=request['sofar'], cur_word=request['cur_word'],
+        domain=request.get('domain', 'yelp_train'),
+        rare_word_bonus=request.get('rare_word_bonus', 1.0),
+        use_sufarr=request.get('useSufarr', False),
+        temperature=request.get('temperature', 0.))
 
 def do_request(request):
     start = time.time()
     # copy-and-paste from app.py, somewhat yuk but whatever.
     try:
-        phrases = get_suggestions(
-                        sofar=request['sofar'], cur_word=request['cur_word'],
-                        domain=request.get('domain', 'yelp_train'),
-                        rare_word_bonus=request.get('rare_word_bonus', 1.0),
-                        use_sufarr=request.get('useSufarr', False),
-                        temperature=request.get('temperature', 0.))
+        phrases = do_request_raw(request)
     except Exception:
         traceback.print_exc()
         phrases = None
