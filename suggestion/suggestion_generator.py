@@ -1,4 +1,3 @@
-import time
 import kenlm
 import heapq
 import pickle
@@ -10,6 +9,7 @@ import string
 from collections import defaultdict
 import numpy as np
 import nltk
+import cytoolz
 import joblib
 
 from .paths import paths
@@ -444,70 +444,44 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
     return [BeamEntry(*ent) for ent in sorted(beam, reverse=True)]
 
 
-def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word_bonus=0., prefix='', latency_budget=.3):
-    start_time = time.time()
-    time_per_iter = []
-    last_iter_time = start_time
-    unigram_probs = model.unigram_probs_wordsonly
+def beam_search_sufarr_init(model, start_words):
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
-    for i in range(length):
-        cur_time = time.time()
-        time_per_iter.append(cur_time - last_iter_time)
-        last_iter_time = cur_time
-        if cur_time - start_time > latency_budget:
-            print("Exceeded latency budget at iter", i, time_per_iter)
-            # Make do with what has been generated so far.
-            break
-        prefix_chars = 1 if i > 0 else 0
-        def candidates():
-            for entry in beam:
-                score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx) = entry
-                if done:
-                    yield entry
-                    continue
-                if last_word_idx is not None:
-                    last_state = kenlm.State()
-                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
-                else:
-                    last_state = penultimate_state
-                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,), lo=prev_start_idx, hi=prev_end_idx)
-                next_word_ids = collect_words_in_range(start_idx, end_idx, i + 1, docs_by_id)
-                # stats.append((end_idx - start_idx, len(next_words)))
-                if len(next_word_ids) == 0:
-                    assert model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
-                    continue
-                bound_indices = start_idx, end_idx
-                new_state = kenlm.State()
-                for next_idx, word_idx in enumerate(next_word_ids):
-                    if word_idx == 0: continue
-                    word = model.id2str[word_idx]
-                    new_words = words + [word]
-                    new_num_chars = num_chars + prefix_chars + len(word)
-                    logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
-
-                    new_score = score + logprob + unigram_bonus
-                    done = new_num_chars >= length
-                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
-        beam = heapq.nlargest(beam_width, candidates())
-        prefix = ''
-    # nlargest guarantees that its result is sorted descending.
-    # print(stats)
-    return [BeamEntry(*ent) for ent in beam]
+    return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
 
 
-def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **kw):
-    ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
-    result = [ents.pop(0)]
-    first_words = {ent.words[0] for ent in result}
-    while len(result) < n and len(ents) > 0:
-        ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
-        best = ents.pop(0)
-        first_words.add(best.words[0])
-        result.append(best)
-
-    return [([word for word in ent.words if word[0] != '<'], None) for ent in result]
+def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, target_length, rare_word_bonus=0., prefix=''):
+    if isinstance(model, str):
+        model = get_model(model)
+    unigram_probs = model.unigram_probs_wordsonly
+    def candidates():
+        for entry in beam:
+            score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx) = entry
+            if done:
+                yield entry
+                continue
+            if last_word_idx is not None:
+                last_state = kenlm.State()
+                model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+            else:
+                last_state = penultimate_state
+            start_idx, end_idx = sufarr.search_range(context_tuple + tuple(words) + (prefix,), lo=prev_start_idx, hi=prev_end_idx)
+            next_word_ids = collect_words_in_range(start_idx, end_idx, iteration_num + 1, docs_by_id)
+            if len(next_word_ids) == 0:
+                assert model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
+                continue
+            bound_indices = start_idx, end_idx
+            new_state = kenlm.State()
+            for next_idx, word_idx in enumerate(next_word_ids):
+                if word_idx == 0: continue
+                word = model.id2str[word_idx]
+                new_words = words + [word]
+                new_num_chars = num_chars + 1 + len(word)
+                logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if word not in words else 0.
+                new_score = score + logprob + unigram_bonus
+                done = new_num_chars >= target_length
+                yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
+    return heapq.nlargest(beam_width, candidates())
 
 
 
@@ -574,7 +548,7 @@ def predict_forward(domain, toks, first_word, beam_width=50, length=30):
 
 
 
-def get_suggestions_async(submit_as_future, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
+def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -596,8 +570,6 @@ def get_suggestions_async(submit_as_future, *, sofar, cur_word, domain, rare_wor
         def normal_lik(x, sigma):
             return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
 
-        import cytoolz
-        import nltk
         sents = nltk.sent_tokenize(sofar)
         how_much_covered = np.zeros(clizer.n_clusters)
 
@@ -623,12 +595,33 @@ def get_suggestions_async(submit_as_future, *, sofar, cur_word, domain, rare_wor
 
     if temperature == 0:
         if use_sufarr:
-            phrases = generate_by_beamsearch_sufarr(
-                model, toks, n=3, beam_width=50, length=length, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
+            beam_width = 50
+            beam = beam_search_sufarr_init(model, toks)
+            context_tuple = (toks[-1],)
+            for i in range(length):
+                beam_chunks = cytoolz.partition_all(8, beam)
+                parallel_futures = yield [executor.submit(
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, 25, length, rare_word_bonus=rare_word_bonus, prefix=prefix)
+                    for chunk in beam_chunks]
+                parallel_beam = list(cytoolz.concat(parallel_futures))
+                prefix = ''
+                beam = heapq.nlargest(beam_width, parallel_beam)
+                # entry 2 is "DONE"
+                if all(ent[2] for ent in beam):
+                    break
+            ents = [BeamEntry(*ent) for ent in beam]
+            result = [ents.pop(0)]
+            first_words = {ent.words[0] for ent in result}
+            while len(result) < 3 and len(ents) > 0:
+                ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
+                best = ents.pop(0)
+                first_words.add(best.words[0])
+                result.append(best)
+            phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
         else:
-            first_word_ents = yield submit_as_future(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
+            first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
             next_words = [ent.words[0] for ent in first_word_ents[:3]]
-            phrases = (yield [(submit_as_future(predict_forward, domain, toks, oneword_suggestion)) for oneword_suggestion in next_words])
+            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
