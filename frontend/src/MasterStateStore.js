@@ -249,8 +249,8 @@ export class MasterStateStore {
       get places() {
         let {controlledInputs} = this;
         let res = [
-          {name: controlledInputs.get('restaurant1'), visit: controlledInputs.get('visit1'), stars: controlledInputs.get('star1')},
-          {name: controlledInputs.get('restaurant2'), visit: controlledInputs.get('visit2'), stars: controlledInputs.get('star2')}
+          {name: controlledInputs.get('restaurant1'), visit: controlledInputs.get('visit1'), stars: controlledInputs.get('star1'), knowWhatToWrite: controlledInputs.get('knowWhat1')},
+          {name: controlledInputs.get('restaurant2'), visit: controlledInputs.get('visit2'), stars: controlledInputs.get('star2'), knowWhatToWrite: controlledInputs.get('knowWhat2')}
         ]
         if (this.swapPlaceOrder) {
           res.unshift(res.pop());
