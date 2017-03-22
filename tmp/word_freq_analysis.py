@@ -84,7 +84,12 @@ import tqdm
 clusters_in_all_docs = np.array([clusters_in_doc(tokenized) for tokenized in tqdm.tqdm(reviews.tokenized)])
 #%%
 cluster_probs = clusters_in_all_docs / (np.sum(clusters_in_all_docs, axis=1, keepdims=True) + 1e-9)
-np.mean(cluster_probs, axis=0)
+
+stats = dict(
+     overall=np.mean(cluster_probs, axis=0),
+     best=np.mean(cluster_probs[yelp_is_best], axis=0),
+     rest=np.mean(cluster_probs[~yelp_is_best], axis=0))
+{k: entr(v).sum() for k, v in stats.items()}
 #%%
 np.mean(np.sum(cluster_probs, axis=1))
 #%%
@@ -98,3 +103,4 @@ clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best & long_enough], clip=clip, label=f'Yelp best (mean={to_plot[yelp_is_best & long_enough].mean():.2f})', bw=bw)
 sns.kdeplot(to_plot[~yelp_is_best & long_enough].dropna(), clip=clip, label=f'Yelp rest (mean={to_plot[~yelp_is_best & long_enough].mean():.2f})', bw=bw)
 plt.xlabel("Entropy of cluster distribution")
+#plt.savefig('figures/cluster_distribution_entropy.pdf')
