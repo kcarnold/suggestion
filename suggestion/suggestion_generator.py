@@ -370,6 +370,8 @@ from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
 
 def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None):
+    if isinstance(model, str):
+        model = get_model(model)
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
     for i in range(length):
@@ -573,3 +575,26 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
             domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature, use_sufarr=use_sufarr, **kw)
     return phrases
 
+
+# This is old code and nasty, buyer beware.
+def get_touch_suggestions(sofar, cur_word, key_rects):
+    if len(cur_word) > 0:
+        prefix_logprobs = [(1., ''.join(item['letter'] for item in cur_word))]
+        # prefix_logprobs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
+    else:
+        prefix_logprobs = None
+
+    toks = tokenize_sofar(sofar)
+    model = get_model('yelp_train')
+    next_words = [ent.words[0] for ent in beam_search_phrases(model, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)[:3]]
+    return toks, next_words
+
+def predict_forward(toks, first_word, beam_width=50, length=30):
+    model = get_model('yelp_train')
+    continuations = beam_search_phrases(model, toks + [first_word],
+        beam_width=beam_width, length=length - len(first_word) - 1)
+    if len(continuations) > 0:
+        continuation = continuations[0].words
+    else:
+        continuation = []
+    return [first_word] + continuation, None
