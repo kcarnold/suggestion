@@ -496,19 +496,6 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
     return [BeamEntry(*ent) for ent in beam]
 
 
-def generate_by_beamsearch_ngram(model, context_toks, n, length, prefix_logprobs, beam_width=50):
-    first_word_ents = beam_search_phrases(model, context_toks, beam_width=10, length=1, prefix_logprobs=prefix_logprobs)[:n]
-    result = []
-    for ent in first_word_ents:
-        continuations = beam_search_phrases(model, context_toks + ent.words, beam_width=beam_width, length=length - ent.num_chars)
-        if len(continuations) > 0:
-            continuation = continuations[0].words
-        else:
-            continuation = []
-        result.append((ent.words + continuation, None))
-    return result
-
-
 def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **kw):
     ents = beam_search_sufarr(model, sufarr, start_words=context_toks, length=length, prefix=prefix, **kw)
     result = [ents.pop(0)]
@@ -574,7 +561,19 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
 
 
-def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
+def predict_forward(domain, toks, first_word, beam_width=50, length=30):
+    model = get_model(domain)
+    continuations = beam_search_phrases(model, toks + [first_word],
+        beam_width=beam_width, length=length - len(first_word) - 1)
+    if len(continuations) > 0:
+        continuation = continuations[0].words
+    else:
+        continuation = []
+    return [first_word] + continuation, None
+
+
+
+def get_suggestions_async(submit_as_future, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     print(toks)
@@ -627,8 +626,9 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
             phrases = generate_by_beamsearch_sufarr(
                 model, toks, n=3, beam_width=50, length=length, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
         else:
-            phrases = generate_by_beamsearch_ngram(
-                model, toks, n=3, beam_width=50, length=length, prefix_logprobs=prefix_logprobs, **kw)
+            first_word_ents = yield submit_as_future(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
+            next_words = [ent.words[0] for ent in first_word_ents[:3]]
+            phrases = (yield [(submit_as_future(predict_forward, domain, toks, oneword_suggestion)) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
@@ -636,30 +636,3 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
     return phrases, sug_state
 
 
-# This is old code and nasty, buyer beware.
-def get_touch_suggestions(sofar, cur_word, key_rects):
-    if len(cur_word) > 0:
-        prefix_logprobs = [(1., ''.join(item['letter'] for item in cur_word))]
-        # prefix_logprobs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-    else:
-        prefix_logprobs = None
-
-    toks = tokenize_sofar(sofar)
-    model = get_model('yelp_train')
-    next_words = [ent.words[0] for ent in beam_search_phrases(model, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)[:3]]
-    return toks, next_words
-
-def predict_forward(toks, first_word, beam_width=50, length=30):
-    model = get_model('yelp_train')
-    continuations = beam_search_phrases(model, toks + [first_word],
-        beam_width=beam_width, length=length - len(first_word) - 1)
-    if len(continuations) > 0:
-        continuation = continuations[0].words
-    else:
-        continuation = []
-    return [first_word] + continuation, None
-
-
-def get_suggestions_async(submit_as_future, sofar, cur_word, key_rects):
-    toks, next_words = yield submit_as_future(get_touch_suggestions, sofar, cur_word, key_rects)
-    return (yield [(submit_as_future(predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words])

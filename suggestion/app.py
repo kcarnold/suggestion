@@ -179,16 +179,14 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
             if request['type'] == 'requestSuggestions':
                 start = time.time()
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
-                if True:#not request['useSufarr'] and request['temperature'] == 0.:
-                    phrases = yield get_suggestions_async(process_pool.submit, request['sofar'], request['cur_word'], self.keyRects.get('lower', []))
-                else:
-                    phrases, self.sug_state = yield process_pool.submit(suggestion_generator.get_suggestions,
-                        request['sofar'], request['cur_word'],
-                        domain=request.get('domain', 'yelp_train'),
-                        rare_word_bonus=request.get('rare_word_bonus', 1.0),
-                        use_sufarr=request.get('useSufarr', False),
-                        temperature=request.get('temperature', 0.),
-                        sug_state=self.sug_state)
+                phrases, self.sug_state = yield get_suggestions_async(
+                    process_pool.submit,
+                    sofar=request['sofar'], cur_word=request['cur_word'],
+                    domain=request.get('domain', 'yelp_train'),
+                    rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                    use_sufarr=request.get('useSufarr', False),
+                    temperature=request.get('temperature', 0.),
+                    sug_state=self.sug_state)
                 next_word = suggestion_generator.phrases_to_suggs(phrases)
                 result['next_word'] = next_word
                 dur = time.time() - start
