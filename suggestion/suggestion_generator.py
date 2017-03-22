@@ -215,7 +215,7 @@ def get_model(name):
     return models[name]
 
 
-if False:
+if True:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
     docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
     print(', suffix array...', end='', file=sys.stderr, flush=True)
@@ -225,13 +225,14 @@ if False:
     docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
     print(" Done.", file=sys.stderr)
 
-print("Loading clusterizer...", end='', file=sys.stderr, flush=True)
-clizer_data = joblib.load('clizer_core.joblib', mmap_mode='r')
-clizer = clustering.Clusterizer(**clizer_data,
-    sents=pickle.load(open('clizer_sents.pkl', 'rb')),
-    vectorizer=pickle.load(open('clizer_vectorizer.pkl', 'rb')),
-    unique_starts=pickle.load(open('clizer_unique_starts.pkl', 'rb')))
-print("Done.", file=sys.stderr)
+if True:
+    print("Loading clusterizer...", end='', file=sys.stderr, flush=True)
+    clizer_data = joblib.load('clizer_core.joblib', mmap_mode='r')
+    clizer = clustering.Clusterizer(**clizer_data,
+        sents=pickle.load(open('clizer_sents.pkl', 'rb')),
+        vectorizer=pickle.load(open('clizer_vectorizer.pkl', 'rb')),
+        unique_starts=pickle.load(open('clizer_unique_starts.pkl', 'rb')))
+    print("Done.", file=sys.stderr)
 
 
 import numba
@@ -576,7 +577,6 @@ def predict_forward(domain, toks, first_word, beam_width=50, length=30):
 def get_suggestions_async(submit_as_future, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
-    print(toks)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
