@@ -17,13 +17,16 @@ def get_suggestions(*a, **kw):
             return future
     generator = suggestion_generator.get_suggestions_async(NullExecutor(), *a, **kw)
     while True:
-        res = next(generator)
-        if isinstance(res, Future):
-            generator.send(res.result())
-        elif isinstance(res, list) and len(res) > 0 and isinstance(res[0], Future):
-            results = [fut.result() for fut in res]
-            generator.send(results)
-        return res
+        try:
+            res = next(generator)
+            if isinstance(res, Future):
+                generator.send(res.result())
+            elif isinstance(res, list) and len(res) > 0 and isinstance(res[0], Future):
+                results = [fut.result() for fut in res]
+                generator.send(results)
+            return res
+        except StopIteration as stop:
+            return stop.value
 
 def do_request_raw(request):
     return get_suggestions(
