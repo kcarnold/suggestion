@@ -602,13 +602,14 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
 
     if temperature == 0:
         if use_sufarr:
-            beam_width = 50
+            beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
             for i in range(length):
                 beam_chunks = cytoolz.partition_all(8, beam)
+                rwb = rare_word_bonus if i > 0 else rare_word_bonus / 2
                 parallel_futures = yield [executor.submit(
-                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, 25, length, rare_word_bonus=rare_word_bonus, prefix=prefix)
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length, rare_word_bonus=rwb, prefix=prefix)
                     for chunk in beam_chunks]
                 parallel_beam = list(cytoolz.concat(parallel_futures))
                 prefix = ''
