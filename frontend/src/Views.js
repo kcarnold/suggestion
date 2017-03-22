@@ -153,7 +153,7 @@ const CurText = inject('spying')(observer(class CurText extends Component {
   }
 
   render() {
-    return <div className="CurText">{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></div>;
+    return <div className="CurText"><span>{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
   }
 }));
 
