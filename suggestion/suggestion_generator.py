@@ -590,17 +590,25 @@ def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temper
     return phrases
 
 
-def get_touch_suggestions(sofar, cur_word, key_rects, beam_width=10, length_bonus=0):
+# This is old code and nasty, buyer beware.
+def get_touch_suggestions(sofar, cur_word, key_rects):
     if len(cur_word) > 0:
-        prefix_probs = [(1., ''.join(item['letter'] for item in cur_word))]
-        # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
+        prefix_logprobs = [(1., ''.join(item['letter'] for item in cur_word))]
+        # prefix_logprobs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
     else:
-        prefix_probs = None
+        prefix_logprobs = None
 
     toks = tokenize_sofar(sofar)
-    next_words = beam_search_phrases(toks, beam_width=10, length=1, prefix_probs=prefix_probs)[:3]
+    model = get_model('yelp_train')
+    next_words = [ent.words[0] for ent in beam_search_phrases(model, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)[:3]]
     return toks, next_words
 
-def predict_forward(toks, oneword_suggestion, beam_width=50, length=30):
-    return dict(one_word=oneword_suggestion, continuation=get_phrases(
-        toks + oneword_suggestion['words'], beam_width=beam_width, length=length-len(' '.join(oneword_suggestion['words'])))[:10])
+def predict_forward(toks, first_word, beam_width=50, length=30):
+    model = get_model('yelp_train')
+    continuations = beam_search_phrases(model, toks + [first_word],
+        beam_width=beam_width, length=length - len(first_word) - 1)
+    if len(continuations) > 0:
+        continuation = continuations[0].words
+    else:
+        continuation = []
+    return [first_word] + continuation, None

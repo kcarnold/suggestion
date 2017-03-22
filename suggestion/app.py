@@ -182,7 +182,7 @@ class WebsocketHandler(MyWSHandler):
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
                 if not request['useSufarr'] and request['temperature'] == 0.:
                     toks, next_words = yield process_pool.submit(suggestion_generator.get_touch_suggestions, request['sofar'], request['cur_word'], self.keyRects.get('lower', []))
-                    next_word = yield [(process_pool.submit(suggestion_generator.predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words]
+                    phrases = yield [(process_pool.submit(suggestion_generator.predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words]
                 else:
                     phrases = yield process_pool.submit(suggestion_generator.get_suggestions,
                         request['sofar'], request['cur_word'],
@@ -190,7 +190,7 @@ class WebsocketHandler(MyWSHandler):
                         rare_word_bonus=request.get('rare_word_bonus', 1.0),
                         use_sufarr=request.get('useSufarr', False),
                         temperature=request.get('temperature', 0.))
-                    next_word = suggestion_generator.phrases_to_suggs(phrases)
+                next_word = suggestion_generator.phrases_to_suggs(phrases)
                 result['next_word'] = next_word
                 dur = time.time() - start
                 result['dur'] = dur
