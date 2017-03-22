@@ -179,7 +179,7 @@ export const screenViews = {
       <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say" <ControlledInput name="knowWhat2" />
     </div>
     <p>(The Next button will be enabled once all fields are filled out.)</p>
-    <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2'.split(' '), x => state.controlledInputs.get(x))} />
+    <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2 knowWhat1 knowWhat2'.split(' '), x => state.controlledInputs.get(x))} />
   </div>)),
 
   Instructions: inject('state')(observer(({state}) => {
