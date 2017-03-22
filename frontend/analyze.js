@@ -46,6 +46,7 @@ readStdin(function(err, res) {
       condition: state.conditions[block],
       prewriteText: state.experiments.get(`pre-${block}`).curText,
       finalText: state.experiments.get(`final-${block}`).curText,
+      place: state.places[block],
     }))
   }]));
 
