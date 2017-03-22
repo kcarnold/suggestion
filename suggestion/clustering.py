@@ -5,8 +5,10 @@ import joblib
 import attr
 import wordfreq
 import pickle
-from suggestion import suggestion_generator, paths
+from suggestion import suggestion_generator
 from suggestion.util import dump_kenlm, mem
+from suggestion.paths import paths
+import os
 import tqdm
 from scipy.misc import logsumexp
 from scipy.spatial.distance import cdist
@@ -54,7 +56,7 @@ class ConceptNetNumberBatch:
 cnnb = ConceptNetNumberBatch.load()
 
 def get_all_sents():
-    data = pickle.load(open('yelp_preproc/all_data.pkl', 'rb'))
+    data = pickle.load(open(os.path.join(paths.parent, 'yelp_preproc/all_data.pkl'), 'rb'))
     reviews = data['data'].reset_index(drop=True)
     return list(cytoolz.concat(doc.lower().split('\n') for doc in reviews.tokenized))
 
@@ -118,32 +120,44 @@ def normalize_vecs(vecs):
 def normalize_dists(dists):
     return dists / np.sum(dists, axis=1, keepdims=True)
 
+import attr
 
+@attr.s
 class Clusterizer:
-    def __init__(self, n_clusters=10):
-        self.n_clusters = n_clusters
+    n_clusters = attr.ib()
+    vectorizer = attr.ib()
+    projection_mat = attr.ib()
+    sents = attr.ib()
+    clusterer = attr.ib()
+    unique_starts = attr.ib()
+    scores_by_cluster = attr.ib()
+
+    @classmethod
+    def build(cls, n_clusters=10):
+        params = {}
+        params['n_clusters'] = n_clusters
 
         logger.info("Loading sentences")
         sents = filter_reasonable_length_sents(get_all_sents())
 
         logger.info("Vectorizing")
-        self.vectorizer, raw_vecs = get_vectorizer(sents)
-        self.projection_mat = get_projection_mat(self.vectorizer)
-        vecs = raw_vecs.dot(self.projection_mat)
-        self.sents, self.vecs = filter_by_norm(vecs, sents)
-        del vecs
+        params['vectorizer'], raw_vecs = get_vectorizer(sents)
+        params['projection_mat'] = get_projection_mat(params['vectorizer'])
+        vecs = raw_vecs.dot(params['projection_mat'])
+        params['sents'], projected_vecs = filter_by_norm(vecs, sents)
 
         logger.info("Clustering")
-        self.clusterer, cluster_dists = get_clusterer_and_dists(self.vecs, n_clusters=n_clusters, random_state=0)
+        params['clusterer'], cluster_dists = get_clusterer_and_dists(projected_vecs, n_clusters=n_clusters, random_state=0)
 
         logger.info("Training sub-models")
-        train_models_per_cluster(self.clusterer, vecs=self.vecs, texts=self.sents)
+        train_models_per_cluster(params['clusterer'], vecs=projected_vecs, texts=params['sents'])
 
-        self.models = [suggestion_generator.Model.from_basename(paths.paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
+        models = [suggestion_generator.Model.from_basename(paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
 
         #%% Score the first 5 words of every sentence.
-        self.unique_starts = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in self.sents})]
-        self.scores_by_cluster = np.array([[model.score_seq(model.bos_state, k)[0] for model in self.models] for k in tqdm.tqdm(self.unique_starts, desc="Score starts")])
+        params['unique_starts'] = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in params['sents']})]
+        params['scores_by_cluster'] = np.array([[model.score_seq(model.bos_state, k)[0] for model in models] for k in tqdm.tqdm(params['unique_starts'], desc="Score starts")])
+        return cls(**params)
 
     def get_distinctive():
         sbc_scale = .25 * scores_by_cluster# + 1*scores[:,None] - 1 * unigram_llks_for_start[:,None]

@@ -14,7 +14,7 @@ import joblib
 
 from .paths import paths
 from .tokenization import tokenize_mid_document
-from . import suffix_array
+from . import suffix_array, clustering
 
 LOG10 = np.log(10)
 
@@ -215,14 +215,24 @@ def get_model(name):
     return models[name]
 
 
-print("Loading docs...", end='', file=sys.stderr, flush=True)
-docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
-print(', suffix array...', end='', file=sys.stderr, flush=True)
-sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_train_sufarr.joblib')))
-print(', mapping ids...', end='', file=sys.stderr, flush=True)
-_str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
-docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
-print(" Done.", file=sys.stderr)
+if False:
+    print("Loading docs...", end='', file=sys.stderr, flush=True)
+    docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
+    print(', suffix array...', end='', file=sys.stderr, flush=True)
+    sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_train_sufarr.joblib')))
+    print(', mapping ids...', end='', file=sys.stderr, flush=True)
+    _str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
+    docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
+    print(" Done.", file=sys.stderr)
+
+print("Loading clusterizer...", end='', file=sys.stderr, flush=True)
+clizer_data = joblib.load('clizer_core.joblib', mmap_mode='r')
+clizer = clustering.Clusterizer(**clizer_data,
+    sents=pickle.load(open('clizer_sents.pkl', 'rb')),
+    vectorizer=pickle.load(open('clizer_vectorizer.pkl', 'rb')),
+    unique_starts=pickle.load(open('clizer_unique_starts.pkl', 'rb')))
+print("Done.", file=sys.stderr)
+
 
 import numba
 @numba.jit
@@ -562,24 +572,66 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
 
 
-def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, **kw):
+def get_suggestions(sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
+    print(toks)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
+    use_bos_suggs = True
+    if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
+        if sug_state is None:
+            sug_state = {}
+        if 'suggested_already' not in sug_state:
+            sug_state['suggested_already'] = []
+        suggested_already = sug_state['suggested_already']
+        print("Already suggested", suggested_already)
+
+        scores_by_cluster = clizer.scores_by_cluster.copy()
+        scores_by_cluster[suggested_already] = -np.inf
+        most_distinctive = np.argmax(scores_by_cluster, axis=0)
+
+        def normal_lik(x, sigma):
+            return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+        import cytoolz
+        import nltk
+        sents = nltk.sent_tokenize(sofar)
+        how_much_covered = np.zeros(clizer.n_clusters)
+
+        for sent in sents:
+            cluster_distrib = cytoolz.thread_first(
+                [sent],
+                clizer.vectorize_sents,
+                clustering.normalize_vecs,
+                clizer.clusterer.transform,
+                (normal_lik, .5),
+                clustering.normalize_dists
+                )[0]
+            how_much_covered += cluster_distrib
+
+        topics_to_suggest = np.argsort(how_much_covered)[:3]
+        print("Suggesting topics", topics_to_suggest.tolist())
+        phrases = []
+        for cluster_idx in topics_to_suggest:
+            suggest_idx = most_distinctive[cluster_idx]
+            suggested_already.append(suggest_idx)
+            phrases.append((clizer.unique_starts[suggest_idx], None))
+        return phrases, sug_state
+
     if temperature == 0:
         if use_sufarr:
-            return generate_by_beamsearch_sufarr(
+            phrases = generate_by_beamsearch_sufarr(
                 model, toks, n=3, beam_width=50, length=length, prefix=prefix, rare_word_bonus=rare_word_bonus, **kw)
         else:
-            return generate_by_beamsearch_ngram(
+            phrases = generate_by_beamsearch_ngram(
                 model, toks, n=3, beam_width=50, length=length, prefix_logprobs=prefix_logprobs, **kw)
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
             domain, toks, 3, 6, prefix_logprobs=prefix_logprobs, temperature=temperature, use_sufarr=use_sufarr, **kw)
-    return phrases
+    return phrases, sug_state
 
 
 # This is old code and nasty, buyer beware.
