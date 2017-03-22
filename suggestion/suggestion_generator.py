@@ -220,9 +220,15 @@ if True:
     docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
     print(', suffix array...', end='', file=sys.stderr, flush=True)
     sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_train_sufarr.joblib')))
-    print(', mapping ids...', end='', file=sys.stderr, flush=True)
-    _str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
-    docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
+    docs_by_id_fname = os.path.join(paths.models, 'yelp_train_docs_by_id.pkl')
+    if os.path.exists(docs_by_id_fname):
+        print(', loading id-mapped docs...', end='', file=sys.stderr, flush=True)
+        docs_by_id = pickle.load(open(docs_by_id_fname, 'rb'))
+    else:
+        print(', mapping ids...', end='', file=sys.stderr, flush=True)
+        _str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
+        docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
+        pickle.dump(docs_by_id, open(docs_by_id_fname, 'wb'), -1)
     print(" Done.", file=sys.stderr)
 
 if True:
