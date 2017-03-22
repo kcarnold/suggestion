@@ -7,12 +7,27 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 
+def get_suggestions(*a, **kw):
+    '''Wrap the async suggestion generation so it's testable.'''
+    from concurrent.futures import Future
+    class NullExecutor:
+        def submit(self, fn, *a, **kw):
+            future = Future()
+            future.set_result(fn(*a, **kw))
+            return future
+    generator = suggestion_generator.get_suggestions_async(NullExecutor(), *a, **kw)
+    while True:
+        res = next(generator)
+        if isinstance(res, Future):
+            generator.send(res.result())
+        return res
+
 def do_request(request):
     start = time.time()
     # copy-and-paste from app.py, somewhat yuk but whatever.
     try:
-        phrases = suggestion_generator.get_suggestions(
-                        request['sofar'], request['cur_word'],
+        phrases = get_suggestions(
+                        sofar=request['sofar'], cur_word=request['cur_word'],
                         domain=request.get('domain', 'yelp_train'),
                         rare_word_bonus=request.get('rare_word_bonus', 1.0),
                         use_sufarr=request.get('useSufarr', False),
