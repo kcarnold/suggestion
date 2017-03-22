@@ -233,11 +233,12 @@ if True:
 
 if True:
     print("Loading clusterizer...", end='', file=sys.stderr, flush=True)
-    clizer_data = joblib.load('clizer_core.joblib', mmap_mode='r')
+    clizer_basename = os.path.join(paths.models, 'clizer_')
+    clizer_data = joblib.load(clizer_basename + 'core.joblib', mmap_mode='r')
     clizer = clustering.Clusterizer(**clizer_data,
-        sents=pickle.load(open('clizer_sents.pkl', 'rb')),
-        vectorizer=pickle.load(open('clizer_vectorizer.pkl', 'rb')),
-        unique_starts=pickle.load(open('clizer_unique_starts.pkl', 'rb')))
+        sents=None,#pickle.load(open(clizer_basename + 'sents.pkl', 'rb')),
+        vectorizer=pickle.load(open(clizer_basename + 'vectorizer.pkl', 'rb')),
+        unique_starts=pickle.load(open(clizer_basename + 'unique_starts.pkl', 'rb')))
     print("Done.", file=sys.stderr)
 
 
