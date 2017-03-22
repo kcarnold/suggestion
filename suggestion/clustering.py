@@ -3,7 +3,6 @@ import cytoolz
 import numpy as np
 import joblib
 import attr
-import wordfreq
 import pickle
 from suggestion import suggestion_generator
 from suggestion.util import dump_kenlm, mem
@@ -11,7 +10,6 @@ from suggestion.paths import paths
 import os
 import tqdm
 from scipy.misc import logsumexp
-from scipy.spatial.distance import cdist
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,7 +51,7 @@ class ConceptNetNumberBatch:
     def __contains__(self, item):
         return item in self.term2id
 
-cnnb = ConceptNetNumberBatch.load()
+cnnb = None
 
 def get_all_sents():
     data = pickle.load(open(os.path.join(paths.parent, 'yelp_preproc/all_data.pkl'), 'rb'))
@@ -74,6 +72,12 @@ def get_vectorizer(sents):
 
 @mem.cache
 def get_projection_mat(vectorizer):
+    import wordfreq
+
+    global cnnb
+    if cnnb is None:
+        cnnb = ConceptNetNumberBatch.load()
+
     sklearn_vocab = vectorizer.get_feature_names()
     def get_or_zero(cnnb, item):
         try:
