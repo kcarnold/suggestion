@@ -658,3 +658,8 @@ def predict_forward(toks, first_word, beam_width=50, length=30):
     else:
         continuation = []
     return [first_word] + continuation, None
+
+
+def get_suggestions_async(submit_as_future, sofar, cur_word, key_rects):
+    toks, next_words = yield submit_as_future(get_touch_suggestions, sofar, cur_word, key_rects)
+    return (yield [(submit_as_future(predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words])

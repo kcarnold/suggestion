@@ -1,5 +1,4 @@
 import string
-import random
 import json
 import time
 import os
@@ -31,6 +30,10 @@ settings = dict(
     )
 
 from . import suggestion_generator
+
+# Convert the normal generator function into a Tornado coroutine.
+# We do this here to avoid tornado imports in the core suggestion_generator.
+get_suggestions_async = tornado.gen.coroutine(suggestion_generator.get_suggestions_async)
 
 if not os.path.isdir(paths.logdir):
     os.makedirs(paths.logdir)
@@ -176,9 +179,8 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
             if request['type'] == 'requestSuggestions':
                 start = time.time()
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
-                if False:#not request['useSufarr'] and request['temperature'] == 0.:
-                    toks, next_words = yield process_pool.submit(suggestion_generator.get_touch_suggestions, request['sofar'], request['cur_word'], self.keyRects.get('lower', []))
-                    phrases = yield [(process_pool.submit(suggestion_generator.predict_forward, toks, oneword_suggestion)) for oneword_suggestion in next_words]
+                if True:#not request['useSufarr'] and request['temperature'] == 0.:
+                    phrases = yield get_suggestions_async(process_pool.submit, request['sofar'], request['cur_word'], self.keyRects.get('lower', []))
                 else:
                     phrases, self.sug_state = yield process_pool.submit(suggestion_generator.get_suggestions,
                         request['sofar'], request['cur_word'],
