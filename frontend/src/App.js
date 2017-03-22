@@ -113,6 +113,9 @@ function log(event) {
 
 registerHandler(state.handleEvent);
 
+let inflightRequests = M.observable(M.asMap({}));
+window.inflightRequests = inflightRequests;
+
 
 function startRequestingSuggestions() {
   // Auto-runner to watch the context and request suggestions.
@@ -121,8 +124,27 @@ function startRequestingSuggestions() {
     if (!suggestionRequest)
       return;
 
+
+    // If there's more than one request already in-flight, don't make another.
+    // We allow two requests to be in-flight so that we can pipeline in the common case.
+    if (M.untracked(() => inflightRequests.size) > 1) {
+      console.log("Interlocking request because there's already too many requests in-flight.");
+      // But get flagged when that changes.
+      inflightRequests.size; // eslint-disable-line no-unused-expressions
+      return;
+    }
+
+    let {request_id} = suggestionRequest;
+    if (M.untracked(() => inflightRequests.has(request_id))) {
+      console.warn(`Would have made a duplicate request ${request_id}.`);
+      return;
+    }
+
     console.log('requesting', suggestionRequest);
     ws.send(suggestionRequest);
+    M.untracked(() => {
+      inflightRequests.set(request_id, +new Date());
+    });
   });
 }
 
@@ -131,6 +153,9 @@ var didInit = false;
 ws.onmessage = function(msg) {
   if (msg.type === 'suggestions') {
     dispatch({type: 'receivedSuggestions', msg});
+    let requestTime = inflightRequests.get(msg.request_id);
+    inflightRequests.delete(msg.request_id);
+    console.log('rtt', (+new Date() - requestTime));
   } else if (msg.type === 'backlog') {
     console.log('Backlog', msg);
     let firstTime = !didInit;
