@@ -386,9 +386,10 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
 
-def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None):
+def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None, rare_word_bonus=0.):
     if isinstance(model, str):
         model = get_model(model)
+    unigram_probs = model.unigram_probs_wordsonly
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
     for i in range(length):
@@ -425,8 +426,9 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                         prob = probs[next_idx]
                     else:
                         prob = 0.
-                    new_score = score + prob + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     word = model.id2str[word_idx]
+                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
+                    new_score = score + prob + unigram_bonus + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     new_words = words + [word]
                     new_num_chars = num_chars + prefix_chars + len(word)
                     new_entry = (new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None)
