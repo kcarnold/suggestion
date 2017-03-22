@@ -4,7 +4,7 @@ from nltk.tokenize import RegexpTokenizer, PunktSentenceTokenizer
 
 WORD_RE = re.compile(r'\w+(?:[\',:]\w+)*')
 END_PUNCT = set('.,?!:')
-URL_RE = re.compile(r'\bhttp[s]?://[^\s]+')
+URL_RE = re.compile(r'\bhttp[s]?://[^\s]*[^\s.]')
 
 
 def token_spans(text):

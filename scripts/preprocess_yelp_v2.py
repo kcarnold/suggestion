@@ -18,6 +18,7 @@ import tqdm
 import cytoolz
 import operator
 import spacy
+from suggestion import tokenization
 
 nlp = None
 
@@ -61,7 +62,12 @@ def join_yelp(data):
     return result
 
 def tokenize(text):
-    return '\n'.join(' '.join(w.text for w in sent if not w.like_url and not w.like_email and not w.is_space) for sent in nlp(text).sents)
+    text = tokenization.URL_RE.sub(lambda match: ' '*(match.end() - match.start()), text)
+    # Use spacy's sentence tokenizer.
+    sents = (sent.text for sent in nlp(text).sents)
+    # Use our simple word tokenizer, since spacy breaks apart contractions.
+    token_spaced_sents = (' '.join(sent[a:b] for a, b in tokenization.token_spans(sent)) for sent in sents)
+    return '\n'.join(token_spaced_sents)
 
 def build_vocab(tokenized_texts, min_occur_count):
     word_counts = cytoolz.frequencies(w for doc in tokenized_texts for w in doc.lower().split())
@@ -108,7 +114,7 @@ if __name__ == '__main__':
 
     print("Loading Yelp...", flush=True)
     data = join_yelp(load_yelp(path=args.path))
-    data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=128), desc="Tokenizing", total=len(data)))
+    data['tokenized'] = list(tqdm.tqdm(pool.map(tokenize, data['text'], chunksize=128), desc="Tokenizing", total=len(data), smoothing=0))
     data = data[data.tokenized.str.len() > 0]
 
     print("Splitting into train, validation, and test...", flush=True)
