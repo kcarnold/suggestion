@@ -6,6 +6,7 @@ import os
 import sys
 import itertools
 import datrie
+import string
 from collections import defaultdict
 import numpy as np
 import nltk
@@ -86,8 +87,11 @@ class Model:
 
         print("Reading raw ARPA data", file=sys.stderr)
         self.id2str, self.unigram_probs, bigrams = get_arpa_data(self.arpa_file)
+        self.unigram_probs_wordsonly = self.unigram_probs.copy()
         for i, word in enumerate(self.id2str):
             assert self.model.vocab_index(word) == i, i
+            if word[0] not in string.ascii_lowercase:
+                self.unigram_probs_wordsonly[i] = 0
         print("Encoding bigrams to indices", file=sys.stderr)
         self.unfiltered_bigrams, self.filtered_bigrams = encode_bigrams(bigrams, self.model)
 
@@ -214,7 +218,10 @@ def get_model(name):
 print("Loading docs...", end='', file=sys.stderr, flush=True)
 docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
 print(', suffix array...', end='', file=sys.stderr, flush=True)
-sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_sufarr.joblib')))
+sufarr = suffix_array.DocSuffixArray(docs=docs, **joblib.load(os.path.join(paths.models, 'yelp_train_sufarr.joblib')))
+print(', mapping ids...', end='', file=sys.stderr, flush=True)
+_str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
+docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
 print(" Done.", file=sys.stderr)
 
 import numba
@@ -225,18 +232,18 @@ def _next_elt_le(arr, criterion, start, end):
             return i
     return end
 
-def collect_words_in_range(start, after_end, word_idx):
+def collect_words_in_range(start, after_end, word_idx, docs):
     words = []
     if start == after_end:
         return words
-    word = sufarr.docs[sufarr.doc_idx[start]][sufarr.tok_idx[start] + word_idx]
+    word = docs[sufarr.doc_idx[start]][sufarr.tok_idx[start] + word_idx]
     words.append(word)
     while True:
         before_next_idx = _next_elt_le(sufarr.lcp, word_idx, start, after_end - 1)
         if before_next_idx == after_end - 1:
             break
         next_idx = before_next_idx + 1
-        word = sufarr.docs[sufarr.doc_idx[next_idx]][sufarr.tok_idx[next_idx] + word_idx]
+        word = docs[sufarr.doc_idx[next_idx]][sufarr.tok_idx[next_idx] + word_idx]
         words.append(word)
         start = next_idx
     return words
@@ -428,10 +435,9 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
     start_time = time.time()
     time_per_iter = []
     last_iter_time = start_time
-    unigram_probs = model.unigram_probs
+    unigram_probs = model.unigram_probs_wordsonly
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [(0., [], False, start_state, None, 0, [])]
-    stats = []
+    beam = [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
     for i in range(length):
         cur_time = time.time()
         time_per_iter.append(cur_time - last_iter_time)
@@ -443,7 +449,7 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
         prefix_chars = 1 if i > 0 else 0
         def candidates():
             for entry in beam:
-                score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
+                score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx) = entry
                 if done:
                     yield entry
                     continue
@@ -452,25 +458,25 @@ def beam_search_sufarr(model, sufarr, start_words, beam_width, length, rare_word
                     model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
                 else:
                     last_state = penultimate_state
-                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,))
-                next_words = collect_words_in_range(start_idx, end_idx, i + 1)
-                stats.append((end_idx - start_idx, len(next_words)))
-                if len(next_words) == 0:
+                start_idx, end_idx = sufarr.search_range((start_words[-1],) + tuple(words) + (prefix,), lo=prev_start_idx, hi=prev_end_idx)
+                next_word_ids = collect_words_in_range(start_idx, end_idx, i + 1, docs_by_id)
+                # stats.append((end_idx - start_idx, len(next_words)))
+                if len(next_word_ids) == 0:
                     assert model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
                     continue
+                bound_indices = start_idx, end_idx
                 new_state = kenlm.State()
-                for next_idx, word in enumerate(next_words):
-                    is_punct = word[0] in '<.!?'
-                    is_special = word[0] == '<'
-                    word_idx = model.model.vocab_index(word)
+                for next_idx, word_idx in enumerate(next_word_ids):
+                    if word_idx == 0: continue
+                    word = model.id2str[word_idx]
                     new_words = words + [word]
-                    new_num_chars = num_chars + (0 if is_special else prefix_chars + len(word))
+                    new_num_chars = num_chars + prefix_chars + len(word)
                     logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word_idx > 4 and not is_punct and word not in words else 0.
+                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
 
                     new_score = score + logprob + unigram_bonus
                     done = new_num_chars >= length
-                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, None#bonuses + [unigram_bonus])
+                    yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
         beam = heapq.nlargest(beam_width, candidates())
         prefix = ''
     # nlargest guarantees that its result is sorted descending.
