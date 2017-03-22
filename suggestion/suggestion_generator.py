@@ -505,7 +505,7 @@ def generate_by_beamsearch_sufarr(model, context_toks, n, length, prefix='', **k
 
 
 
-def tap_decoder(before_cursor, cur_word, key_rects, beam_width=100, scale=100.):
+def tap_decoder(char_model, before_cursor, cur_word, key_rects, beam_width=100, scale=100.):
     keys = [k['key'] for k in key_rects]
     rects = [k['rect'] for k in key_rects]
     centers = [((rect['left'] + rect['right']) / 2, (rect['top'] + rect['bottom']) / 2) for rect in rects]
