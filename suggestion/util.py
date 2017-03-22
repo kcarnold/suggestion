@@ -1,11 +1,11 @@
 import joblib
 import subprocess
 
-def spacy_tok_to_doc(spacy_toked_str):
+def spacy_tok_to_doc(spacy_sent_strs):
     res = []
-    for sent_str in spacy_toked_str.lower().split('\n'):
-        res.append('<S>')
-        res.extend(sent_str.split())
+    for i, sent_str in enumerate(spacy_sent_strs):
+        res.append('<S>' if i > 0 else '<D>')
+        res.extend(sent_str.lower().split())
         res.append('</S>')
     return res
 

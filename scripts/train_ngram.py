@@ -32,7 +32,15 @@ if __name__ == '__main__':
     data = pickle.load(open(args.input, 'rb'))
     reviews = data['data']
 
-    tokenized_reviews = [[intern(word) for word in spacy_tok_to_doc(cant_type.sub('', sub_numbers(tokenized)))] for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
+    def convert_tokenization(doc):
+        doc = doc.lower()
+        doc = sub_numbers(doc)
+        sents = doc.split('\n')
+        sents = [cant_type.sub('', sent) for sent in sents]
+        return [intern(word) for word in spacy_tok_to_doc(sents)]
+
+    tokenized_reviews = [convert_tokenization(tokenized)
+        for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
     print("Saving reviews")
     with open('models/tokenized_reviews.pkl', 'wb') as f:
