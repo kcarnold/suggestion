@@ -90,9 +90,9 @@ def filter_by_norm(vecs, texts, min_norm=.5):
     return texts, vecs
 
 @mem.cache
-def get_clusterer_and_dists(docs_projected, n_clusters):
+def get_clusterer_and_dists(docs_projected, n_clusters, random_state):
     from sklearn.cluster import MiniBatchKMeans
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=n_clusters, n_init=10)
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=n_clusters, n_init=10, random_state=random_state)
     cluster_dists = mbk.fit_transform(docs_projected)
     return mbk, cluster_dists
 
@@ -134,7 +134,7 @@ class Clusterizer:
         del vecs
 
         logger.info("Clustering")
-        self.clusterer, cluster_dists = get_clusterer_and_dists(self.vecs, n_clusters=n_clusters)
+        self.clusterer, cluster_dists = get_clusterer_and_dists(self.vecs, n_clusters=n_clusters, random_state=0)
 
         logger.info("Training sub-models")
         train_models_per_cluster(self.clusterer, vecs=self.vecs, texts=self.sents)
