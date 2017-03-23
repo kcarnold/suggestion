@@ -648,3 +648,23 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
     return phrases, sug_state
 
 
+def get_suggestions(*a, **kw):
+    '''Wrap the async suggestion generation so it's testable.'''
+    from concurrent.futures import Future
+    class NullExecutor:
+        def submit(self, fn, *a, **kw):
+            future = Future()
+            future.set_result(fn(*a, **kw))
+            return future
+    generator = get_suggestions_async(NullExecutor(), *a, **kw)
+    while True:
+        try:
+            res = next(generator)
+            if isinstance(res, Future):
+                generator.send(res.result())
+            elif isinstance(res, list) and len(res) > 0 and isinstance(res[0], Future):
+                results = [fut.result() for fut in res]
+                generator.send(results)
+            return res
+        except StopIteration as stop:
+            return stop.value
