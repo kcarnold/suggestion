@@ -187,7 +187,8 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         rare_word_bonus=request.get('rare_word_bonus', 1.0),
                         use_sufarr=request.get('useSufarr', False),
                         temperature=request.get('temperature', 0.),
-                        sug_state=self.sug_state)
+                        sug_state=self.sug_state,
+                        use_bos_suggs=request['use_bos_suggs'])
                 except Exception:
                     traceback.print_exc()
                     phrases = []

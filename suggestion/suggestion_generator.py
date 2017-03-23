@@ -559,13 +559,12 @@ def predict_forward(domain, toks, first_word, beam_width=50, length=30):
 
 
 
-def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, length=30, sug_state=None, **kw):
+def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-    use_bos_suggs = True
     if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
         if sug_state is None:
             sug_state = {}

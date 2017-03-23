@@ -101,6 +101,7 @@ function experimentBlock(block:number, conditionName: string, includePrewrite: b
 const ngramFlags = {
   useSufarr: false,
   temperature: 0,
+  use_bos_suggs: false,
 };
 
 const namedConditions = {
@@ -116,6 +117,7 @@ const namedConditions = {
     sugFlags: {
       useSufarr: true,
       rare_word_bonus: 2,
+      use_bos_suggs: true,
     },
     showPhrase: true
   }
