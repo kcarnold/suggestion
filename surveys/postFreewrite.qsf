@@ -1,1 +1,451 @@
-{"id": "SV_0OCqAQl6o7BiidT", "name": "Writing Study - Post-Freewrite Survey - 2017-03-09", "ownerId": "UR_789p4qOsBfCeHqZ", "organizationId": "harvard", "isActive": true, "creationDate": "2017-03-09T23:41:11Z", "lastModifiedDate": "2017-03-10T15:38:18Z", "expiration": {"startDate": null, "endDate": null}, "questions": {"QID1": {"questionType": {"type": "Meta", "selector": "Browser", "subSelector": null}, "questionText": "Browser Meta Info", "questionLabel": null, "validation": {"doesForceResponse": false}, "choices": {"1": {"description": "Browser", "choiceText": "Browser", "variableName": null}, "2": {"description": "Version", "choiceText": "Version", "variableName": null}, "3": {"description": "Operating System", "choiceText": "Operating System", "variableName": null}, "4": {"description": "Screen Resolution", "choiceText": "Screen Resolution", "variableName": null}, "5": {"description": "Flash Version", "choiceText": "Flash Version", "variableName": null}, "6": {"description": "Java Support", "choiceText": "Java Support", "variableName": null}, "7": {"description": "User Agent", "choiceText": "User Agent", "variableName": null}}}, "QID2": {"questionType": {"type": "Timing", "selector": "PageTimer", "subSelector": null}, "questionText": "Timing", "questionLabel": null, "validation": {"doesForceResponse": false}, "choices": {"1": {"recode": "1", "description": "First Click", "choiceText": "First Click", "variableName": null}, "2": {"recode": "2", "description": "Last Click", "choiceText": "Last Click", "variableName": null}, "3": {"recode": "3", "description": "Page Submit", "choiceText": "Page Submit", "variableName": null}, "4": {"recode": "4", "description": "Click Count", "choiceText": "Click Count", "variableName": null}}}, "QID21": {"questionType": {"type": "DB", "selector": "TB", "subSelector": null}, "questionText": "Great job! (Well, I hope you did a great job -- I had to write this survey before you even started.) Could you answer a few questions about how that went?", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID18": {"questionType": {"type": "TE", "selector": "ML", "subSelector": null}, "questionText": "How would you describe your process or strategy?", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID17": {"questionType": {"type": "Matrix", "selector": "Likert", "subSelector": "SingleAnswer"}, "questionText": "How much do you agree with the following statements about the <strong>suggestions that the system gave</strong>?", "questionLabel": null, "validation": {"doesForceResponse": false}, "subQuestions": {"1": {"recode": "1", "description": "They gave me ideas about what to write about.", "choiceText": "They gave me ideas about what to write about.", "variableName": null}, "4": {"recode": "4", "description": "They made it harder to come up with my own ideas about what to write about.", "choiceText": "They made it harder to come up with my own ideas about what to write about.", "variableName": null}, "2": {"recode": "2", "description": "They gave me ideas about words or phrases to use.", "choiceText": "They gave me ideas about words or phrases to use.", "variableName": null}, "3": {"recode": "3", "description": "They made it harder for me to come up with my own words or phrases.", "choiceText": "They made it harder for me to come up with my own words or phrases.", "variableName": null}, "7": {"recode": "7", "description": "They were interesting.", "choiceText": "They were interesting.", "variableName": null}, "8": {"recode": "8", "description": "They were distracting.", "choiceText": "They were distracting.", "variableName": null}, "9": {"recode": "9", "description": "They were relevant.", "choiceText": "They were relevant.", "variableName": null}, "10": {"recode": "10", "description": "They didn't make sense.", "choiceText": "They didn't make sense.", "variableName": null}, "11": {"recode": "11", "description": "They were repetitive.", "choiceText": "They were repetitive.", "variableName": null}, "12": {"recode": "12", "description": "They were inspiring.", "choiceText": "They were inspiring.", "variableName": null}}, "choices": {"4": {"recode": "4", "description": "Strongly agree", "choiceText": "Strongly agree"}, "5": {"recode": "5", "description": "Agree", "choiceText": "Agree"}, "6": {"recode": "6", "description": "Somewhat agree", "choiceText": "Somewhat agree"}, "7": {"recode": "7", "description": "Neither agree nor disagree", "choiceText": "Neither agree nor disagree"}, "8": {"recode": "8", "description": "Somewhat disagree", "choiceText": "Somewhat disagree"}, "9": {"recode": "9", "description": "Disagree", "choiceText": "Disagree"}, "10": {"recode": "10", "description": "Strongly disagree", "choiceText": "Strongly disagree"}}}, "QID11": {"questionType": {"type": "TE", "selector": "ML", "subSelector": null}, "questionText": "How would you describe the suggestions that the system gave?", "questionLabel": null, "validation": {"doesForceResponse": true}}, "QID12": {"questionType": {"type": "TE", "selector": "ML", "subSelector": null}, "questionText": "Did you experience any technical difficulties?", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID13": {"questionType": {"type": "TE", "selector": "ML", "subSelector": null}, "questionText": "Any other comments so far? (There will be other surveys throughout  the experiment.)", "questionLabel": null, "validation": {"doesForceResponse": false}}}, "exportColumnMap": {"Q1_1_TEXT": {"question": "QID1", "choice": "QID1.choices.1"}, "Q1_2_TEXT": {"question": "QID1", "choice": "QID1.choices.2"}, "Q1_3_TEXT": {"question": "QID1", "choice": "QID1.choices.3"}, "Q1_4_TEXT": {"question": "QID1", "choice": "QID1.choices.4"}, "Q1_5_TEXT": {"question": "QID1", "choice": "QID1.choices.5"}, "Q1_6_TEXT": {"question": "QID1", "choice": "QID1.choices.6"}, "Q1_7_TEXT": {"question": "QID1", "choice": "QID1.choices.7"}, "Q2_1": {"question": "QID2", "choice": "QID2.choices.1"}, "Q2_2": {"question": "QID2", "choice": "QID2.choices.2"}, "Q2_3": {"question": "QID2", "choice": "QID2.choices.3"}, "Q2_4": {"question": "QID2", "choice": "QID2.choices.4"}, "Q21": {"question": "QID21"}, "Q18": {"question": "QID18"}, "Q17_1": {"question": "QID17", "subQuestion": "QID17.subQuestions.1"}, "Q17_4": {"question": "QID17", "subQuestion": "QID17.subQuestions.4"}, "Q17_2": {"question": "QID17", "subQuestion": "QID17.subQuestions.2"}, "Q17_3": {"question": "QID17", "subQuestion": "QID17.subQuestions.3"}, "Q17_7": {"question": "QID17", "subQuestion": "QID17.subQuestions.7"}, "Q17_8": {"question": "QID17", "subQuestion": "QID17.subQuestions.8"}, "Q17_9": {"question": "QID17", "subQuestion": "QID17.subQuestions.9"}, "Q17_10": {"question": "QID17", "subQuestion": "QID17.subQuestions.10"}, "Q17_11": {"question": "QID17", "subQuestion": "QID17.subQuestions.11"}, "Q17_12": {"question": "QID17", "subQuestion": "QID17.subQuestions.12"}, "Q11": {"question": "QID11"}, "Q12": {"question": "QID12"}, "Q13": {"question": "QID13"}}, "blocks": {"BL_abc9q0W8PfK9IP3": {"description": "Default Question Block", "elements": [{"type": "Question", "questionId": "QID1"}, {"type": "Question", "questionId": "QID2"}, {"type": "Question", "questionId": "QID21"}]}, "BL_5nayo7C6s3fRGwR": {"description": "Block 4", "elements": [{"type": "Question", "questionId": "QID18"}, {"type": "Question", "questionId": "QID17"}, {"type": "Question", "questionId": "QID11"}, {"type": "Question", "questionId": "QID12"}, {"type": "Question", "questionId": "QID13"}]}}, "flow": [{"id": "BL_abc9q0W8PfK9IP3", "type": "Block"}, {"id": "BL_5nayo7C6s3fRGwR", "type": "Block"}, {"type": "EmbeddedData"}], "embeddedData": [{"name": "Q_URL"}, {"name": "nextURL"}, {"name": "clientId"}, {"name": "Q_TotalDuration"}], "comments": {}, "responseCounts": {"auditable": 14, "generated": 0, "deleted": 0}}
+{
+  "id": "SV_0OCqAQl6o7BiidT",
+  "name": "Writing Study - Post-Freewrite Survey - 2017-03-09",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-03-09T23:41:11Z",
+  "lastModifiedDate": "2017-03-10T15:38:18Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "variableName": null
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "variableName": null
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "variableName": null
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "variableName": null
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "variableName": null
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "variableName": null
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "variableName": null
+        }
+      }
+    },
+    "QID2": {
+      "questionType": {
+        "type": "Timing",
+        "selector": "PageTimer",
+        "subSelector": null
+      },
+      "questionText": "Timing",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "First Click",
+          "choiceText": "First Click",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "Last Click",
+          "choiceText": "Last Click",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "Page Submit",
+          "choiceText": "Page Submit",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "Click Count",
+          "choiceText": "Click Count",
+          "variableName": null
+        }
+      }
+    },
+    "QID21": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "Great job! (Well, I hope you did a great job -- I had to write this survey before you even started.) Could you answer a few questions about how that went?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID18": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe your process or strategy?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID17": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "How much do you agree with the following statements about the <strong>suggestions that the system gave</strong>?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "They gave me ideas about what to write about.",
+          "choiceText": "They gave me ideas about what to write about.",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "They made it harder to come up with my own ideas about what to write about.",
+          "choiceText": "They made it harder to come up with my own ideas about what to write about.",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "They gave me ideas about words or phrases to use.",
+          "choiceText": "They gave me ideas about words or phrases to use.",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "They made it harder for me to come up with my own words or phrases.",
+          "choiceText": "They made it harder for me to come up with my own words or phrases.",
+          "variableName": null
+        },
+        "7": {
+          "recode": "7",
+          "description": "They were interesting.",
+          "choiceText": "They were interesting.",
+          "variableName": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "They were distracting.",
+          "choiceText": "They were distracting.",
+          "variableName": null
+        },
+        "9": {
+          "recode": "9",
+          "description": "They were relevant.",
+          "choiceText": "They were relevant.",
+          "variableName": null
+        },
+        "10": {
+          "recode": "10",
+          "description": "They didn't make sense.",
+          "choiceText": "They didn't make sense.",
+          "variableName": null
+        },
+        "11": {
+          "recode": "11",
+          "description": "They were repetitive.",
+          "choiceText": "They were repetitive.",
+          "variableName": null
+        },
+        "12": {
+          "recode": "12",
+          "description": "They were inspiring.",
+          "choiceText": "They were inspiring.",
+          "variableName": null
+        }
+      },
+      "choices": {
+        "4": {
+          "recode": "4",
+          "description": "Strongly agree",
+          "choiceText": "Strongly agree"
+        },
+        "5": {
+          "recode": "5",
+          "description": "Agree",
+          "choiceText": "Agree"
+        },
+        "6": {
+          "recode": "6",
+          "description": "Somewhat agree",
+          "choiceText": "Somewhat agree"
+        },
+        "7": {
+          "recode": "7",
+          "description": "Neither agree nor disagree",
+          "choiceText": "Neither agree nor disagree"
+        },
+        "8": {
+          "recode": "8",
+          "description": "Somewhat disagree",
+          "choiceText": "Somewhat disagree"
+        },
+        "9": {
+          "recode": "9",
+          "description": "Disagree",
+          "choiceText": "Disagree"
+        },
+        "10": {
+          "recode": "10",
+          "description": "Strongly disagree",
+          "choiceText": "Strongly disagree"
+        }
+      }
+    },
+    "QID11": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe the suggestions that the system gave?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      }
+    },
+    "QID12": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Did you experience any technical difficulties?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID13": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Any other comments so far? (There will be other surveys throughout  the experiment.)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    }
+  },
+  "exportColumnMap": {
+    "Q1_1_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.1"
+    },
+    "Q1_2_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.2"
+    },
+    "Q1_3_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.3"
+    },
+    "Q1_4_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.4"
+    },
+    "Q1_5_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.5"
+    },
+    "Q1_6_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.6"
+    },
+    "Q1_7_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.7"
+    },
+    "Q2_1": {
+      "question": "QID2",
+      "choice": "QID2.choices.1"
+    },
+    "Q2_2": {
+      "question": "QID2",
+      "choice": "QID2.choices.2"
+    },
+    "Q2_3": {
+      "question": "QID2",
+      "choice": "QID2.choices.3"
+    },
+    "Q2_4": {
+      "question": "QID2",
+      "choice": "QID2.choices.4"
+    },
+    "Q21": {
+      "question": "QID21"
+    },
+    "Q18": {
+      "question": "QID18"
+    },
+    "Q17_1": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.1"
+    },
+    "Q17_4": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.4"
+    },
+    "Q17_2": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.2"
+    },
+    "Q17_3": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.3"
+    },
+    "Q17_7": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.7"
+    },
+    "Q17_8": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.8"
+    },
+    "Q17_9": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.9"
+    },
+    "Q17_10": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.10"
+    },
+    "Q17_11": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.11"
+    },
+    "Q17_12": {
+      "question": "QID17",
+      "subQuestion": "QID17.subQuestions.12"
+    },
+    "Q11": {
+      "question": "QID11"
+    },
+    "Q12": {
+      "question": "QID12"
+    },
+    "Q13": {
+      "question": "QID13"
+    }
+  },
+  "blocks": {
+    "BL_abc9q0W8PfK9IP3": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID2"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID21"
+        }
+      ]
+    },
+    "BL_5nayo7C6s3fRGwR": {
+      "description": "Block 4",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID18"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID17"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID11"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID13"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "id": "BL_abc9q0W8PfK9IP3",
+      "type": "Block"
+    },
+    {
+      "id": "BL_5nayo7C6s3fRGwR",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "Q_URL"
+    },
+    {
+      "name": "nextURL"
+    },
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_TotalDuration"
+    }
+  ],
+  "comments": {},
+  "responseCounts": {
+    "auditable": 17,
+    "generated": 0,
+    "deleted": 0
+  }
+}

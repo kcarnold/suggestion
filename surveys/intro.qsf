@@ -1,1 +1,791 @@
-{"id": "SV_9GiIgGOn3Snoxwh", "name": "Writing Study - Intro - 2017-03-08", "ownerId": "UR_789p4qOsBfCeHqZ", "organizationId": "harvard", "isActive": true, "creationDate": "2017-03-08T21:14:28Z", "lastModifiedDate": "2017-03-22T14:39:17Z", "expiration": {"startDate": null, "endDate": null}, "questions": {"QID1": {"questionType": {"type": "DB", "selector": "TB", "subSelector": null}, "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span><br />\n<br />\nIf any part of this task is confusing or unclear, please don&#39;t hesitate to ask us about it!<br />\n<br />\nWe will start with some questions about your demographics and computer usage. Then you&#39;ll get out your phone and we&#39;ll actually do some writing.<br />\n<br />\nThere will be two writing sessions, with a survey after each one, then a survey about the experiment overall. Ready to get started?", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID12": {"questionType": {"type": "Meta", "selector": "Browser", "subSelector": null}, "questionText": "Browser Meta Info", "questionLabel": null, "validation": {"doesForceResponse": false}, "choices": {"1": {"description": "Browser", "choiceText": "Browser", "variableName": null}, "2": {"description": "Version", "choiceText": "Version", "variableName": null}, "3": {"description": "Operating System", "choiceText": "Operating System", "variableName": null}, "4": {"description": "Screen Resolution", "choiceText": "Screen Resolution", "variableName": null}, "5": {"description": "Flash Version", "choiceText": "Flash Version", "variableName": null}, "6": {"description": "Java Support", "choiceText": "Java Support", "variableName": null}, "7": {"description": "User Agent", "choiceText": "User Agent", "variableName": null}}}, "QID6": {"questionType": {"type": "DB", "selector": "TB", "subSelector": null}, "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID7": {"questionType": {"type": "TE", "selector": "SL", "subSelector": null}, "questionText": "How old are you?", "questionLabel": null, "validation": {"doesForceResponse": true, "type": "ValidNumber", "settings": {"maxDecimals": 0, "minimum": 18.0, "maximum": 110.0}}}, "QID4": {"questionType": {"type": "MC", "selector": "SAVR", "subSelector": "TX"}, "questionText": "What is the highest level of school you have completed or the highest degree you have received? ", "questionLabel": null, "validation": {"doesForceResponse": true}, "choices": {"1": {"recode": "1", "description": "Less than high school degree", "choiceText": "Less than high school degree", "variableName": null}, "2": {"recode": "2", "description": "High school graduate (high school diploma or equivalent including GED)", "choiceText": "High school graduate (high school diploma or equivalent including GED)", "variableName": null}, "3": {"recode": "3", "description": "Some college but no degree", "choiceText": "Some college but no degree", "variableName": null}, "4": {"recode": "4", "description": "Associate degree in college (2-year)", "choiceText": "Associate degree in college (2-year)", "variableName": null}, "5": {"recode": "5", "description": "Bachelor's degree in college (4-year)", "choiceText": "Bachelor's degree in college (4-year)", "variableName": null}, "6": {"recode": "6", "description": "Master's degree", "choiceText": "Master's degree", "variableName": null}, "7": {"recode": "7", "description": "Doctoral degree", "choiceText": "Doctoral degree", "variableName": null}, "8": {"recode": "8", "description": "Professional degree (JD, MD)", "choiceText": "Professional degree (JD, MD)", "variableName": null}}}, "QID5": {"questionType": {"type": "MC", "selector": "SAVR", "subSelector": "TX"}, "questionText": "What is your gender?", "questionLabel": null, "validation": {"doesForceResponse": true}, "choices": {"1": {"recode": "1", "description": "Male", "choiceText": "Male", "variableName": null}, "2": {"recode": "2", "description": "Female", "choiceText": "Female", "variableName": null}, "3": {"recode": "3", "description": "Something else, or I'd prefer not to say", "choiceText": "Something else, or I'd prefer not to say", "variableName": null}}}, "QID16": {"questionType": {"type": "MC", "selector": "SAVR", "subSelector": "TX"}, "questionText": "How proficient would you say you are in English?", "questionLabel": null, "validation": {"doesForceResponse": true}, "choices": {"1": {"recode": "1", "description": "Basic", "choiceText": "Basic", "variableName": null}, "2": {"recode": "2", "description": "Conversational", "choiceText": "Conversational", "variableName": null}, "3": {"recode": "3", "description": "Fluent", "choiceText": "Fluent", "variableName": null}, "4": {"recode": "4", "description": "Native or bilingual", "choiceText": "Native or bilingual", "variableName": null}}}, "QID13": {"questionType": {"type": "DB", "selector": "TB", "subSelector": null}, "questionText": "And now, a few questions about how you use technology.", "questionLabel": null, "validation": {"doesForceResponse": false}}, "QID8": {"questionType": {"type": "MC", "selector": "MAVR", "subSelector": "TX"}, "questionText": "I regularly use a... (check all that apply)", "questionLabel": null, "validation": {"doesForceResponse": true}, "choices": {"1": {"recode": "1", "description": "Desktop computer", "choiceText": "Desktop computer", "variableName": null}, "2": {"recode": "2", "description": "Laptop, notebook, Chromebook, or similar", "choiceText": "Laptop, notebook, Chromebook, or similar", "variableName": null}, "3": {"recode": "3", "description": "Smartphone", "choiceText": "Smartphone", "variableName": null}, "4": {"recode": "4", "description": "Tablet", "choiceText": "Tablet", "variableName": null}}}, "QID9": {"questionType": {"type": "MC", "selector": "SAVR", "subSelector": "TX"}, "questionText": "Which best describes you about electronic devices and technology?", "questionLabel": null, "validation": {"doesForceResponse": true}, "choices": {"1": {"recode": "1", "description": "I am among the first people to check out a new electronic device or gadget", "choiceText": "I am among the first people to check out a new electronic device or gadget", "variableName": null}, "2": {"recode": "2", "description": "I usually wait until I see others try a new technology, then I try it myself", "choiceText": "I usually wait until I see others try a new technology, then I try it myself", "variableName": null}, "3": {"recode": "3", "description": "I tend to wait a long time to try new technology", "choiceText": "I tend to wait a long time to try new technology", "variableName": null}}}, "QID17": {"questionType": {"type": "MC", "selector": "SAVR", "subSelector": "TX"}, "questionText": "What keyboard do you normally use on your phone?", "questionLabel": null, "validation": {"doesForceResponse": false, "doesRequestResponse": true}, "choices": {"1": {"recode": "1", "description": "iPhone built-in", "choiceText": "iPhone built-in", "variableName": null}, "2": {"recode": "2", "description": "built-in keyboard where you tap keys", "choiceText": "built-in keyboard where you tap keys", "variableName": null}, "3": {"recode": "3", "description": "built-in keyboard where you swipe words", "choiceText": "built-in keyboard where you swipe words", "variableName": null}, "4": {"recode": "4", "description": "3rd-party keyboard (please specify)", "choiceText": "3rd-party keyboard (please specify)", "variableName": null, "textEntry": {}}}}, "QID10": {"questionType": {"type": "Matrix", "selector": "Likert", "subSelector": "SingleAnswer"}, "questionText": "How often do you type on a mobile device?", "questionLabel": null, "validation": {"doesForceResponse": true}, "subQuestions": {"1": {"recode": "1", "description": "Short messages (a sentence or less)", "choiceText": "Short messages (a sentence or less)", "variableName": null}, "2": {"recode": "2", "description": "Medium-length writing (a paragraph or two)", "choiceText": "Medium-length writing (a paragraph or two)", "variableName": null}, "3": {"recode": "3", "description": "More than a paragraph or two", "choiceText": "More than a paragraph or two", "variableName": null}}, "choices": {"1": {"recode": "1", "description": "Never", "choiceText": "Never"}, "2": {"recode": "2", "description": "Once per month", "choiceText": "Once per month"}, "3": {"recode": "3", "description": "Once per week", "choiceText": "Once per week"}, "4": {"recode": "4", "description": "Once per day", "choiceText": "Once per day"}, "5": {"recode": "5", "description": "Several times per day", "choiceText": "Several times per day"}}}, "QID11": {"questionType": {"type": "Matrix", "selector": "Likert", "subSelector": "SingleAnswer"}, "questionText": "When you type on your mobile device, do you use these features?<br>", "questionLabel": null, "validation": {"doesForceResponse": true}, "subQuestions": {"1": {"recode": "1", "description": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)", "choiceText": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)", "variableName": null}, "2": {"recode": "2", "description": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)", "choiceText": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)", "variableName": null}, "3": {"recode": "3", "description": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)", "choiceText": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)", "variableName": null}}, "choices": {"1": {"recode": "1", "description": "Never", "choiceText": "Never"}, "6": {"recode": "6", "description": "On occasion", "choiceText": "On occasion"}, "2": {"recode": "2", "description": "Once every few sentences", "choiceText": "Once every few sentences"}, "3": {"recode": "3", "description": "Once per sentence", "choiceText": "Once per sentence"}, "4": {"recode": "4", "description": "Several times per sentence", "choiceText": "Several times per sentence"}, "5": {"recode": "5", "description": "Nearly every word", "choiceText": "Nearly every word"}}}, "QID14": {"questionType": {"type": "Matrix", "selector": "Likert", "subSelector": "SingleAnswer"}, "questionText": "When you type on your mobile device, do you like these features?", "questionLabel": null, "validation": {"doesForceResponse": true}, "subQuestions": {"1": {"recode": "1", "description": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)", "choiceText": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)", "variableName": null}, "2": {"recode": "2", "description": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)", "choiceText": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)", "variableName": null}, "3": {"recode": "3", "description": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)", "choiceText": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)", "variableName": null}}, "choices": {"13": {"recode": "13", "description": "Like a great deal", "choiceText": "Like a great deal"}, "14": {"recode": "14", "description": "Like a moderate amount", "choiceText": "Like a moderate amount"}, "15": {"recode": "15", "description": "Like a little", "choiceText": "Like a little"}, "16": {"recode": "16", "description": "Neither like nor dislike", "choiceText": "Neither like nor dislike"}, "17": {"recode": "17", "description": "Dislike a little", "choiceText": "Dislike a little"}, "18": {"recode": "18", "description": "Dislike a moderate amount", "choiceText": "Dislike a moderate amount"}, "19": {"recode": "19", "description": "Dislike a great deal", "choiceText": "Dislike a great deal"}}}, "QID15": {"questionType": {"type": "TE", "selector": "ML", "subSelector": null}, "questionText": "Do you have any other comments? Anything else we should know?", "questionLabel": null, "validation": {"doesForceResponse": false}}}, "exportColumnMap": {"Q1": {"question": "QID1"}, "Q12_1_TEXT": {"question": "QID12", "choice": "QID12.choices.1"}, "Q12_2_TEXT": {"question": "QID12", "choice": "QID12.choices.2"}, "Q12_3_TEXT": {"question": "QID12", "choice": "QID12.choices.3"}, "Q12_4_TEXT": {"question": "QID12", "choice": "QID12.choices.4"}, "Q12_5_TEXT": {"question": "QID12", "choice": "QID12.choices.5"}, "Q12_6_TEXT": {"question": "QID12", "choice": "QID12.choices.6"}, "Q12_7_TEXT": {"question": "QID12", "choice": "QID12.choices.7"}, "Q8": {"question": "QID6"}, "Q9": {"question": "QID7"}, "Q5": {"question": "QID4"}, "Q7": {"question": "QID5"}, "Q16": {"question": "QID16"}, "Q13": {"question": "QID13"}, "Q10_1": {"question": "QID8", "choice": "QID8.choices.1"}, "Q10_2": {"question": "QID8", "choice": "QID8.choices.2"}, "Q10_3": {"question": "QID8", "choice": "QID8.choices.3"}, "Q10_4": {"question": "QID8", "choice": "QID8.choices.4"}, "Q11": {"question": "QID9"}, "Q17": {"question": "QID17"}, "Q17_TEXT": {"question": "QID17"}, "Q12_1": {"question": "QID10", "subQuestion": "QID10.subQuestions.1"}, "Q12_2": {"question": "QID10", "subQuestion": "QID10.subQuestions.2"}, "Q12_3": {"question": "QID10", "subQuestion": "QID10.subQuestions.3"}, "Q13_1": {"question": "QID11", "subQuestion": "QID11.subQuestions.1"}, "Q13_2": {"question": "QID11", "subQuestion": "QID11.subQuestions.2"}, "Q13_3": {"question": "QID11", "subQuestion": "QID11.subQuestions.3"}, "Q14_1": {"question": "QID14", "subQuestion": "QID14.subQuestions.1"}, "Q14_2": {"question": "QID14", "subQuestion": "QID14.subQuestions.2"}, "Q14_3": {"question": "QID14", "subQuestion": "QID14.subQuestions.3"}, "Q15": {"question": "QID15"}}, "blocks": {"BL_cIR1YYomzsRNa1n": {"description": "Default Question Block", "elements": [{"type": "Question", "questionId": "QID1"}, {"type": "Question", "questionId": "QID12"}]}, "BL_8IF8DosshSEGAGp": {"description": "Demographics", "elements": [{"type": "Question", "questionId": "QID6"}, {"type": "Question", "questionId": "QID7"}, {"type": "Question", "questionId": "QID4"}, {"type": "Question", "questionId": "QID5"}, {"type": "Question", "questionId": "QID16"}]}, "BL_6grg3zOmzLlu593": {"description": "Block 2", "elements": [{"type": "Question", "questionId": "QID13"}, {"type": "Question", "questionId": "QID8"}, {"type": "Question", "questionId": "QID9"}, {"type": "Question", "questionId": "QID17"}, {"type": "Question", "questionId": "QID10"}, {"type": "Question", "questionId": "QID11"}, {"type": "Question", "questionId": "QID14"}, {"type": "Question", "questionId": "QID15"}]}}, "flow": [{"id": "BL_cIR1YYomzsRNa1n", "type": "Block"}, {"type": "EmbeddedData"}, {"id": "BL_8IF8DosshSEGAGp", "type": "Block"}, {"id": "BL_6grg3zOmzLlu593", "type": "Block"}], "embeddedData": [{"name": "clientId"}, {"name": "Q_URL"}], "comments": {"QID9": {"commentList": [{"userId": "UR_789p4qOsBfCeHqZ", "message": "From http://www.pearsoned.com/wp-content/uploads/Pearson-K12-Student-Mobile-Device-Survey-050914-PUBLIC-Report.pdf", "timestamp": 1481845779}]}}, "responseCounts": {"auditable": 20, "generated": 0, "deleted": 0}}
+{
+  "id": "SV_9GiIgGOn3Snoxwh",
+  "name": "Writing Study - Intro - 2017-03-08",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-03-08T21:14:28Z",
+  "lastModifiedDate": "2017-03-23T18:17:26Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span><br />\n<br />\nIf any part of this task is confusing or unclear, please don&#39;t hesitate to ask us about it!<br />\n<br />\nWe will start with some questions about your demographics and computer usage. Then you&#39;ll get out your phone and we&#39;ll actually do some writing.<br />\n<br />\nThere will be two writing sessions, with a survey after each one, then a survey about the experiment overall. Ready to get started?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID12": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "variableName": null
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "variableName": null
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "variableName": null
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "variableName": null
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "variableName": null
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "variableName": null
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "variableName": null
+        }
+      }
+    },
+    "QID6": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID7": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "How old are you?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 18.0,
+          "maximum": 110.0
+        }
+      }
+    },
+    "QID4": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is the highest level of school you have completed or the highest degree you have received? ",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Less than high school degree",
+          "choiceText": "Less than high school degree",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "High school graduate (high school diploma or equivalent including GED)",
+          "choiceText": "High school graduate (high school diploma or equivalent including GED)",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "Some college but no degree",
+          "choiceText": "Some college but no degree",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "Associate degree in college (2-year)",
+          "choiceText": "Associate degree in college (2-year)",
+          "variableName": null
+        },
+        "5": {
+          "recode": "5",
+          "description": "Bachelor's degree in college (4-year)",
+          "choiceText": "Bachelor's degree in college (4-year)",
+          "variableName": null
+        },
+        "6": {
+          "recode": "6",
+          "description": "Master's degree",
+          "choiceText": "Master's degree",
+          "variableName": null
+        },
+        "7": {
+          "recode": "7",
+          "description": "Doctoral degree",
+          "choiceText": "Doctoral degree",
+          "variableName": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "Professional degree (JD, MD)",
+          "choiceText": "Professional degree (JD, MD)",
+          "variableName": null
+        }
+      }
+    },
+    "QID5": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is your gender?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Male",
+          "choiceText": "Male",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "Female",
+          "choiceText": "Female",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "Something else, or I'd prefer not to say",
+          "choiceText": "Something else, or I'd prefer not to say",
+          "variableName": null
+        }
+      }
+    },
+    "QID16": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "How proficient would you say you are in English?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Basic",
+          "choiceText": "Basic",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "Conversational",
+          "choiceText": "Conversational",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "Fluent",
+          "choiceText": "Fluent",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "Native or bilingual",
+          "choiceText": "Native or bilingual",
+          "variableName": null
+        }
+      }
+    },
+    "QID13": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "And now, a few questions about how you use technology.",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    },
+    "QID8": {
+      "questionType": {
+        "type": "MC",
+        "selector": "MAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "I regularly use a... (check all that apply)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Desktop computer",
+          "choiceText": "Desktop computer",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "Laptop, notebook, Chromebook, or similar",
+          "choiceText": "Laptop, notebook, Chromebook, or similar",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "Smartphone",
+          "choiceText": "Smartphone",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "Tablet",
+          "choiceText": "Tablet",
+          "variableName": null
+        }
+      }
+    },
+    "QID9": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "Which best describes you about electronic devices and technology?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "I am among the first people to check out a new electronic device or gadget",
+          "choiceText": "I am among the first people to check out a new electronic device or gadget",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "I usually wait until I see others try a new technology, then I try it myself",
+          "choiceText": "I usually wait until I see others try a new technology, then I try it myself",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "I tend to wait a long time to try new technology",
+          "choiceText": "I tend to wait a long time to try new technology",
+          "variableName": null
+        }
+      }
+    },
+    "QID17": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What keyboard do you normally use on your phone?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "choices": {
+        "2": {
+          "recode": "2",
+          "description": "built-in keyboard where you tap keys",
+          "choiceText": "built-in keyboard where you tap keys",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "built-in keyboard where you swipe words",
+          "choiceText": "built-in keyboard where you swipe words",
+          "variableName": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "3rd-party keyboard (please specify)",
+          "choiceText": "3rd-party keyboard (please specify)",
+          "variableName": null,
+          "textEntry": {}
+        }
+      }
+    },
+    "QID10": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "How often do you type on a mobile device?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "Short messages (a sentence or less)",
+          "choiceText": "Short messages (a sentence or less)",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "Medium-length writing (a paragraph or two)",
+          "choiceText": "Medium-length writing (a paragraph or two)",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "More than a paragraph or two",
+          "choiceText": "More than a paragraph or two",
+          "variableName": null
+        }
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Never",
+          "choiceText": "Never"
+        },
+        "2": {
+          "recode": "2",
+          "description": "Once per month",
+          "choiceText": "Once per month"
+        },
+        "3": {
+          "recode": "3",
+          "description": "Once per week",
+          "choiceText": "Once per week"
+        },
+        "4": {
+          "recode": "4",
+          "description": "Once per day",
+          "choiceText": "Once per day"
+        },
+        "5": {
+          "recode": "5",
+          "description": "Several times per day",
+          "choiceText": "Several times per day"
+        }
+      }
+    },
+    "QID11": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "When you type on your mobile device, do you use these features?<br>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)",
+          "choiceText": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)",
+          "choiceText": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)",
+          "choiceText": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)",
+          "variableName": null
+        }
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Never",
+          "choiceText": "Never"
+        },
+        "6": {
+          "recode": "6",
+          "description": "On occasion",
+          "choiceText": "On occasion"
+        },
+        "2": {
+          "recode": "2",
+          "description": "Once every few sentences",
+          "choiceText": "Once every few sentences"
+        },
+        "3": {
+          "recode": "3",
+          "description": "Once per sentence",
+          "choiceText": "Once per sentence"
+        },
+        "4": {
+          "recode": "4",
+          "description": "Several times per sentence",
+          "choiceText": "Several times per sentence"
+        },
+        "5": {
+          "recode": "5",
+          "description": "Nearly every word",
+          "choiceText": "Nearly every word"
+        }
+      }
+    },
+    "QID14": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "When you type on your mobile device, do you like these features?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)",
+          "choiceText": "<strong>Autocorrect</strong> (the phone corrects something that you may have mis-typed)",
+          "variableName": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)",
+          "choiceText": "<strong>Autocomplete</strong> (the phone guesses a word before you finish typing it)",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)",
+          "choiceText": "<strong>Spelling correct</strong> (misspelled words are marked and you can select them to correct them)",
+          "variableName": null
+        }
+      },
+      "choices": {
+        "13": {
+          "recode": "13",
+          "description": "Like a great deal",
+          "choiceText": "Like a great deal"
+        },
+        "14": {
+          "recode": "14",
+          "description": "Like a moderate amount",
+          "choiceText": "Like a moderate amount"
+        },
+        "15": {
+          "recode": "15",
+          "description": "Like a little",
+          "choiceText": "Like a little"
+        },
+        "16": {
+          "recode": "16",
+          "description": "Neither like nor dislike",
+          "choiceText": "Neither like nor dislike"
+        },
+        "17": {
+          "recode": "17",
+          "description": "Dislike a little",
+          "choiceText": "Dislike a little"
+        },
+        "18": {
+          "recode": "18",
+          "description": "Dislike a moderate amount",
+          "choiceText": "Dislike a moderate amount"
+        },
+        "19": {
+          "recode": "19",
+          "description": "Dislike a great deal",
+          "choiceText": "Dislike a great deal"
+        }
+      }
+    },
+    "QID15": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Do you have any other comments or things we should know about how you type using technology?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      }
+    }
+  },
+  "exportColumnMap": {
+    "Q1": {
+      "question": "QID1"
+    },
+    "Q12_1_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.1"
+    },
+    "Q12_2_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.2"
+    },
+    "Q12_3_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.3"
+    },
+    "Q12_4_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.4"
+    },
+    "Q12_5_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.5"
+    },
+    "Q12_6_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.6"
+    },
+    "Q12_7_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.7"
+    },
+    "Q8": {
+      "question": "QID6"
+    },
+    "Q9": {
+      "question": "QID7"
+    },
+    "Q5": {
+      "question": "QID4"
+    },
+    "Q7": {
+      "question": "QID5"
+    },
+    "Q16": {
+      "question": "QID16"
+    },
+    "Q13": {
+      "question": "QID13"
+    },
+    "Q10_1": {
+      "question": "QID8",
+      "choice": "QID8.choices.1"
+    },
+    "Q10_2": {
+      "question": "QID8",
+      "choice": "QID8.choices.2"
+    },
+    "Q10_3": {
+      "question": "QID8",
+      "choice": "QID8.choices.3"
+    },
+    "Q10_4": {
+      "question": "QID8",
+      "choice": "QID8.choices.4"
+    },
+    "Q11": {
+      "question": "QID9"
+    },
+    "Q17": {
+      "question": "QID17"
+    },
+    "Q17_TEXT": {
+      "question": "QID17"
+    },
+    "Q12_1": {
+      "question": "QID10",
+      "subQuestion": "QID10.subQuestions.1"
+    },
+    "Q12_2": {
+      "question": "QID10",
+      "subQuestion": "QID10.subQuestions.2"
+    },
+    "Q12_3": {
+      "question": "QID10",
+      "subQuestion": "QID10.subQuestions.3"
+    },
+    "Q13_1": {
+      "question": "QID11",
+      "subQuestion": "QID11.subQuestions.1"
+    },
+    "Q13_2": {
+      "question": "QID11",
+      "subQuestion": "QID11.subQuestions.2"
+    },
+    "Q13_3": {
+      "question": "QID11",
+      "subQuestion": "QID11.subQuestions.3"
+    },
+    "Q14_1": {
+      "question": "QID14",
+      "subQuestion": "QID14.subQuestions.1"
+    },
+    "Q14_2": {
+      "question": "QID14",
+      "subQuestion": "QID14.subQuestions.2"
+    },
+    "Q14_3": {
+      "question": "QID14",
+      "subQuestion": "QID14.subQuestions.3"
+    },
+    "Q15": {
+      "question": "QID15"
+    }
+  },
+  "blocks": {
+    "BL_cIR1YYomzsRNa1n": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        }
+      ]
+    },
+    "BL_8IF8DosshSEGAGp": {
+      "description": "Demographics",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID6"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID7"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID4"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID5"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID16"
+        }
+      ]
+    },
+    "BL_6grg3zOmzLlu593": {
+      "description": "Block 2",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID13"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID8"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID9"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID17"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID10"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID11"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID14"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID15"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "id": "BL_cIR1YYomzsRNa1n",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "id": "BL_8IF8DosshSEGAGp",
+      "type": "Block"
+    },
+    {
+      "id": "BL_6grg3zOmzLlu593",
+      "type": "Block"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_URL"
+    }
+  ],
+  "comments": {
+    "QID9": {
+      "commentList": [
+        {
+          "userId": "UR_789p4qOsBfCeHqZ",
+          "message": "From http://www.pearsoned.com/wp-content/uploads/Pearson-K12-Student-Mobile-Device-Survey-050914-PUBLIC-Report.pdf",
+          "timestamp": 1481845779
+        }
+      ]
+    }
+  },
+  "responseCounts": {
+    "auditable": 24,
+    "generated": 0,
+    "deleted": 0
+  }
+}
