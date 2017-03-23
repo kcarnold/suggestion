@@ -656,14 +656,16 @@ def get_suggestions(*a, **kw):
             future.set_result(fn(*a, **kw))
             return future
     generator = get_suggestions_async(NullExecutor(), *a, **kw)
+    result = None
     while True:
         try:
-            res = next(generator)
-            if isinstance(res, Future):
-                generator.send(res.result())
-            elif isinstance(res, list) and len(res) > 0 and isinstance(res[0], Future):
-                results = [fut.result() for fut in res]
-                generator.send(results)
-            return res
+            result = generator.send(result)
+            if isinstance(result, Future):
+                result = result.result()
+            elif isinstance(result, list) and len(result) > 0 and isinstance(result[0], Future):
+                result = [fut.result() for fut in result]
+            else:
+                print("Unexpected yield of something other than a Future!")
+                return result
         except StopIteration as stop:
             return stop.value
