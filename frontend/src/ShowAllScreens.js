@@ -6,18 +6,11 @@ import {MasterView} from './Views';
 
 const fakeClientId = 'zzzzzz';
 
-const defaultConfig = 'study1';
 let externalAction = window.location.hash.slice(1);
-let config = defaultConfig;
-if (externalAction.slice(0, 2) === 'c=') {
-  config = externalAction.slice(2);
-}
-externalAction = `c=${config}`
-window.location.hash = externalAction;
 
-
-let states = [new MasterStateStore(fakeClientId)];
+let states = [];
 let eventsSoFar = [];
+
 function doEventToLastState(evt) {
   eventsSoFar.push(evt);
   states[states.length - 1].handleEvent(evt);
@@ -29,20 +22,22 @@ function copyState() {
   return newState;
 }
 
-doEventToLastState({type: 'externalAction', externalAction});
-let screens = states[0].screens;
-states[0].replaying = false;
-for (let i=1; i<screens.length; i++) {
-  let newState = copyState();
-  doEventToLastState({type: 'next'});
-  if (newState.curScreen.screen === 'ExperimentScreen') {
-    _.forEach(`${i}`, chr => {
-      doEventToLastState({type: 'tapKey', key: chr});
-    });
+if (window.location.search.slice(1) === 'showall') {
+  copyState();
+  doEventToLastState({type: 'externalAction', externalAction});
+  let screens = states[0].screens;
+  states[0].replaying = false;
+  for (let i=1; i<screens.length; i++) {
+    let newState = copyState();
+    doEventToLastState({type: 'next'});
+    if (newState.curScreen.screen === 'ExperimentScreen') {
+      _.forEach(`${i}`, chr => {
+        doEventToLastState({type: 'tapKey', key: chr});
+      });
+    }
+    newState.replaying = false;
   }
-  newState.replaying = false;
 }
-
 const ShowAllScreens = observer(class ShowAllScreens extends Component {
   render() {
     return <div>
