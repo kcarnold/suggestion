@@ -4,6 +4,8 @@ import {observer, inject} from 'mobx-react';
 import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
 
+const hostname = window.location.host;
+
 const surveyURLs = {
   intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
   instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
@@ -306,17 +308,20 @@ export const screenViews = {
   Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>),
   LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
   LookAtComputer: inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>),
-  SetupPairingComputer: inject('clientId')(({clientId}) => <div>
+  SetupPairingComputer: inject('clientId')(({clientId}) => {
+    let url = `http://${hostname}/?${clientId}-p`;
+    return <div>
     <p>You will need two devices to complete this study: a <b>laptop/desktop computer</b> (you could use a tablet but we haven't tested it), and a <b>smartphone</b> with a web browser and WiFi (we will not be responsible for any data charges).</p>
 
     <div>How to pair your phone (they're all the same, pick the easiest one for you):</div>
     <ul>
-      <li>On your phone's web browser, go to <tt>megacomplete.net</tt> and enter <tt>{clientId}-p</tt>.</li>
-      <li>Send this link to yourself: <input readOnly={true} style={{fontFamily: 'monospace', width: '25em'}} value={`http://megacomplete.net/?${clientId}-p`} /></li>
-      <li>Scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent("http://megacomplete.net/?" + clientId + "-p")} role="presentation"/></li>
+      <li>On your phone's web browser, go to <tt>{hostname}</tt> and enter <tt>{clientId}-p</tt>.</li>
+      <li>Send this link to yourself: <input readOnly={true} style={{fontFamily: 'monospace', width: '25em'}} value={url} /></li>
+      <li>Scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent(url)} role="presentation"/></li>
     </ul>
     <p>Once your phone is paired, there will be a button on that page to continue.</p>
-  </div>),
+  </div>;
+  }),
   SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
 
   ShowReviews: inject('state')(observer(({state}) => <div>
