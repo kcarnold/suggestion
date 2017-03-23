@@ -39,13 +39,14 @@ readStdin(function(err, res) {
   });
   // Summarize the sub-experiments.
   participants = [...participants].map(([participant_id, {state, annotated, requests}]) => ([participant_id, {
+    config: state.masterConfigName,
     annotated, requests,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
     blocks: [0, 1].map(block => ({
       condition: state.conditions[block],
-      prewriteText: state.experiments.get(`pre-${block}`).curText,
-      finalText: state.experiments.get(`final-${block}`).curText,
+      prewriteText: (state.experiments.get(`pre-${block}`) || {}).curText,
+      finalText: (state.experiments.get(`final-${block}`) || {}).curText,
       place: state.places[block],
     }))
   }]));

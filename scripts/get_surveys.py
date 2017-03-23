@@ -29,9 +29,12 @@ def download_surveys(out_path):
         print(name)
         survey = get_survey(survey_id)
         with open(os.path.join(out_path, '{}.qsf'.format(name)), 'w') as f:
-            json.dump(survey, f)
+            json.dump(survey, f, indent=2)
+        responses = get_responses(survey_id)
+        with open(os.path.join(out_path, '{}_responses.csv'.format(name)), 'w') as f:
+            f.write(responses)
 
-def get_responses(surveyId):
+def get_responses(survey_id):
     requestCheckProgress = 0
     baseUrl = "https://{0}.qualtrics.com/API/v3/responseexports/".format(dataCenter)
     headers = {
@@ -41,7 +44,7 @@ def get_responses(surveyId):
 
     # Create the data export.
     downloadRequestResponse = requests.post(baseUrl, json=dict(
-        format='json', surveyId=surveyId, useLabels=True), headers=headers)
+        format='csv', surveyId=survey_id, useLabels=True), headers=headers)
     progressId = downloadRequestResponse.json()["result"]["id"]
     # print(downloadRequestResponse.text)
 
@@ -50,14 +53,17 @@ def get_responses(surveyId):
       requestCheckUrl = baseUrl + progressId
       requestCheckResponse = requests.get(requestCheckUrl, headers=headers)
       requestCheckProgress = requestCheckResponse.json()["result"]["percentComplete"]
-      print("Download is " + str(requestCheckProgress) + " complete")
+      print("\r{:.1%}".format(requestCheckProgress/100), end='', flush=True)
+    print('\rdone    ')
 
     # Download and unzip the export file.
     requestDownloadUrl = baseUrl + progressId + '/file'
     requestDownload = requests.get(requestDownloadUrl, headers=headers)
     zf = zipfile.ZipFile(io.BytesIO(requestDownload.content))
     assert len(zf.filelist) == 1
-    return json.loads(zf.read(zf.filelist[0]).decode('utf8'))['responses']
+    result = zf.read(zf.filelist[0]).decode('utf8')
+    return result
+    # return json.loads(result)['responses']
 
 
 def decode_response(survey, response):
@@ -84,7 +90,7 @@ def decode_response(survey, response):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('out_path',
+    parser.add_argument('out_path', nargs='?',
                         help='Path to write surveys',
                         default='surveys')
     args = parser.parse_args()
