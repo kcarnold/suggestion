@@ -87,11 +87,18 @@ class Model:
 
         print("Reading raw ARPA data", file=sys.stderr)
         self.id2str, self.unigram_probs, bigrams = get_arpa_data(self.arpa_file)
-        self.unigram_probs_wordsonly = self.unigram_probs.copy()
+        self.is_special = np.zeros(len(self.id2str), dtype=bool)
         for i, word in enumerate(self.id2str):
             assert self.model.vocab_index(word) == i, i
             if word[0] not in string.ascii_lowercase:
-                self.unigram_probs_wordsonly[i] = 0
+                self.is_special[i] = True
+        # Since we give rare-word bonuses, count special words as super-common.
+        self.unigram_probs_wordsonly = self.unigram_probs.copy()
+        self.unigram_probs_wordsonly[self.is_special] = 0
+        # ... but for finding the most common fallback words, count special words as impossible.
+        unigram_probs_wordsonly_2 = self.unigram_probs.copy()
+        unigram_probs_wordsonly_2[self.is_special] = -np.inf
+        self.most_common_words_by_idx = np.argsort(unigram_probs_wordsonly_2)[-500:]
         print("Encoding bigrams to indices", file=sys.stderr)
         self.unfiltered_bigrams, self.filtered_bigrams = encode_bigrams(bigrams, self.model)
 
@@ -429,7 +436,12 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                             probs.append(prob)
                 else:
                     # print(id2str[last_word])
-                    next_words = bigrams.get(last_word_idx, [])
+                    next_words = bigrams.get(last_word_idx, None)
+                    if next_words is None:
+                        if i == 0:
+                            next_words = model.most_common_words_by_idx
+                        else:
+                            next_words = []
                 new_state = kenlm.State()
                 for next_idx, word_idx in enumerate(next_words):
                     if word_idx == model.eos_idx or word_idx == model.eop_idx:
@@ -624,18 +636,19 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
                 if all(ent[2] for ent in beam):
                     break
             ents = [BeamEntry(*ent) for ent in beam]
-            result = []
-            first_words = {ent.words[0] for ent in result}
-            while len(result) < 3 and len(ents) > 0:
-                if len(first_words) > 0:
+            if len(ents) == 0:
+                # Fall back on the full LM, but just for one word.
+                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
+                phrases = [(ent.words, None) for ent in first_word_ents[:3]]
+            else:
+                result = [ents.pop(0)]
+                first_words = {ent.words[0] for ent in result}
+                while len(result) < 3 and len(ents) > 0:
                     ents.sort(reverse=True, key=lambda ent: (ent.words[0] not in first_words, ent.score))
-                else:
-                    # The entities were already sorted by the earlier call to nlargest.
-                    pass
-                best = ents.pop(0)
-                first_words.add(best.words[0])
-                result.append(best)
-            phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
+                    best = ents.pop(0)
+                    first_words.add(best.words[0])
+                    result.append(best)
+                phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
         else:
             first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
             next_words = [ent.words[0] for ent in first_word_ents[:3]]

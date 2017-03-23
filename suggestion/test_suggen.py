@@ -61,3 +61,9 @@ def test_curword_with_no_followers():
         use_sufarr=False,
         temperature=0.,
         use_bos_suggs=False)
+
+def test_fallback_after_typo():
+    result, new_sug_state = suggestion_generator.get_suggestions(
+        sofar='thjs ', cur_word=[],
+        **configs['sufarr_and_bos'])
+    assert len(result) > 0
