@@ -24,17 +24,19 @@ var [clientId, clientKind] = (function() {
     return [clientId, kind];
   }
   let code = params === 'new' ? '' : prompt("If you have a code alreday, enter it here, otherwise just press OK:");
+  let hash = '';
   if (!code) {
     // Generate a code.
     clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
     code = clientId + '-c';
+    let config = defaultConfig;
+    if (externalAction.slice(0, 2) === 'c=') {
+      config = externalAction.slice(2);
+    }
+    hash = `#c=${config}`;
   }
   code = code.toLowerCase();
-  let config = defaultConfig;
-  if (externalAction.slice(0, 2) === 'c=') {
-    config = externalAction.slice(2);
-  }
-  window.location.replace(`${window.location.protocol}//${window.location.host}/?${code}#c=${config}`);
+  window.location.replace(`${window.location.protocol}//${window.location.host}/?${code}${hash}`);
   // That should cause a reload, once the rest of this script finishes.
   return [null, null];
 })();
