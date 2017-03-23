@@ -239,6 +239,10 @@ if True:
         sents=None,#pickle.load(open(clizer_basename + 'sents.pkl', 'rb')),
         vectorizer=pickle.load(open(clizer_basename + 'vectorizer.pkl', 'rb')),
         unique_starts=pickle.load(open(clizer_basename + 'unique_starts.pkl', 'rb')))
+
+    import re
+    cant_type = re.compile(r'[^\-a-z., !\']')
+    clizer_omit = [idx for idx, phrase in enumerate(clizer.unique_starts) if cant_type.search(' '.join(phrase))]
     print("Done.", file=sys.stderr)
 
 
@@ -572,6 +576,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
 
         scores_by_cluster = clizer.scores_by_cluster.copy()
         scores_by_cluster[suggested_already] = -np.inf
+        scores_by_cluster[clizer_omit] = -np.inf
         most_distinctive = np.argmax(scores_by_cluster, axis=0)
 
         def normal_lik(x, sigma):
