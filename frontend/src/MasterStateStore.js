@@ -225,6 +225,7 @@ export class MasterStateStore {
             screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
           }];
         }
+        let [c1, c2] = this.conditions;
         let result = [
           {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
           {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
@@ -240,9 +241,9 @@ export class MasterStateStore {
           ]);
         } else {
           result = result.concat([
-            {preEvent: {type: 'setupExperiment', block: 0, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+            {preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
             ...experimentBlock(0, this.conditions[0], this.prewrite),
-            {preEvent: {type: 'setupExperiment', block: 1, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
+            {preEvent: {type: 'setupExperiment', block: 1, condition: c2, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
             ...experimentBlock(1, this.conditions[1], this.prewrite),
           ]);
         }
