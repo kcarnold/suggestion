@@ -29,20 +29,22 @@ def test_collect_words_in_range():
         assert ref == suggestion_generator.collect_words_in_range(start, end, word_idx, sufarr.docs)
 
 
+DEFAULT_CONFIG = dict(domain='yelp_train', temperature=0.)
+configs = dict(
+    sufarr_rwb=dict(use_bos_suggs=False, rare_word_bonus=1.0, use_sufarr=True),
+    sufarr_nobonus=dict(use_bos_suggs=False, rare_word_bonus=0.0, use_sufarr=True),
+    unconstained_beamsearch=dict(use_bos_suggs=False, rare_word_bonus=None, use_sufarr=False),
+    sufarr_and_bos=dict(use_bos_suggs=True, rare_word_bonus=2.0, use_sufarr=True),
+    #dict(use_bos_suggs=False, rare_word_bonus=None, use_sufarr=False, temperature=.5)
+)
+configs = {k: dict(DEFAULT_CONFIG, **v) for k, v in configs.items()}
 
 def test_get_suggestions():
     # A smoke test.
-    configs = [
-        dict(use_bos_suggs=False, rare_word_bonus=1.0, use_sufarr=True, temperature=0.),
-        dict(use_bos_suggs=False, rare_word_bonus=0.0, use_sufarr=True, temperature=0.),
-        dict(use_bos_suggs=False, rare_word_bonus=None, use_sufarr=False, temperature=0.),
-        #dict(use_bos_suggs=False, rare_word_bonus=None, use_sufarr=False, temperature=.5)
-        ]
-    for config in configs:
+    for config in configs.values():
         result, new_sug_state = suggestion_generator.get_suggestions(
             sofar="one day , ",
             cur_word=[],
-            domain='yelp_train',
             **config)
         assert len(result) > 0
         phrase, probs = result[0]
