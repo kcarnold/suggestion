@@ -118,6 +118,7 @@ const Panopticon = observer(class Panopticon extends Component {
   render() {
     return <div>{store.showingIds.map(participantId => {
       let state = store.states.get(participantId);
+      if (!state.masterConfig) return null;
       return <div key={participantId}>
         <h1>{participantId} {state.conditions.join(',')}</h1>
         <div style={{display: 'flex', flexFlow: 'row'}}>

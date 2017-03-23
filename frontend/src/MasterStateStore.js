@@ -159,6 +159,11 @@ export class MasterStateStore {
   setMasterConfig(configName:string) {
     this.masterConfigName = configName;
     this.masterConfig = MASTER_CONFIGS[configName];
+    let conditions = this.masterConfig.baseConditions.slice();
+    if (this.swapConditionOrder) {
+      conditions.unshift(conditions.pop());
+    }
+    this.conditions = conditions;
     this.initScreen();
   }
 
@@ -177,17 +182,11 @@ export class MasterStateStore {
     M.extendObservable(this, {
       masterConfig: null,
       get prewrite() { return this.masterConfig.prewrite; },
-      get conditions() {
-        let res = this.masterConfig.baseConditions.slice();
-        if (this.swapConditionOrder) {
-          res.unshift(res.pop());
-        }
-        return res;
-      },
       lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
       block: null,
+      conditions: null,
       conditionName: null,
       experiments: M.asMap({}),
       curExperiment: null,
