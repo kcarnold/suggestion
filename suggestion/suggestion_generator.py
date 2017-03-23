@@ -575,6 +575,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
         print("Already suggested", suggested_already)
 
         scores_by_cluster = clizer.scores_by_cluster.copy()
+        likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
+        scores_by_cluster -= .9 * likelihood_bias
         scores_by_cluster[suggested_already] = -np.inf
         scores_by_cluster[clizer_omit] = -np.inf
         most_distinctive = np.argmax(scores_by_cluster, axis=0)
