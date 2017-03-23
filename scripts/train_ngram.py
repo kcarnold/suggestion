@@ -5,6 +5,7 @@ import tqdm
 import joblib
 from suggestion.util import spacy_tok_to_doc, dump_kenlm
 from suggestion.suffix_array import DocSuffixArray
+from suggestion import tokenization
 
 import re
 cant_type = re.compile(r'[^\-a-z., !\']')
@@ -19,6 +20,18 @@ def sub_numbers(txt):
         return ''
     return re.sub(r'\b\d+\b', number_form, txt)
 
+def convert_tokenization(doc):
+    doc = doc.lower()
+    doc = sub_numbers(doc)
+    sents = doc.split('\n')
+    sents = [cant_type.sub('', sent) for sent in sents]
+    return [intern(word) for word in spacy_tok_to_doc(sents)]
+
+def typeable_chars(text):
+    text = tokenization.URL_RE.sub(' ', text)
+    text = re.sub(r'\s+', ' ', text)
+    return cant_type.sub('', sub_numbers(text.lower()))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input',
@@ -32,13 +45,6 @@ if __name__ == '__main__':
     data = pickle.load(open(args.input, 'rb'))
     reviews = data['data']
 
-    def convert_tokenization(doc):
-        doc = doc.lower()
-        doc = sub_numbers(doc)
-        sents = doc.split('\n')
-        sents = [cant_type.sub('', sent) for sent in sents]
-        return [intern(word) for word in spacy_tok_to_doc(sents)]
-
     tokenized_reviews = [convert_tokenization(tokenized)
         for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
@@ -50,3 +56,6 @@ if __name__ == '__main__':
 
     sufarr = DocSuffixArray.construct(tokenized_reviews)
     joblib.dump(dict(suffix_array=sufarr.suffix_array, doc_idx=sufarr.doc_idx, tok_idx=sufarr.tok_idx, lcp=sufarr.lcp), 'models/{}_sufarr.joblib'.format(args.model_name))
+
+    # print("Training char model")
+    # dump_kenlm(args.model_name+"_char", (' '.join(typeable_chars(text).replace(' ', '_')) for text in reviews.text), script='./scripts/make_char_model.sh')
