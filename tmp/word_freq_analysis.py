@@ -84,6 +84,25 @@ import tqdm
 clusters_in_all_docs = np.array([clusters_in_doc(tokenized) for tokenized in tqdm.tqdm(reviews.tokenized)])
 #%%
 cluster_probs = clusters_in_all_docs / (np.sum(clusters_in_all_docs, axis=1, keepdims=True) + 1e-9)
+#%%
+
+def normal_lik(x, sigma):
+    return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+def normalize_dists(dists):
+    return dists / (np.sum(dists, axis=1, keepdims=True) + 1e-6)
+#%%
+def cluster_dist_in_doc(doc_tokenized):
+    vecs = clizer.vectorize_sents(doc_tokenized.split('\n'))
+    norms = np.linalg.norm(vecs, axis=1)
+    vecs = vecs[norms > .5]
+    if len(vecs) == 0:
+        return np.zeros(clizer.n_clusters)
+    return np.mean(normalize_dists(normal_lik(clizer.clusterer.transform(vecs), .5)), axis=0)
+
+cluster_dist_in_all_docs = np.array([cluster_dist_in_doc(tokenized) for tokenized in tqdm.tqdm(reviews.tokenized)])
+#%%
+
 
 stats = dict(
      overall=np.mean(cluster_probs, axis=0),
@@ -96,11 +115,14 @@ np.mean(np.sum(cluster_probs, axis=1))
 from scipy.special import entr
 entropies = np.sum(entr(cluster_probs), axis=1)
 #%%
-long_enough = pd.Series(num_sents > 2)
+entropies2 = np.sum(entr(normalize_dists(cluster_dist_in_all_docs)), axis=1)
+#%%
+long_enough = pd.Series(num_sents > 2)# & pd.Series(num_sents < 10)
 bw=.04
-to_plot = pd.Series(entropies).dropna()
+to_plot = pd.Series(entropies2).dropna()
+to_plot = to_plot[to_plot > 0]
 clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best & long_enough], clip=clip, label=f'Yelp best (mean={to_plot[yelp_is_best & long_enough].mean():.2f})', bw=bw)
 sns.kdeplot(to_plot[~yelp_is_best & long_enough].dropna(), clip=clip, label=f'Yelp rest (mean={to_plot[~yelp_is_best & long_enough].mean():.2f})', bw=bw)
 plt.xlabel("Entropy of cluster distribution")
-#plt.savefig('figures/cluster_distribution_entropy.pdf')
+plt.savefig('figures/cluster_distribution_entropy.pdf')
