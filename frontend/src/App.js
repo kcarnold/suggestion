@@ -7,6 +7,7 @@ import {MasterStateStore} from './MasterStateStore';
 import {MasterView} from './Views';
 import * as WSPinger from './WSPinger';
 
+const MAX_PING_TIME = 200;
 const defaultConfig = 'study1';
 
 let externalAction = window.location.hash.slice(1);
@@ -191,13 +192,15 @@ ws.onmessage = function(msg) {
 
 // The handler for the first backlog call 'init'.
 function init() {
-    if (clientKind === 'p') {
-      startRequestingSuggestions();
-      setSize();
-    }
-  setTimeout(() => WSPinger.doPing(wsURL + '/ping', 5, function(ping) {
-    dispatch({type: 'pingResults', ping});
-  }), 100);
+  if (clientKind === 'p') {
+    startRequestingSuggestions();
+    setSize();
+  }
+  if (state.pingTime === null || state.pingTime > MAX_PING_TIME) {
+    setTimeout(() => WSPinger.doPing(wsURL + '/ping', 5, function(ping) {
+      dispatch({type: 'pingResults', ping});
+    }), 100);
+  }
 }
 
 function setSize() {
@@ -222,7 +225,7 @@ const App = observer(class App extends Component {
     if (clientKind === 'p') {
       if (state.pingTime === null) {
         return <div>Please wait while we test your phone's communication with our server.</div>;
-      } else if (state.pingTime > 200) {
+      } else if (state.pingTime > MAX_PING_TIME) {
         return <div>Sorry, your phone's connection to our server is too slow (your ping is {Math.round(state.pingTime)} ms). Check your WiFi connection and reload the page.</div>;
       }
     }
