@@ -20,6 +20,13 @@ const texts = {
   revisionInstructions: <span>Type the <b>most detailed true story you can</b> about your experience.</span>,
 };
 
+const tutorialTaskDescs = {
+  typeKeyboard: 'Type a few words on the keyboard.',
+  backspace: 'Try deleting a few letters.',
+  specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
+  tapSuggestion: 'Try tapping a box to insert the word.',
+};
+
 class Suggestion extends Component {
   render() {
     let {onTap, word, preview, isValid} = this.props;
@@ -246,38 +253,34 @@ export const screenViews = {
   })),
 
   PracticeWord: inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let tasks = {
-      typeKeyboard: 'Type a few words on the keyboard.',
-      backspace: 'Try deleting a few letters.',
-      specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
-      tapSuggestion: 'Try tapping a box to insert the word.',
-    };
-    let allTasksDone = _.every(_.map(tasks, (task, name) => state.tutorialTasks.tasks[name]));
+    let allTasksDone = _.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.</p>
       <p>Let's get a little practice with it:</p>
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tasks[name]}</TutorialTodo>)}
+      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
 
       <p>Notice the 3 boxes above the keyboard. Each one shows a word, tap a word to insert it.</p>
-      {['tapSuggestion'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tasks[name]}</TutorialTodo>)}
+      {['tapSuggestion'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
       {allTasksDone && <p>When you're ready, click here to move on: <NextBtn />.</p>}
     </div>;
   })),
 
   PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {isStudy1} = state.masterConfig;
-      // <h1>Practice with Phrase Suggestions</h1>
+    // <h1>Practice with Phrase Suggestions</h1>
+    // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
     return <div>
       {!isStudy1 && <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>}
+      <p>Your phone's web browser should now be showing a keyboard.</p>
       {!isStudy1 && <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>}
       <p>{isStudy1 ? "In some conditions, the boxes above the keyboard will show a complete phrase, starting with the highlighted word." : "Notice the 3 boxes above the keyboard. Each one shows a phrase."} Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> to insert a word.</TutorialTodo>
+      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
+      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on a suggestion box to insert a word.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Now try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
-      <TutorialTodo done={state.tutorialTasks.tasks.typeKeyboard}>Now <b>type a word on the keyboard</b>.</TutorialTodo>
+      <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(['tapSuggestion', 'doubleTap', 'quadTap', 'typeKeyboard'].map(name => state.tutorialTasks.tasks[name])) && <p>
+      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) && <p>
         Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p>}
     </div>;
