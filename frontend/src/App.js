@@ -7,6 +7,10 @@ import {MasterStateStore} from './MasterStateStore';
 import {MasterView} from './Views';
 import * as WSPinger from './WSPinger';
 
+const defaultConfig = 'study1';
+
+let externalAction = window.location.hash.slice(1);
+window.location.hash = '';
 
 // Get client id and kind from params or asking the user.
 var [clientId, clientKind] = (function() {
@@ -25,13 +29,15 @@ var [clientId, clientKind] = (function() {
     code = clientId + '-c';
   }
   code = code.toLowerCase();
-  window.location.search = '?' + code;
+  let config = defaultConfig;
+  if (externalAction.slice(0, 2) === 'c=') {
+    config = externalAction.slice(2);
+  }
+  window.location.replace(`${window.location.protocol}//${window.location.host}/?${code}#c=${config}`);
   // That should cause a reload, once the rest of this script finishes.
   return [null, null];
 })();
 
-let externalAction = window.location.hash.slice(1);
-window.location.hash = '';
 
 var wsURL = `ws://${window.location.host}`;
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);

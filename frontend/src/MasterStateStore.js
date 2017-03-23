@@ -123,7 +123,8 @@ const namedConditions = {
   }
 };
 
-const MASTER_CONFIG = {
+const MASTER_CONFIGS = {
+  demo: {},
   study1: {
     baseConditions: ['word', 'phrase'],
     prewrite: false,
@@ -134,7 +135,7 @@ const MASTER_CONFIG = {
     prewrite: true,
     isStudy1: false,
   }
-}['study1'];
+};
 
 export class MasterStateStore {
   masterConfig: Object;
@@ -155,25 +156,34 @@ export class MasterStateStore {
   timerDur: number;
   timerStartedAt: number;
 
+  setMasterConfig(configName:string) {
+    this.masterConfigName = configName;
+    this.masterConfig = MASTER_CONFIGS[configName];
+    this.initScreen();
+  }
+
   constructor(clientId:string) {
-    this.masterConfig = MASTER_CONFIG;
-    this.prewrite = MASTER_CONFIG.prewrite;
     this.clientId = clientId;
 
     let rng = seedrandom(clientId);
     // Don't disturb the calling sequence of the rng, or state will become invalid.
     this.swapConditionOrder = rng() < .5;
     this.swapPlaceOrder = rng() < .5;
-    this.conditions = this.masterConfig.baseConditions.slice();
-    if (this.swapConditionOrder) {
-      this.conditions.unshift(this.conditions.pop());
-    }
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
 
     this.times = {prewriteTimer, finalTimer};
 
     M.extendObservable(this, {
+      masterConfig: null,
+      get prewrite() { return this.masterConfig.prewrite; },
+      get conditions() {
+        let res = this.masterConfig.baseConditions.slice();
+        if (this.swapConditionOrder) {
+          res.unshift(res.pop());
+        }
+        return res;
+      },
       lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
@@ -292,7 +302,9 @@ export class MasterStateStore {
         };
       }
     });
-    this.initScreen();
+
+    if (isDemo)
+      this.setMasterConfig('demo');
   }
 
   initScreen() {
@@ -336,7 +348,9 @@ export class MasterStateStore {
     let screenAtStart = this.screenNum;
     switch (event.type) {
     case 'externalAction':
-      if (event.externalAction === 'completeSurvey') {
+      if (event.externalAction.slice(0, 2) === 'c=') {
+        this.setMasterConfig(event.externalAction.slice(2));
+      } else if (event.externalAction === 'completeSurvey') {
         this.screenNum++;
       } else if (event.externalAction === 'passedQuiz') {
         this.passedQuiz = true;
