@@ -224,7 +224,7 @@ export const screenViews = {
       let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          {state.isPrewrite ? "Brainstorming for your" : "Revised"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b> ({state.curPlace.stars} stars)
+          {state.isPrewrite ? "Brainstorming for your" : "Revised"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           <div style={{float: 'right'}}><Timer /></div>
         </div>
         <CurText text={experimentState.curText} />
