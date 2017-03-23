@@ -285,6 +285,7 @@ export class MasterStateStore {
         return this.controlledInputs.get(this.curEditTextName);
       },
       get condition() {
+        console.assert(!!this.conditionName);
         return namedConditions[this.conditionName];
       },
       get suggestionRequest() {
