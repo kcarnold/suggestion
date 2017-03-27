@@ -124,7 +124,9 @@ const namedConditions = {
 };
 
 const MASTER_CONFIGS = {
-  demo: {},
+  demo: {
+    baseConditions: ['word', 'phrase'],
+  },
   study1: {
     baseConditions: ['word', 'phrase'],
     prewrite: false,
