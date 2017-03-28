@@ -5,11 +5,10 @@ import joblib
 import attr
 import pickle
 from suggestion import suggestion_generator
-from suggestion.util import dump_kenlm, mem
+from suggestion.util import dump_kenlm
 from suggestion.paths import paths
 import os
 import tqdm
-from scipy.misc import logsumexp
 import logging
 logger = logging.getLogger(__name__)
 
@@ -63,14 +62,12 @@ def filter_reasonable_length_sents(sents):
     min_sent_len, max_sent_len = np.percentile(sent_lens, [25, 75])
     return [sent for sent in sents if min_sent_len <= len(sent.split()) <= max_sent_len]
 
-@mem.cache
 def get_vectorizer(sents):
     from sklearn.feature_extraction.text import TfidfVectorizer
     vectorizer = TfidfVectorizer(min_df=5, max_df=.5, stop_words='english')
     all_vecs = vectorizer.fit_transform(sents)
     return vectorizer, all_vecs
 
-@mem.cache
 def get_projection_mat(vectorizer):
     import wordfreq
 
@@ -95,7 +92,6 @@ def filter_by_norm(vecs, texts, min_norm=.5):
     texts = [texts[i] for i in np.flatnonzero(large_enough)]
     return texts, vecs
 
-@mem.cache
 def get_clusterer_and_dists(docs_projected, n_clusters, random_state):
     from sklearn.cluster import MiniBatchKMeans
     mbk = MiniBatchKMeans(init='k-means++', n_clusters=n_clusters, n_init=10, random_state=random_state)
@@ -131,7 +127,6 @@ class Clusterizer:
     n_clusters = attr.ib()
     vectorizer = attr.ib()
     projection_mat = attr.ib()
-    sents = attr.ib()
     clusterer = attr.ib()
     unique_starts = attr.ib()
     scores_by_cluster = attr.ib()
@@ -148,29 +143,20 @@ class Clusterizer:
         params['vectorizer'], raw_vecs = get_vectorizer(sents)
         params['projection_mat'] = get_projection_mat(params['vectorizer'])
         vecs = raw_vecs.dot(params['projection_mat'])
-        params['sents'], projected_vecs = filter_by_norm(vecs, sents)
+        sents, projected_vecs = filter_by_norm(vecs, sents)
 
         logger.info("Clustering")
         params['clusterer'], cluster_dists = get_clusterer_and_dists(projected_vecs, n_clusters=n_clusters, random_state=0)
 
         logger.info("Training sub-models")
-        train_models_per_cluster(params['clusterer'], vecs=projected_vecs, texts=params['sents'])
+        train_models_per_cluster(params['clusterer'], vecs=projected_vecs, texts=sents)
 
         models = [suggestion_generator.Model.from_basename(paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
 
         #%% Score the first 5 words of every sentence.
-        params['unique_starts'] = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in params['sents']})]
+        params['unique_starts'] = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in sents})]
         params['scores_by_cluster'] = np.array([[model.score_seq(model.bos_state, k)[0] for model in models] for k in tqdm.tqdm(params['unique_starts'], desc="Score starts")])
         return cls(**params)
-
-    def get_distinctive():
-        sbc_scale = .25 * scores_by_cluster# + 1*scores[:,None] - 1 * unigram_llks_for_start[:,None]
-        likelihood_bias = logsumexp(sbc_scale, axis=1, keepdims=True)
-        scores_by_cluster_debias = sbc_scale - .5*likelihood_bias# - 0*scores[:,None]
-        most_distinctive = np.argmax(scores_by_cluster_debias, axis=0)
-        for cluster, sent_idx in enumerate(most_distinctive):
-            print('{:4.2f} {}'.format(np.exp(scores_by_cluster_debias[sent_idx, cluster]), ' '.join(unique_starts[sent_idx])))
-        #print('\n'.join([) for i in most_distinctive]))
 
     def vectorize_sents(self, sents):
         return self.vectorizer.transform(sents).dot(self.projection_mat)
