@@ -169,7 +169,7 @@ html, body {
     white-space: nowrap;
     position: relative;
     /* padding: 0 4px; */
-    line-height: 30px;
+    line-height: normal;
     cursor: pointer;
     width: 33.33333%;
     height: 100%;
@@ -195,4 +195,9 @@ html, body {
   bottom: 4px;
   line-height: normal;
   width: 100%;
+}
+
+span.word {
+    padding: 4px;
+    display: block;
 }
