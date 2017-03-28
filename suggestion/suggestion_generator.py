@@ -38,17 +38,9 @@ if True:
     print(" Done.", file=sys.stderr)
 
 if True:
-    print("Loading clusterizer...", end='', file=sys.stderr, flush=True)
-    clizer_basename = os.path.join(paths.models, 'clizer_')
-    clizer_data = joblib.load(clizer_basename + 'core.joblib', mmap_mode='r')
-    clizer = clustering.Clusterizer(**clizer_data,
-        sents=None,#pickle.load(open(clizer_basename + 'sents.pkl', 'rb')),
-        vectorizer=pickle.load(open(clizer_basename + 'vectorizer.pkl', 'rb')),
-        unique_starts=pickle.load(open(clizer_basename + 'unique_starts.pkl', 'rb')))
-
-    import re
-    cant_type = re.compile(r'[^\-a-z., !\']')
-    clizer_omit = [idx for idx, phrase in enumerate(clizer.unique_starts) if cant_type.search(' '.join(phrase))]
+    print("Loading goal-oriented suggestion data...", end='', file=sys.stderr, flush=True)
+    with open(os.path.join(paths.parent, 'models', 'goal_oriented_suggestion_data.pkl'), 'rb') as f:
+        clizer = pickle.load(f)
     print("Done.", file=sys.stderr)
 
 
@@ -370,6 +362,13 @@ def predict_forward(domain, toks, first_word, beam_width=50, length=30):
 
 
 
+def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_distribs, new_dists_opts):
+    from scipy.special import kl_div
+    with_new_dist = np.array([np.concatenate((sent_cluster_distribs, new_dist_opt[None]), axis=0) for new_dist_opt in new_dists_opts])
+    dist_with_new_dist = clustering.normalize_dists(np.mean(with_new_dist, axis=1))
+    return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
+
+
 def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length=30, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -388,27 +387,30 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
         likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
         scores_by_cluster -= .9 * likelihood_bias
         scores_by_cluster[suggested_already] = -np.inf
-        scores_by_cluster[clizer_omit] = -np.inf
+        scores_by_cluster[clizer.omit] = -np.inf
         most_distinctive = np.argmax(scores_by_cluster, axis=0)
 
         def normal_lik(x, sigma):
             return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
 
         sents = nltk.sent_tokenize(sofar)
-        how_much_covered = np.zeros(clizer.n_clusters)
-
-        for sent in sents:
-            cluster_distrib = cytoolz.thread_first(
-                [sent],
+        if len(sents):
+            sent_cluster_distribs = cytoolz.thread_first(
+                sents,
                 clizer.vectorize_sents,
                 clustering.normalize_vecs,
                 clizer.clusterer.transform,
                 (normal_lik, .5),
                 clustering.normalize_dists
-                )[0]
-            how_much_covered += cluster_distrib
+                )
+        else:
+            sent_cluster_distribs = np.zeros((0, clizer.n_clusters))
 
-        topics_to_suggest = np.argsort(how_much_covered)[:3]
+        topics_to_suggest = get_topics_to_suggest_for_new_sentence(
+            clizer=clizer,
+            target_dist=clizer.target_dists['best'],
+            sent_cluster_distribs=sent_cluster_distribs,
+            new_dists_opts=np.eye(clizer.n_clusters))[:3]
         print("Suggesting topics", topics_to_suggest.tolist())
         phrases = []
         for cluster_idx in topics_to_suggest:
