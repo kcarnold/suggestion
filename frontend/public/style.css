@@ -163,12 +163,12 @@ html, body {
     display: inline-block;
     color: white;
     border-right: 1px solid white;
-    text-align: left;
+    text-align: center;
     font-family: sans-serif;
     overflow: hidden;
     white-space: nowrap;
     position: relative;
-    padding: 0 4px;
+    /* padding: 0 4px; */
     line-height: 30px;
     cursor: pointer;
     width: 33.33333%;
@@ -187,7 +187,12 @@ html, body {
 
 .preview {
   color: black;
-  margin-left: 4px;
+  /* margin-left: 4px; */
   font-weight: 100;
   font-size: 12px;
+  display: block;
+  position: absolute;
+  bottom: 4px;
+  line-height: normal;
+  width: 100%;
 }
