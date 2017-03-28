@@ -4,9 +4,9 @@ import numpy as np
 import joblib
 import attr
 import pickle
-from suggestion import suggestion_generator
 from suggestion.util import dump_kenlm
 from suggestion.paths import paths
+from suggestion import lang_model
 import os
 import tqdm
 import logging
@@ -151,7 +151,7 @@ class Clusterizer:
         logger.info("Training sub-models")
         train_models_per_cluster(params['clusterer'], vecs=projected_vecs, texts=sents)
 
-        models = [suggestion_generator.Model.from_basename(paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
+        models = [lang_model.Model.from_basename(paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
 
         #%% Score the first 5 words of every sentence.
         params['unique_starts'] = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in sents})]
