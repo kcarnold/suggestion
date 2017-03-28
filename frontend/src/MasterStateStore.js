@@ -183,6 +183,7 @@ export class MasterStateStore {
 
     M.extendObservable(this, {
       masterConfig: null,
+      participantCode: null,
       get prewrite() { return this.masterConfig.prewrite; },
       lastEventTimestamp: null,
       replaying: true,
@@ -351,15 +352,19 @@ export class MasterStateStore {
     let screenAtStart = this.screenNum;
     switch (event.type) {
     case 'externalAction':
-      if (event.externalAction.slice(0, 2) === 'c=') {
-        this.setMasterConfig(event.externalAction.slice(2));
-      } else if (event.externalAction === 'completeSurvey') {
-        this.screenNum++;
-      } else if (event.externalAction === 'passedQuiz') {
-        this.passedQuiz = true;
-      } else {
-        alert("Unknown externalAction: "+event.externalAction);
-      }
+      event.externalAction.split('&').forEach(action => {
+        if (action.slice(0, 2) === 'c=') {
+          this.setMasterConfig(action.slice(2));
+        } else if (action.slice(0, 2) === 'p=') {
+          this.participantCode = action.slice(2);
+        } else if (action === 'completeSurvey') {
+          this.screenNum++;
+        } else if (action === 'passedQuiz') {
+          this.passedQuiz = true;
+        } else {
+          alert("Unknown externalAction: "+action);
+        }
+      });
       break;
     case 'next':
       this.screenNum++;
