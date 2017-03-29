@@ -12,14 +12,27 @@ import json
 #data = pd.read_csv('data/initial detail ratings - Batch_2741651_batch_results.csv')
 data = pd.read_csv('data/full arnold16 details Batch_2742001_batch_results.csv')
 #%%
+def load_json(df, cols):
+    df = df.copy()
+    df[cols] = df[cols].applymap(json.loads)
+    return df
+data = data.pipe(load_json, ['Input.data', 'Answer.results'])
+
+#%%
+io_tuples = [(row['WorkerId'], row['Input.data'], row['Answer.results']) for idx, row in data.iterrows()]
+
+#%%
+io_files = [
+        ('me', 'data/my_input_data_20170328.json', 'data/my_results_20170328.json'),
+        ('me', 'data/pilot_input_data-2017-03-28.json', 'data/pilot_output_data_20170328.json')]
+io_tuples = [(worker, json.load(open(prompt)), json.load(open(result))) for worker, prompt, result in io_files]
+
+#%%
 all_results = []
 comparisons = []
 num_highlights = []
 decode_side = dict(A=0, B=1, neither=None)
-for idx, row in data.iterrows():
-    worker_id = row['WorkerId']
-    prompt = json.loads(row['Input.data'])
-    results = json.loads(row['Answer.results'])
+for worker_id, prompt, results in io_tuples:
     all_results.append(dict(worker_id=worker_id, results=results))
     highlights = results['highlights']
     attrs = prompt['attrs'] + ['written', 'overall']
