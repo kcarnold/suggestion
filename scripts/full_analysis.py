@@ -22,7 +22,7 @@ survey_seq = (x.split(' ') for x in survey_seq)
 survey_seq = [(name, int(idx)) for name, idx in survey_seq]
 
 skip_col_re = dict(
-    any=r'Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+',
+    any=r'Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order',
     )
 
 prefix_subs = {
@@ -30,6 +30,7 @@ prefix_subs = {
     "How much do you agree with the following statements?-The suggestions ": "suggs-",
     "Now think about the brainstorming you did before the final writing. How much do you agree with th...-": "brainstorm-",
     "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
+    "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
 }
 
 def run_log_analysis(participant):
