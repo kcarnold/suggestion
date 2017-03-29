@@ -74,5 +74,12 @@ num_highlights = pd.DataFrame(num_highlights)
 #%%
 num_highlights.groupby('worker_id').num_highlights.mean()
 #%%
+comparisons.query('attr=="overall"').favored_cond.value_counts()
+#%%
+overall_dists = comparisons.query('attr=="overall"').groupby(('author_id')).favored_cond.value_counts(normalize=True).unstack().fillna(0)
+overall_dists[overall_dists.max(axis=1) >= .75].mean(axis=0)
+#%%
+comparisons.to_csv('data/full_arnold16_details.csv')
+#%%
 
 json.dump(all_results, open('all_detail_results_2017-03-28.json','w'))
