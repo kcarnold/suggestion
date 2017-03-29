@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import pandas as pd
 import json
+import numpy as np
 
 root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
@@ -41,6 +42,26 @@ def run_log_analysis(participant):
     pid, analyzed = bundled_participants[0]
     return analyzed
 
+#%%
+import random
+def split_randomly_without_overlap(total_num_items, chunk_size, views_per_item, rs):
+    remaining_views = [views_per_item] * total_num_items
+    chunks = []
+    while sum(remaining_views) >= chunk_size:
+        chunk = []
+        for i in range(chunk_size):
+            mrv = max(remaining_views)
+            opts = [i for i, rv in enumerate(remaining_views) if rv == mrv and i not in chunk]
+#            item = np.argmax(remaining_views)
+            item = rs.choice(opts)
+            assert item not in chunk
+            chunk.append(item)
+            remaining_views[item] -= 1
+        chunks.append(chunk)
+    return chunks
+split_randomly_without_overlap(10, 4, 3, rs=random.Random(0))
+#%%
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('participants', nargs='+',
@@ -52,8 +73,13 @@ if __name__ == '__main__':
         header=1, parse_dates=['StartDate', 'EndDate'])
         for name in survey_names}
 
-    for participant in args.participants:
+    all_log_analyses = {}
+    participants = args.participants
+    assert len(participants) == len(set(participants))
+
+    for participant in participants:
         log_analyses = run_log_analysis(participant)
+        all_log_analyses[participant] = log_analyses
         survey_data = {name: survey[survey['clientId'] == participant].to_dict(orient='records')#.to_json(orient='records'))
             for name, survey in surveys.items()}
         with open(os.path.join(root_path, 'logs', participant+'-analyzed.json'), 'w') as f:
@@ -72,6 +98,8 @@ if __name__ == '__main__':
                 continue
             print('-'*20)
             for k, v in data.items():
+#                if np.isnan(v):
+#                    continue
                 if re.match(skip_col_re['any'], k):
                     skipped_cols.add(k)
                     continue
@@ -83,3 +111,15 @@ if __name__ == '__main__':
                 print(v)
                 print()
 
+    CHUNK_SIZE = 4
+    VIEWS_PER_ITEM = 3
+
+    splits = split_randomly_without_overlap(len(args.participants), CHUNK_SIZE, VIEWS_PER_ITEM, rs=random.Random(0))
+    data = [{
+            "pages": [[
+                    dict(participant_id=participants[idx], cond=block['condition'], text=block['finalText']) for block in all_log_analyses[participants[idx]]['blocks']]
+                    for idx in chunk],
+            "attrs": ["food", "drinks", "atmosphere", "service", "value"],
+            } for chunk in splits]
+
+    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'analyzed_{"_".join(args.participants)}.csv', index=False)
