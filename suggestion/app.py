@@ -184,7 +184,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         process_pool,
                         sofar=request['sofar'], cur_word=request['cur_word'],
                         domain=request.get('domain', 'yelp_train'),
-                        rare_word_bonus=request.get('rare_word_bonus', 1.0),
+                        rare_word_bonus=request.get('rare_word_bonus', 0.0),
                         use_sufarr=request.get('useSufarr', False),
                         temperature=request.get('temperature', 0.),
                         sug_state=self.sug_state,
