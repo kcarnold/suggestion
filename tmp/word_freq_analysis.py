@@ -28,8 +28,8 @@ def mean_log_freq(indices):
 
 def min_log_freq(indices):
     return np.min(log_freqs[indices]) if len(indices) else None
-
-doc_sentence_indices = [[lookup_indices(sent.split()) for sent in doc.split('\n')] for doc in reviews.tokenized]
+#%%
+doc_sentence_indices = [[lookup_indices(sent.split()) for sent in doc.lower().split('\n')] for doc in reviews.tokenized]
 #%%
 mean_llk = [list(cytoolz.filter(None, [mean_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
 min_llk = [list(cytoolz.filter(None, [min_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
