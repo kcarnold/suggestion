@@ -1,0 +1,36 @@
+.annotated-text {
+  line-height: 1.5;
+  background: #eee;
+  border: 1px solid black;
+  position: relative;
+  padding: 5px;
+  white-space: pre-line;
+  overflow: hidden;
+}
+
+span.curAnnoText {
+    background: yellowgreen;
+}
+
+
+.reviews {
+  display: flex;
+  flex-flow: row;
+  width: 80%;
+}
+
+.reviews > div {
+  flex: 1 0 0;
+  margin: 15px;
+}
+
+.ratings-table th, .ratings-table td {
+  width: 70px;
+  text-align: center;
+}
+
+
+td:first-child, th:first-child {
+  width: auto;
+  text-align: left;
+}
