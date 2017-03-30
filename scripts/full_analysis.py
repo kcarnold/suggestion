@@ -50,12 +50,18 @@ decode_scales = {
         "Very Accurate": 5}
 
 def run_log_analysis(participant):
-    with open(os.path.join(root_path, 'logs', participant+'.jsonl')) as logfile:
+    logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
+    with open(logpath) as logfile:
         result = subprocess.check_output([os.path.join(root_path, 'frontend', 'analysis')], stdin=logfile)
     bundled_participants = json.loads(result)
     assert len(bundled_participants) == 1
     pid, analyzed = bundled_participants[0]
+    with open(logpath) as logfile:
+        lines = (json.loads(line) for line in logfile)
+        analyzed['sug_gen_durs'] = [rec['msg']['dur'] for rec in lines if rec.get('type') == 'receivedSuggestions']
+
     return analyzed
+
 
 #%%
 import random
@@ -77,11 +83,25 @@ def split_randomly_without_overlap(total_num_items, chunk_size, views_per_item, 
 split_randomly_without_overlap(10, 4, 3, rs=random.Random(0))
 #%%
 
+
+
+#%%
+
+def classify_annotated_event(evt):
+    text = evt['curText']
+    null_word = len(text) == 0 or text[-1] == ' '
+    typ = evt['type']
+    if typ == 'tapKey':
+        return 'tapKey'
+    if typ == 'tapBackspace':
+        return 'tapBackspace'
+    if typ == 'tapSuggestion':
+        return 'tapSugg_' + ('full' if null_word else 'part')
+    assert typ
+
+from collections import Counter
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('participants', nargs='+',
-                        help='Participant ids to analyze')
-    args = parser.parse_args()
 
     surveys = {name: pd.read_csv(
         os.path.join(root_path, 'surveys', name+'_responses.csv'),
@@ -89,16 +109,54 @@ if __name__ == '__main__':
         for name in survey_names}
 
     all_log_analyses = {}
-    participants = args.participants
+#    participants = args.participants
+    participants = '''81519e
+81f6b6
+9b6cd1
+d9100a
+852f7a
+83fa09
+f3542e
+4f99b7
+c5c40b
+88d3ad
+0cb74f
+f31d92
+4edc26
+885dae
+a997ed
+8c01ef
+773fa0
+43cd2c
+706d74
+7d5d97'''.split()
     assert len(participants) == len(set(participants))
 
+    all_survey_data = []
+    participant_level_data = []
+    excluded = []
     for participant in participants:
         log_analyses = run_log_analysis(participant)
         all_log_analyses[participant] = log_analyses
+        conditions = log_analyses['conditions']
         survey_data = {name: survey[survey['clientId'] == participant].to_dict(orient='records')#.to_json(orient='records'))
             for name, survey in surveys.items()}
         with open(os.path.join(root_path, 'logs', participant+'-analyzed.json'), 'w') as f:
             json.dump(dict(log_analyses=log_analyses, survey_data=survey_data), f)
+
+        datum = dict(participant_id=participant,
+                     conditions=','.join(conditions),
+                     config=log_analyses['config'])
+        datum['dur_75'] = np.percentile(log_analyses['sug_gen_durs'], 75)
+        datum['dur_95'] = np.percentile(log_analyses['sug_gen_durs'], 95)
+        for page, page_data in log_analyses['byExpPage'].items():
+            for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
+                datum[f'{page}_num_{typ}'] = count
+
+        if datum['dur_75'] > .75:
+            excluded.append(participant)
+            continue
+        participant_level_data.append(datum)
 
         print('\n'*10)
         print(participant)
@@ -111,6 +169,11 @@ if __name__ == '__main__':
             except IndexError:
                 print("MISSING!?!?!")
                 continue
+            base_data = {}
+            if survey in ['postFreewrite', 'postTask']:
+                base_data['condition'] = conditions[idx]
+            elif survey == 'postExp':
+                base_data['condition'] = ','.join(conditions)
             print('-'*20)
             for k, v in data.items():
 #                if np.isnan(v):
@@ -122,14 +185,29 @@ if __name__ == '__main__':
                     if k.startswith(x):
                         k = k.replace(x, y, 1)
                         break
+                v = decode_scales.get(v, v)
+
+                if k.startswith("Which writing was..."):
+                    v = v.replace("A", conditions[0]).replace("B", conditions[1])
+                elif isinstance(v, str):
+                    v = re.sub(r'\bA\b', f'A [{conditions[0]}]', v)
+                    v = re.sub(r'\bB\b', f'B [{conditions[1]}]', v)
                 print(k)
                 print(v)
                 print()
+                all_survey_data.append(dict(base_data,
+                        participant_id=participant, survey=survey, idx=idx, name=k, value=v))
 
+
+    pd.DataFrame(all_survey_data).to_csv(f'all_survey_data_{"_".join(participants)}.csv', index=False)
+    pd.DataFrame(participant_level_data).to_csv(f'participant_level_data_{"_".join(participants)}.csv', index=False)
+    print('excluded:', excluded)
+
+#%%
+if False:
     CHUNK_SIZE = 4
     VIEWS_PER_ITEM = 3
-
-    splits = split_randomly_without_overlap(len(args.participants), CHUNK_SIZE, VIEWS_PER_ITEM, rs=random.Random(0))
+    splits = split_randomly_without_overlap(len(participants), CHUNK_SIZE, VIEWS_PER_ITEM, rs=random.Random(0))
     data = [{
             "pages": [[
                     dict(participant_id=participants[idx], cond=block['condition'], text=block['finalText']) for block in all_log_analyses[participants[idx]]['blocks']]
@@ -137,4 +215,17 @@ if __name__ == '__main__':
             "attrs": ["food", "drinks", "atmosphere", "service", "value"],
             } for chunk in splits]
 
-    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'analyzed_{"_".join(args.participants)}.csv', index=False)
+    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'analyzed_{"_".join(participants)}.csv', index=False)
+
+
+#%%
+    to_rate = [['852f7a', '88d3ad', '0cb74f', 'f31d92'], ['4edc26', '885dae', 'a997ed', '8c01ef'], ['773fa0', '43cd2c', '706d74', '7d5d97']]
+    data = [{
+            "pages": [[
+                    dict(participant_id=participant_id, cond=block['condition'], text=block['finalText']) for block in all_log_analyses[participant_id]['blocks']]
+                    for participant_id in chunk],
+            "attrs": ["food", "drinks", "atmosphere", "service", "value"],
+            } for chunk in to_rate]
+
+    import datetime
+    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'to_rate_{datetime.datetime.now().isoformat()}.csv', index=False)

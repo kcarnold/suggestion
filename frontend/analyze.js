@@ -23,24 +23,47 @@ readStdin(function(err, res) {
     if (!experiment) {
       experiment = {
         state: new MasterStateStore(participant_id),
-        annotated: [],
-        requests: [],
+        byExpPage: {},
       };
       participants.set(participant_id, experiment);
     }
-    let {state, annotated, requests} = experiment;
+    let {state, byExpPage} = experiment;
     let lastText = (state.experimentState || {}).curText;
+    let isValidSugUpdate = entry.request_id === (state.experimentState || {}).contextSequenceNum;
     state.handleEvent(entry);
-    if (state.experimentState && state.experimentState.curText !== lastText) {
-      annotated.push({...entry, curText: state.experimentState.curText});
-      requests.push({...state.suggestionRequest, page: state.curExperiment});
-      lastText = state.curText;
+    if (state.experimentState) {
+      let expState = state.experimentState;
+      let page = state.curExperiment;
+      let pageData = byExpPage[page];
+      if (!pageData) {
+        pageData = {
+          annotated: [],
+          requests: [],
+          displayedSuggs: [],
+        };
+        byExpPage[page] = pageData;
+      }
+      if (expState.curText !== lastText) {
+        pageData.annotated.push({...entry, curText: expState.curText});
+        pageData.requests.push({...state.suggestionRequest});
+        lastText = state.curText;
+        if (pageData.displayedSuggs.length > 0) {
+          let lastDisplayedSugg = pageData.displayedSuggs[pageData.displayedSuggs.length - 1];
+          lastDisplayedSugg.dieEvent = event;
+        }
+      } else if (entry.type === 'receivedSuggestions' && isValidSugUpdate) {
+        experiment.displayedSuggs.push({
+          visibleSuggestions: expState.visibleSuggestions,
+          displayEvent: entry,
+          dieEvent: null,
+        });
+      }
     }
   });
   // Summarize the sub-experiments.
-  participants = [...participants].map(([participant_id, {state, annotated, requests}]) => ([participant_id, {
+  participants = [...participants].map(([participant_id, {state, byExpPage}]) => ([participant_id, {
     config: state.masterConfigName,
-    annotated, requests,
+    byExpPage,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
     blocks: [0, 1].map(block => ({
