@@ -23,7 +23,7 @@ survey_seq = (x.split(' ') for x in survey_seq)
 survey_seq = [(name, int(idx)) for name, idx in survey_seq]
 
 skip_col_re = dict(
-    any=r'Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order',
+    any=r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order',
     )
 
 prefix_subs = {
@@ -33,6 +33,21 @@ prefix_subs = {
     "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
     "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
 }
+
+decode_scales = {
+        "Strongly disagree": 1,
+        "Disagree": 2,
+        "Somewhat disagree": 3,
+        "Neither agree nor disagree": 4,
+        "Somewhat agree": 5,
+        "Agree": 6,
+        "Strongly agree": 7,
+
+        "Very Inaccurate": 1,
+        "Moderately Inaccurate": 2,
+        "Neither Accurate Nor Inaccurate": 3,
+        "Moderately Accurate": 4,
+        "Very Accurate": 5}
 
 def run_log_analysis(participant):
     with open(os.path.join(root_path, 'logs', participant+'.jsonl')) as logfile:
