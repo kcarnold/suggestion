@@ -10,22 +10,28 @@ import numpy as np
 import json
 #%%
 #data = pd.read_csv('data/initial detail ratings - Batch_2741651_batch_results.csv')
-data = pd.read_csv('data/full arnold16 details Batch_2742001_batch_results.csv')
+#raw_data = pd.read_csv('data/full arnold16 details Batch_2742001_batch_results.csv')
+raw_data = pd.concat(
+        [pd.read_csv('data/detail rating by assignment Batch_2744268_batch_results.csv'),
+         pd.read_csv('data/detail rating study2 batch2 Batch_2745786_batch_results.csv')], axis=0, ignore_index=True)
 #%%
 def load_json(df, cols):
     df = df.copy()
     df[cols] = df[cols].applymap(json.loads)
     return df
-data = data.pipe(load_json, ['Input.data', 'Answer.results'])
+data = (raw_data
+#        [raw_data.AssignmentStatus == "Submitted"]
+        .pipe(load_json, ['Input.data', 'Answer.results']))
 
 #%%
 io_tuples = [(row['WorkerId'], row['Input.data'], row['Answer.results']) for idx, row in data.iterrows()]
 
 #%%
-io_files = [
-        ('me', 'data/my_input_data_20170328.json', 'data/my_results_20170328.json'),
-        ('me', 'data/pilot_input_data-2017-03-28.json', 'data/pilot_output_data_20170328.json')]
-io_tuples = [(worker, json.load(open(prompt)), json.load(open(result))) for worker, prompt, result in io_files]
+if False:
+    io_files = [
+            ('me', 'data/my_input_data_20170328.json', 'data/my_results_20170328.json'),
+            ('me', 'data/pilot_input_data-2017-03-28.json', 'data/pilot_output_data_20170328.json')]
+    io_tuples = [(worker, json.load(open(prompt)), json.load(open(result))) for worker, prompt, result in io_files]
 
 #%%
 all_results = []
@@ -52,6 +58,7 @@ for worker_id, prompt, results in io_tuples:
                         attr=attr,
                         page_num=i,
                         author_id=author_id,
+                        item_code=f'{author_id}-{attr}',
                         favored_side=favored_side,
                         favored_cond=favored_cond))
             except KeyError:
@@ -76,10 +83,25 @@ num_highlights.groupby('worker_id').num_highlights.mean()
 #%%
 comparisons.query('attr=="overall"').favored_cond.value_counts()
 #%%
+comparisons.favored_cond.value_counts()
+#%%
 overall_dists = comparisons.query('attr=="overall"').groupby(('author_id')).favored_cond.value_counts(normalize=True).unstack().fillna(0)
 overall_dists[overall_dists.max(axis=1) >= .75].mean(axis=0)
 #%%
-comparisons.to_csv('data/full_arnold16_details.csv')
+#comparisons.to_csv('data/full_arnold16_details.csv')
 #%%
 
-json.dump(all_results, open('all_detail_results_2017-03-28.json','w'))
+#json.dump(all_results, open('all_detail_results_2017-03-28.json','w'))
+#%% Inter-annotator agreement (Krippendorrf's alpha)
+from nltk.metrics.agreement import AnnotationTask
+base_alpha = AnnotationTask(data=comparisons.loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha()
+alpha_without = {worker_id: AnnotationTask(data=comparisons[comparisons.worker_id != worker_id].loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha() for worker_id in comparisons.worker_id.unique()}
+#%%
+pd.DataFrame(dict(num_highlights=num_highlights.groupby('worker_id').num_highlights.sum(), alpha_without=alpha_without)).sort_values('alpha_without')
+#sorted(alpha_without.items(), key=lambda x: x[1])
+
+#%%
+filtered = comparisons[comparisons.worker_id != 'A3SGZ8OQXW5TQD']
+filtered.query('attr=="overall"').favored_cond.value_counts()
+#%%
+filtered.favored_cond.value_counts()
