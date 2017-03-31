@@ -23,11 +23,14 @@ from tornado.options import define, options
 define("port", default=5000, help="run on the given port", type=int)
 
 settings = dict(
-    xheaders=True,
     template_path=paths.ui,
     static_path=paths.ui + '/static',
     debug=True,
     )
+
+server_settings = dict(
+    address='127.0.0.1',
+    xheaders=True)
 
 from . import suggestion_generator
 
@@ -285,7 +288,7 @@ def main():
     tornado.options.parse_command_line()
     app = Application()
     print('serving on', options.port)
-    app.listen(options.port, address='127.0.0.1')
+    app.listen(options.port, **server_settings)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
