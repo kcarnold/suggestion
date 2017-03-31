@@ -263,7 +263,7 @@ def beam_search_sufarr_init(model, start_words):
     return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
 
 
-def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, target_length, rare_word_bonus=0., prefix=''):
+def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, rare_word_bonus=0., prefix=''):
     if isinstance(model, str):
         model = get_model(model)
     unigram_probs = model.unigram_probs_wordsonly
@@ -289,11 +289,11 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
                 if word_idx == 0: continue
                 word = model.id2str[word_idx]
                 new_words = words + [word]
-                new_num_chars = num_chars + 1 + len(word)
+                new_num_chars = num_chars + 1 + len(word) if iteration_num > 0 else 0
                 logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                 unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if word not in words else 0.
                 new_score = score + logprob + unigram_bonus
-                done = new_num_chars >= target_length
+                done = new_num_chars >= length_after_first
                 yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
     return heapq.nlargest(beam_width, candidates())
 
@@ -350,10 +350,10 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
 
 
-def predict_forward(domain, toks, first_word, beam_width=50, length=30):
+def predict_forward(domain, toks, first_word, beam_width, length_after_first):
     model = get_model(domain)
     continuations = beam_search_phrases(model, toks + [first_word],
-        beam_width=beam_width, length=length - len(first_word) - 1)
+        beam_width=beam_width, length=length_after_first)
     if len(continuations) > 0:
         continuation = continuations[0].words
     else:
@@ -369,7 +369,7 @@ def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_dis
     return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
 
 
-def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length=30, sug_state=None, **kw):
+def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length_after_first=17, sug_state=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -420,15 +420,15 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
         return phrases, sug_state
 
     if temperature == 0:
-        if use_sufarr:
+        if use_sufarr and len(cur_word) == 0:
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
-            for i in range(length):
+            for i in range(length_after_first):
                 beam_chunks = cytoolz.partition_all(8, beam)
                 rwb = rare_word_bonus# if i > 0 else rare_word_bonus / 2
                 parallel_futures = yield [executor.submit(
-                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length, rare_word_bonus=rwb, prefix=prefix)
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, rare_word_bonus=rwb, prefix=prefix)
                     for chunk in beam_chunks]
                 parallel_beam = list(cytoolz.concat(parallel_futures))
                 prefix = ''
@@ -453,7 +453,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
         else:
             first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
             next_words = [ent.words[0] for ent in first_word_ents[:3]]
-            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion) for oneword_suggestion in next_words])
+            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
