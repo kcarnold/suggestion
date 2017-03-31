@@ -152,6 +152,7 @@ class Clusterizer:
         train_models_per_cluster(params['clusterer'], vecs=projected_vecs, texts=sents)
 
         models = [lang_model.Model.from_basename(paths.model_basename('cluster_{}'.format(cluster_idx))) for cluster_idx in range(n_clusters)]
+        params['omit_unks'] = np.flatnonzero([[any(model.model.vocab_index(tok) == 0 for tok in toks) for model in models] for toks in params['unique_starts']])
 
         #%% Score the first 5 words of every sentence.
         params['unique_starts'] = [x.split() for x in sorted({' '.join(sent.split()[:5]) for sent in sents})]
