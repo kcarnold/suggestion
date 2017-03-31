@@ -263,10 +263,9 @@ def beam_search_sufarr_init(model, start_words):
     return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
 
 
-def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, rare_word_bonus=0., prefix=''):
+def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, word_bonuses=None, prefix=''):
     if isinstance(model, str):
         model = get_model(model)
-    unigram_probs = model.unigram_probs_wordsonly
     def candidates():
         for entry in beam:
             score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx) = entry
@@ -291,7 +290,7 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num > 0 else 0
                 logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if word not in words else 0.
+                unigram_bonus = word_bonuses[word_idx] if word not in words else 0.
                 new_score = score + logprob + unigram_bonus
                 done = new_num_chars >= length_after_first
                 yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
@@ -424,11 +423,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
+            word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
+            # Don't double-bonus words that have already been used.
+            for word in set(toks):
+                word_idx = model.model.vocab_index(word)
+                word_bonuses[word_idx] = 0.
             for i in range(length_after_first):
                 beam_chunks = cytoolz.partition_all(8, beam)
                 rwb = rare_word_bonus# if i > 0 else rare_word_bonus / 2
                 parallel_futures = yield [executor.submit(
-                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, rare_word_bonus=rwb, prefix=prefix)
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix)
                     for chunk in beam_chunks]
                 parallel_beam = list(cytoolz.concat(parallel_futures))
                 prefix = ''
