@@ -66,7 +66,119 @@ sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean mean unigram log likelihood")
 plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
 
-#%% Analyze topic distributions
+#%% Pretend to retype the best reviews, look at suggestions.
+from suggestion import suggestion_generator
+DEFAULT_CONFIG = dict(domain='yelp_train', temperature=0., rare_word_bonus=0.)
+conditions = dict(
+    phrase=dict(
+      use_sufarr=False,
+      temperature=0.,
+      use_bos_suggs=False,
+    ),
+    rarePhrase=dict(
+      use_sufarr=True,
+      rare_word_bonus=2.,
+      use_bos_suggs=True, # but we won't test that case.
+      ),
+    halfRarePhrase=dict(
+      use_sufarr=True,
+      rare_word_bonus=1.,
+      use_bos_suggs=True, # but we won't test that case.
+      )
+
+)
+conditions= {k: dict(DEFAULT_CONFIG, **v) for k, v in conditions.items()}
+
+#%%
+rs = np.random.RandomState(0)
+samples = []
+good_reviews = reviews[yelp_is_best]
+import tqdm
+#%%
+target = 10000
+progress = tqdm.tqdm(total=target)
+progress.update(len(samples) // 3)
+while len(samples) < len(conditions)*target:
+    review_idx = rs.choice(len(good_reviews))
+    review = good_reviews.iloc[review_idx]
+    sents = [sent for sent in review.tokenized.lower().split('\n')]
+    sent_idx = rs.choice(len(sents))
+    sent_toks = sents[sent_idx].split()
+    sent_len = len(sent_toks)
+    if sent_len < 7: # make sure we have at least one word to start, and don't count final punct
+        continue
+    word_idx = rs.randint(1, sent_len - 5)
+    context = ' '.join(sents[:sent_idx] + sent_toks[:word_idx])
+    true_follows = sent_toks[word_idx:][:5]
+    for cond, flags in conditions.items():
+        try:
+            suggestions = [phrase for phrase, probs in suggestion_generator.get_suggestions(
+                sofar=context+' ', cur_word=[], **flags)[0]]
+        except Exception:
+            suggestions = []
+        mean_log_freq_true = mean_log_freq(lookup_indices(true_follows))
+        mean_log_freq_sugg = np.nanmean([mean_log_freq(lookup_indices(sugg)) for sugg in suggestions])
+        samples.append(dict(
+                review_idx=review_idx,
+                sent_idx=sent_idx,
+                word_idx=word_idx,
+                mean_log_freq_true=mean_log_freq_true,
+                mean_log_freq_sugg=mean_log_freq_sugg,
+                cond=cond, context=context,
+                true_follows=' '.join(true_follows),
+                suggs='\n'.join(' '.join(sugg) for sugg in suggestions)))
+    progress.update(1)
+#%%
+freq_diffs = pd.DataFrame(samples)
+freq_diffs['diff'] = freq_diffs['mean_log_freq_true'] - freq_diffs['mean_log_freq_sugg']
+freq_diffs.groupby('cond').diff.mean()
+#%%
+sns.violinplot(x='diff', y='cond', data=freq_diffs)
+#%%
+
+clip = np.percentile(freq_diffs['diff'], [2.5, 97.5])
+for cond, data in freq_diffs.groupby('cond'):
+    sns.kdeplot(data['diff'], clip=clip, label=cond)
+plt.savefig('figures/word_freq_of_suggs.pdf')
+
+#%%
+import random
+acceptability_frames = []
+for group in cytoolz.partition_all(len(conditions), samples):
+    context = group[0]['context']
+    meta = list(cytoolz.pluck(['review_idx', 'sent_idx', 'word_idx', 'true_follows'], group))
+    assert len(set(meta)) == 1
+    meta = list(meta[0])
+    true_follows = meta.pop(-1)
+    options = [('true', group[0]['true_follows'])]
+    for sample in group:
+        for sugg in sample['suggs'].split('\n')[:1]:
+            options.append((sample['cond'], sugg))
+    random.shuffle(options)
+    acceptability_frames.append(dict(meta=meta, context=group[0]['context'], options=options))
+import json
+json.dump(acceptability_frames, open('acceptability_frames.json','w'))
+#%%
+def dict2arr(dct):
+    arr = []
+    for k, v in dct.items():
+        while k >= len(arr):
+            arr.append(None)
+        arr[k] = v
+    return arr
+responses = dict2arr({int(k): dict2arr({int(k2): v2 for k2, v2 in v.items()}) for k, v in json.load(open('acceptability_results_me_1.json'))['responses'].items()})
+responses
+#%%
+results = []
+for frame, response in zip(acceptability_frames, responses):
+    if response is None:
+        continue
+    for (cond, phrase), val in zip(frame['options'], response):
+        if val is not None:
+            results.append(dict(cond=cond, val=val))
+results = pd.DataFrame(results)
+
+#%%%%%%% Analyze topic distributions
 from suggestion import clustering
 clizer = clustering.Clusterizer()
 #%%
