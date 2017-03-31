@@ -3,6 +3,7 @@ import _ from 'lodash';
 import {observer, inject} from 'mobx-react';
 import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
+import Consent from './Consent';
 
 const hostname = window.location.host;
 
@@ -170,8 +171,9 @@ const CurText = inject('spying')(observer(class CurText extends Component {
 export const screenViews = {
   Welcome: () => <div>
     <h1>Welcome</h1>
-    <p>By continuing, you agree that you have been provided with the consent form for this study and agree to its terms.</p>
-    <NextBtn /></div>,
+    <Consent />
+    <p>If you consent to participate, click here: <NextBtn /></p>
+    </div>,
 
   ProbablyWrongCode: () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
