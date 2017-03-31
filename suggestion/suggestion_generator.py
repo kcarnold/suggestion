@@ -426,7 +426,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
             context_tuple = (toks[-1],)
             for i in range(length):
                 beam_chunks = cytoolz.partition_all(8, beam)
-                rwb = rare_word_bonus if i > 0 else rare_word_bonus / 2
+                rwb = rare_word_bonus# if i > 0 else rare_word_bonus / 2
                 parallel_futures = yield [executor.submit(
                     beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length, rare_word_bonus=rwb, prefix=prefix)
                     for chunk in beam_chunks]
