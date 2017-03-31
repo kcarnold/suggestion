@@ -187,9 +187,9 @@ html, body {
 
 .preview {
   color: black;
-  /* margin-left: 4px; */
+  margin: 0 2px;
   font-weight: 100;
-  font-size: 12px;
+  font-size: 14px;
   display: block;
   position: absolute;
   bottom: 4px;
