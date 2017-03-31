@@ -198,7 +198,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 result['dur'] = dur
                 self.send_json(**result)
                 self.participant.log(dict(type="requestSuggestions", kind="meta", request=request))
-                print('{type} in {dur:.2f}'.format(type=request['type'], dur=dur))
+                print('{participant_id} {type} in {dur:.2f}'.format(participant_id=getattr(self.participant, 'participant_id'), type=request['type'], dur=dur))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
             elif request['type'] == 'init':
