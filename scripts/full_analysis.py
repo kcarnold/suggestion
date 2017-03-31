@@ -49,6 +49,28 @@ decode_scales = {
         "Moderately Accurate": 4,
         "Very Accurate": 5}
 
+participants = dict(study2='''81519e
+81f6b6
+9b6cd1
+d9100a
+852f7a
+83fa09
+f3542e
+4f99b7
+c5c40b
+88d3ad
+0cb74f
+f31d92
+4edc26
+885dae
+a997ed
+8c01ef
+773fa0
+43cd2c
+706d74
+7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split())['study3']
+
+
 def run_log_analysis(participant):
     logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
     with open(logpath) as logfile:
@@ -110,26 +132,6 @@ if __name__ == '__main__':
 
     all_log_analyses = {}
 #    participants = args.participants
-    participants = '''81519e
-81f6b6
-9b6cd1
-d9100a
-852f7a
-83fa09
-f3542e
-4f99b7
-c5c40b
-88d3ad
-0cb74f
-f31d92
-4edc26
-885dae
-a997ed
-8c01ef
-773fa0
-43cd2c
-706d74
-7d5d97'''.split()
     assert len(participants) == len(set(participants))
 
     all_survey_data = []
@@ -189,7 +191,7 @@ a997ed
 
                 if k.startswith("Which writing was..."):
                     v = v.replace("A", conditions[0]).replace("B", conditions[1])
-                elif isinstance(v, str):
+                elif survey == 'postExp' and isinstance(v, str):
                     v = re.sub(r'\bA\b', f'A [{conditions[0]}]', v)
                     v = re.sub(r'\bB\b', f'B [{conditions[1]}]', v)
                 print(k)
