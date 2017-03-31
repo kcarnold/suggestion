@@ -21,6 +21,8 @@ def get_model(name):
     return models[name]
 
 
+enable_bos_suggs = False
+
 if True:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
     docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
@@ -37,7 +39,7 @@ if True:
         pickle.dump(docs_by_id, open(docs_by_id_fname, 'wb'), -1)
     print(" Done.", file=sys.stderr)
 
-if True:
+if enable_bos_suggs:
     print("Loading goal-oriented suggestion data...", end='', file=sys.stderr, flush=True)
     with open(os.path.join(paths.parent, 'models', 'goal_oriented_suggestion_data.pkl'), 'rb') as f:
         clizer = pickle.load(f)
@@ -374,7 +376,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
-    if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
+    if use_bos_suggs and not enable_bos_suggs:
+        print("Warning: requested BOS suggs but they're not enabled.")
+    if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
         if sug_state is None:
             sug_state = {}
         if 'suggested_already' not in sug_state:
@@ -430,7 +434,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
                 word_bonuses[word_idx] = 0.
             for i in range(length_after_first):
                 beam_chunks = cytoolz.partition_all(8, beam)
-                rwb = rare_word_bonus# if i > 0 else rare_word_bonus / 2
                 parallel_futures = yield [executor.submit(
                     beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix)
                     for chunk in beam_chunks]
