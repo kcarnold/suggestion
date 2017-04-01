@@ -19,6 +19,20 @@ freqs = counts / counts.sum()
 word2idx = {word: idx for idx, word in enumerate(vocab)}
 log_freqs = np.log(freqs)
 #%%
+np.random.seed(0)
+train_frac = 1 - .05 - .05
+num_docs = len(reviews)
+indices = np.random.permutation(num_docs)
+splits = (np.cumsum([train_frac, .05]) * num_docs).astype(int)
+segment_indices = np.split(indices, splits)
+names = ['train', 'valid', 'test']
+for name, indices in zip(names, segment_indices):
+    indicator = np.zeros(len(reviews), dtype=bool)
+    indicator[indices] = True
+    reviews[f'is_{name}'] = indicator
+#%%
+
+#%%
 def lookup_indices(sent):
     tmp = (word2idx.get(word) for word in sent)
     return [w for w in tmp if w is not None]
@@ -75,15 +89,15 @@ conditions = dict(
       temperature=0.,
       use_bos_suggs=False,
     ),
+#    doublyRarePhrase=dict(
+#      use_sufarr=True,
+#      rare_word_bonus=2.,
+#      use_bos_suggs=False,
+#      ),
     rarePhrase=dict(
       use_sufarr=True,
-      rare_word_bonus=2.,
-      use_bos_suggs=True, # but we won't test that case.
-      ),
-    halfRarePhrase=dict(
-      use_sufarr=True,
       rare_word_bonus=1.,
-      use_bos_suggs=True, # but we won't test that case.
+      use_bos_suggs=False,
       )
 
 )
@@ -92,7 +106,7 @@ conditions= {k: dict(DEFAULT_CONFIG, **v) for k, v in conditions.items()}
 #%%
 rs = np.random.RandomState(0)
 samples = []
-good_reviews = reviews[yelp_is_best]
+good_reviews = reviews[yelp_is_best & (~reviews.is_train)]
 import tqdm
 #%%
 target = 10000
