@@ -137,6 +137,7 @@ if __name__ == '__main__':
     all_survey_data = []
     participant_level_data = []
     excluded = []
+    non_excluded_participants = []
     for participant in participants:
         log_analyses = run_log_analysis(participant)
         all_log_analyses[participant] = log_analyses
@@ -145,6 +146,11 @@ if __name__ == '__main__':
             for name, survey in surveys.items()}
         with open(os.path.join(root_path, 'logs', participant+'-analyzed.json'), 'w') as f:
             json.dump(dict(log_analyses=log_analyses, survey_data=survey_data), f)
+
+        if len(survey_data['postExp']) == 0:
+            # Skip incomplete experiments.
+            excluded.append((participant, 'incomplete'))
+            continue
 
         datum = dict(participant_id=participant,
                      conditions=','.join(conditions),
@@ -199,6 +205,7 @@ if __name__ == '__main__':
                 print()
                 all_survey_data.append(dict(base_data,
                         participant_id=participant, survey=survey, idx=idx, name=k, value=v))
+        non_excluded_participants.append(participant)
 
 
     pd.DataFrame(all_survey_data).to_csv(f'all_survey_data_{"_".join(participants)}.csv', index=False)
