@@ -50,7 +50,8 @@ min_llk = [list(cytoolz.filter(None, [min_log_freq(indices) for indices in doc_i
 #%%
 mean_mean_llk = pd.Series([np.mean(llks) if len(llks) > 0 else None for llks in mean_llk])
 mean_min_llk = pd.Series([np.mean(llks) if len(llks) > 0 else None for llks in min_llk])
-
+#%%
+mean_llk_first5 = pd.Series([np.nanmean([log_freqs[indices[:5]] for indices in sent_indices if len(indices) > 5]) if len(sent_indices) else None for sent_indices in doc_sentence_indices])
 #%% Identify the best reviews.
 # Mark the top reviews: top-5 ranked reviews of restaurants with at least the median # reviews,
 # as long as they have >= 10 votes.
@@ -70,7 +71,7 @@ clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean min unigram log likelihood")
-plt.savefig('figures/mean_min_unigram_llk_2.pdf')
+#plt.savefig('figures/mean_min_unigram_llk_2.pdf')
 
 #%%
 to_plot = mean_mean_llk.dropna()
@@ -78,7 +79,16 @@ clip = np.percentile(to_plot, [2.5, 97.5])
 sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
 sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean mean unigram log likelihood")
-plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
+#plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
+
+#%%
+to_plot = pd.Series(mean_llk_first5).dropna()
+clip = np.percentile(to_plot, [2.5, 97.5])
+sns.kdeplot(to_plot[yelp_is_best], clip=clip, label='Yelp best')
+sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
+plt.xlabel("Mean mean unigram log likelihood, first 5 words")
+#plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
+
 
 #%% Pretend to retype the best reviews, look at suggestions.
 from suggestion import suggestion_generator
@@ -143,7 +153,15 @@ while len(samples) < len(conditions)*target:
                 suggs='\n'.join(' '.join(sugg) for sugg in suggestions)))
     progress.update(1)
 #%%
-freq_diffs = pd.DataFrame(samples)
+true_lengths = [len(sample['true_follows'].split()) for sample in samples]
+true_lengths_char = [len(sample['true_follows']) for sample in samples]
+sugg_lengths = [np.mean([len(sugg.split()) for sugg in sample['suggs'].split('\n')]) for sample in samples]
+sugg_lengths_char = [np.mean([len(sugg) for sugg in sample['suggs'].split('\n')]) for sample in samples]
+#%%
+plt.scatter(true_lengths_char, sugg_lengths_char)
+
+#%%
+freq_diffs = pd.DataFrame(samples).dropna()
 freq_diffs['diff'] = freq_diffs['mean_log_freq_true'] - freq_diffs['mean_log_freq_sugg']
 freq_diffs.groupby('cond').diff.mean()
 #%%
@@ -172,6 +190,25 @@ for group in cytoolz.partition_all(len(conditions), samples):
     acceptability_frames.append(dict(meta=meta, context=group[0]['context'], options=options))
 import json
 json.dump(acceptability_frames, open('acceptability_frames.json','w'))
+
+#%%
+def show_sugg_contrast(group):
+    meta = group[0]
+    context = meta['context']
+    true_follows = meta['true_follows']
+    alternatives = [(sample['cond'], sample['suggs'].split('\n'))
+        for sample in sorted(group, key=lambda x: x['cond'])]
+    alternatives.append(('actual', [true_follows]))
+    print(r'\multicolumn{3}{l}{...'+context[-30:]+r'}\\')
+    print('\\\\\n'.join(r'\textbf{{{}}} & {}'.format(cond, ' & '.join(suggs)) for cond, suggs in alternatives), r'\\')
+
+groups = list(cytoolz.partition_all(len(conditions), samples))
+
+for i in [0,1,3,8]:
+    show_sugg_contrast(groups[i])
+
+
+
 #%%
 def dict2arr(dct):
     arr = []

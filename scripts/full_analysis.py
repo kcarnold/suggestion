@@ -1,10 +1,12 @@
 import re
 import os
 import argparse
+import pickle
 import subprocess
 import pandas as pd
 import json
 import numpy as np
+import datetime
 
 root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
@@ -49,6 +51,8 @@ decode_scales = {
         "Moderately Accurate": 4,
         "Very Accurate": 5}
 
+
+batch_code = 'study4'
 participants = dict(study2='''81519e
 81f6b6
 9b6cd1
@@ -64,11 +68,32 @@ f31d92
 4edc26
 885dae
 a997ed
-8c01ef
+8c01ef_real
 773fa0
 43cd2c
 706d74
-7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split())['study3']
+7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split(),
+    study4='''51aa50
+aae8e4
+83ada3
+993876
+8e4d93
+10317e
+6a8a4c
+fd3076
+ec0620
+8ddf8b
+452ac2
+42a2d1
+4f140f
+60577e
+a178d3
+1d75ec
+72b6f6
+1e165d
+3822a7
+1d4f96
+093a4b'''.split())[batch_code]
 
 
 def run_log_analysis(participant):
@@ -85,26 +110,24 @@ def run_log_analysis(participant):
     return analyzed
 
 
-#%%
-import random
-def split_randomly_without_overlap(total_num_items, chunk_size, views_per_item, rs):
-    remaining_views = [views_per_item] * total_num_items
-    chunks = []
-    while sum(remaining_views) >= chunk_size:
-        chunk = []
-        for i in range(chunk_size):
-            mrv = max(remaining_views)
-            opts = [i for i, rv in enumerate(remaining_views) if rv == mrv and i not in chunk]
-#            item = np.argmax(remaining_views)
-            item = rs.choice(opts)
-            assert item not in chunk
-            chunk.append(item)
-            remaining_views[item] -= 1
-        chunks.append(chunk)
-    return chunks
-split_randomly_without_overlap(10, 4, 3, rs=random.Random(0))
-#%%
+def extract_survey_data(survey, data):
+    for k, v in data.items():
+        if re.match(skip_col_re['any'], k):
+            skipped_cols.add(k)
+            continue
+        for x, y in prefix_subs.items():
+            if k.startswith(x):
+                k = k.replace(x, y, 1)
+                break
+        v = decode_scales.get(v, v)
 
+        if k.startswith("Which writing was..."):
+            yield 'num-'+k, ["A, definitely", "A, somewhat", "about the same", "B, somewhat", "B, definitely"].index(v) - 2.0
+            v = v.replace("A", conditions[0]).replace("B", conditions[1])
+        elif survey == 'postExp' and isinstance(v, str):
+            v = re.sub(r'\bA\b', f'A [{conditions[0]}]', v)
+            v = re.sub(r'\bB\b', f'B [{conditions[1]}]', v)
+        yield k, v
 
 
 #%%
@@ -124,6 +147,7 @@ def classify_annotated_event(evt):
 from collections import Counter
 
 if __name__ == '__main__':
+    run_id = datetime.datetime.now().isoformat()
 
     surveys = {name: pd.read_csv(
         os.path.join(root_path, 'surveys', name+'_responses.csv'),
@@ -183,58 +207,18 @@ if __name__ == '__main__':
             elif survey == 'postExp':
                 base_data['condition'] = ','.join(conditions)
             print('-'*20)
-            for k, v in data.items():
-#                if np.isnan(v):
-#                    continue
-                if re.match(skip_col_re['any'], k):
-                    skipped_cols.add(k)
-                    continue
-                for x, y in prefix_subs.items():
-                    if k.startswith(x):
-                        k = k.replace(x, y, 1)
-                        break
-                v = decode_scales.get(v, v)
-
-                if k.startswith("Which writing was..."):
-                    v = v.replace("A", conditions[0]).replace("B", conditions[1])
-                elif survey == 'postExp' and isinstance(v, str):
-                    v = re.sub(r'\bA\b', f'A [{conditions[0]}]', v)
-                    v = re.sub(r'\bB\b', f'B [{conditions[1]}]', v)
-                print(k)
-                print(v)
+            for k, v in extract_survey_data(survey, data):
+                print(k, ':', v)
                 print()
                 all_survey_data.append(dict(base_data,
                         participant_id=participant, survey=survey, idx=idx, name=k, value=v))
         non_excluded_participants.append(participant)
 
 
-    pd.DataFrame(all_survey_data).to_csv(f'all_survey_data_{"_".join(participants)}.csv', index=False)
-    pd.DataFrame(participant_level_data).to_csv(f'participant_level_data_{"_".join(participants)}.csv', index=False)
+    pd.DataFrame(all_survey_data).to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
+    pd.DataFrame(participant_level_data).to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     print('excluded:', excluded)
 
-#%%
-if False:
-    CHUNK_SIZE = 4
-    VIEWS_PER_ITEM = 3
-    splits = split_randomly_without_overlap(len(participants), CHUNK_SIZE, VIEWS_PER_ITEM, rs=random.Random(0))
-    data = [{
-            "pages": [[
-                    dict(participant_id=participants[idx], cond=block['condition'], text=block['finalText']) for block in all_log_analyses[participants[idx]]['blocks']]
-                    for idx in chunk],
-            "attrs": ["food", "drinks", "atmosphere", "service", "value"],
-            } for chunk in splits]
+    with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
+        pickle.dump([{k: all_log_analyses[k] for k in non_excluded_participants}, survey_data], f, -1)
 
-    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'analyzed_{"_".join(participants)}.csv', index=False)
-
-
-#%%
-    to_rate = [['852f7a', '88d3ad', '0cb74f', 'f31d92'], ['4edc26', '885dae', 'a997ed', '8c01ef'], ['773fa0', '43cd2c', '706d74', '7d5d97']]
-    data = [{
-            "pages": [[
-                    dict(participant_id=participant_id, cond=block['condition'], text=block['finalText']) for block in all_log_analyses[participant_id]['blocks']]
-                    for participant_id in chunk],
-            "attrs": ["food", "drinks", "atmosphere", "service", "value"],
-            } for chunk in to_rate]
-
-    import datetime
-    pd.DataFrame(dict(data=[json.dumps(d) for d in data])).to_csv(f'to_rate_{datetime.datetime.now().isoformat()}.csv', index=False)

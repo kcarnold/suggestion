@@ -9,11 +9,11 @@ import pandas as pd
 import numpy as np
 import json
 #%%
-#data = pd.read_csv('data/initial detail ratings - Batch_2741651_batch_results.csv')
-#raw_data = pd.read_csv('data/full arnold16 details Batch_2742001_batch_results.csv')
-raw_data = pd.concat(
-        [pd.read_csv('data/detail rating by assignment Batch_2744268_batch_results.csv'),
-         pd.read_csv('data/detail rating study2 batch2 Batch_2745786_batch_results.csv')], axis=0, ignore_index=True)
+data_files = ['data/study3 details batch1 Batch_2748636_batch_results.csv']
+#data_files = ['data/initial detail ratings - Batch_2741651_batch_results.csv']
+#data_files = ['data/full arnold16 details Batch_2742001_batch_results.csv']
+#data_files = ['data/detail rating by assignment Batch_2744268_batch_results.csv', 'data/detail rating study2 batch2 Batch_2745786_batch_results.csv']
+raw_data = pd.concat([pd.read_csv(f) for f in data_files], axis=0, ignore_index=True)
 #%%
 def load_json(df, cols):
     df = df.copy()
@@ -37,11 +37,20 @@ if False:
 all_results = []
 comparisons = []
 num_highlights = []
-decode_side = dict(A=0, B=1, neither=None)
+decode_side = dict(A=0, B=1, neither=None, same=None)
 for worker_id, prompt, results in io_tuples:
     all_results.append(dict(worker_id=worker_id, results=results))
     highlights = results['highlights']
-    attrs = prompt['attrs'] + ['written', 'overall']
+    ratings = {}
+    attrs = set()
+    for key, rating in results['ratings'].items():
+        attr, page_num = key.split('-', 1)
+        rating = results['ratings'][f'{attr}-{i}']
+        favored_side = decode_side[rating]
+        ratings[attr, int(page_num)] = favored_side
+        attrs.add(attr)
+
+
     for i, page in enumerate(prompt['pages']):
         a_cond = page[0]['cond']
         b_cond = page[1]['cond']
@@ -49,20 +58,16 @@ for worker_id, prompt, results in io_tuples:
         assert author_id == page[1]['participant_id']
         conds = [a_cond, b_cond]
         for attr in attrs:
-            try:
-                rating = results['ratings'][f'{attr}-{i}']
-                favored_side = decode_side[rating]
-                favored_cond = conds[favored_side] if favored_side is not None else None
-                comparisons.append(dict(
-                        worker_id=worker_id,
-                        attr=attr,
-                        page_num=i,
-                        author_id=author_id,
-                        item_code=f'{author_id}-{attr}',
-                        favored_side=favored_side,
-                        favored_cond=favored_cond))
-            except KeyError:
-                pass
+            favored_side = ratings.get((attr, i))
+            favored_cond = conds[favored_side] if favored_side is not None else None
+            comparisons.append(dict(
+                    worker_id=worker_id,
+                    attr=attr,
+                    page_num=i,
+                    author_id=author_id,
+                    item_code=f'{author_id}-{attr}',
+                    favored_side=favored_side,
+                    favored_cond=favored_cond))
         for side in range(2):
             try:
                 num_highlights.append(dict(
@@ -77,11 +82,11 @@ for worker_id, prompt, results in io_tuples:
 comparisons = pd.DataFrame(comparisons)
 num_highlights = pd.DataFrame(num_highlights)
 #%%
-(comparisons.groupby('worker_id').favored_cond.value_counts() / comparisons.groupby('worker_id').favored_cond.count()).groupby(level=-1).mean()
+#(comparisons.groupby('worker_id').favored_cond.value_counts() / comparisons.groupby('worker_id').favored_cond.count()).groupby(level=-1).mean()
 #%%
 num_highlights.groupby('worker_id').num_highlights.mean()
 #%%
-comparisons.query('attr=="overall"').favored_cond.value_counts()
+comparisons.query('attr=="detailed"').favored_cond.value_counts()
 #%%
 comparisons.favored_cond.value_counts()
 #%%
@@ -97,11 +102,18 @@ from nltk.metrics.agreement import AnnotationTask
 base_alpha = AnnotationTask(data=comparisons.loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha()
 alpha_without = {worker_id: AnnotationTask(data=comparisons[comparisons.worker_id != worker_id].loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha() for worker_id in comparisons.worker_id.unique()}
 #%%
-pd.DataFrame(dict(num_highlights=num_highlights.groupby('worker_id').num_highlights.sum(), alpha_without=alpha_without)).sort_values('alpha_without')
+num_highlights_by_worker = num_highlights=num_highlights.groupby('worker_id').num_highlights.sum()
+pd.DataFrame(dict(num_highlights=num_highlights_by_worker, alpha_without=alpha_without)).sort_values('alpha_without')
 #sorted(alpha_without.items(), key=lambda x: x[1])
 
 #%%
-filtered = comparisons[comparisons.worker_id != 'A3SGZ8OQXW5TQD']
-filtered.query('attr=="overall"').favored_cond.value_counts()
+filtered = pd.merge(comparisons, num_highlights_by_worker.to_frame('num_highlights'), left_on='worker_id', right_index=True)
+filtered = filtered[filtered['num_highlights'] > 20]
+#%%
+base_alpha = AnnotationTask(data=filtered.loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha()
+alpha_without = {worker_id: AnnotationTask(data=filtered[filtered.worker_id != worker_id].loc[:, ['worker_id', 'item_code', 'favored_cond']].values.tolist()).alpha() for worker_id in filtered.worker_id.unique()}
+pd.DataFrame(dict(num_highlights=num_highlights_by_worker, alpha_without=alpha_without)).sort_values('alpha_without')
+#filtered = comparisons[comparisons.worker_id != 'A3SGZ8OQXW5TQD']
+#filtered.query('attr=="overall"').favored_cond.value_counts()
 #%%
 filtered.favored_cond.value_counts()

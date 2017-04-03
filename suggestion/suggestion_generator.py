@@ -427,6 +427,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
+            # The multiplication makes a copy.
             word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
             # Don't double-bonus words that have already been used.
             for word in set(toks):
