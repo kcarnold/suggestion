@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-02-28T21:43:35Z",
-  "lastModifiedDate": "2017-03-28T16:41:14Z",
+  "lastModifiedDate": "2017-03-31T21:34:07Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -199,6 +199,32 @@
       "validation": {
         "doesForceResponse": false,
         "doesRequestResponse": true
+      }
+    },
+    "QID16": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "Did you speak or whisper what you were writing while you were writing it?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Yes",
+          "choiceText": "Yes",
+          "variableName": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "No",
+          "choiceText": "No",
+          "variableName": null
+        }
       }
     },
     "QID7": {
@@ -522,6 +548,9 @@
     "Q6": {
       "question": "QID6"
     },
+    "Q16": {
+      "question": "QID16"
+    },
     "Q7": {
       "question": "QID7"
     },
@@ -676,6 +705,10 @@
         },
         {
           "type": "Question",
+          "questionId": "QID16"
+        },
+        {
+          "type": "Question",
           "questionId": "QID7"
         }
       ]
@@ -740,7 +773,7 @@
   ],
   "comments": {},
   "responseCounts": {
-    "auditable": 43,
+    "auditable": 70,
     "generated": 0,
     "deleted": 0
   }
