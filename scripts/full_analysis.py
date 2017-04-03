@@ -73,27 +73,10 @@ a997ed
 43cd2c
 706d74
 7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split(),
-    study4='''51aa50
-aae8e4
-83ada3
-993876
-8e4d93
-10317e
-6a8a4c
-fd3076
-ec0620
-8ddf8b
-452ac2
-42a2d1
-4f140f
-60577e
-a178d3
-1d75ec
-72b6f6
-1e165d
-3822a7
-1d4f96
-093a4b'''.split())[batch_code]
+    study4='''
+    51aa50 aae8e4 83ada3 993876 8e4d93 10317e 6a8a4c
+    4f140f b2d633 42a2d1 452ac2 d4cabc 10f0dc 1d75ec 9a56c8 e98445 3fd145 fd3076 c7ffcb 72b6f6 ec0620 7e76f6 a9f905 ac1341 e55d1c a178d3
+    '''.split())[batch_code]
 
 
 def run_log_analysis(participant):
@@ -221,4 +204,5 @@ if __name__ == '__main__':
 
     with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
         pickle.dump([{k: all_log_analyses[k] for k in non_excluded_participants}, survey_data], f, -1)
+        print("Wrote", f'data/analysis_{batch_code}_{run_id}.pkl')
 

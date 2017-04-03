@@ -70,7 +70,10 @@ def make_participant_hash(participant_id):
 #%%
 rate_round_1 = ['8ddf8b', '6a8a4c', '8e4d93', 'a178d3']
 rate_round_2 =['10317e',  '3822a7',  '42a2d1',  '51aa50', '60577e', '72b6f6', '83ada3', '993876', 'aae8e4', 'ec0620']
-
+#%%
+#rate_round_3 = sorted(set(participants) - set(rate_round_1) - set(rate_round_2))
+rate_round_3 = ['10f0dc', 'ac1341', 'b2d633', 'c8963d']
+#%%
 import contextlib
 
 def dump_rating_task(basename, participants, log_data):
@@ -98,7 +101,7 @@ def dump_rating_task(basename, participants, log_data):
             for attr in ["food", "drinks", "atmosphere", "service", "value", "detailed", "written", "quality"]:
                 print(f"{participant_hash},{attr},,")
 
-#dump_rating_task('data/detail_ratings/input batches/round2', rate_round_2, log_data)
+dump_rating_task('data/detail_ratings/input batches/round3', rate_round_3, log_data)
 #%%
 conditions = []
 for author_id in participants:
