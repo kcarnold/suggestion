@@ -75,7 +75,7 @@ a997ed
 7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split(),
     study4='''
     51aa50 aae8e4 83ada3 993876 8e4d93 10317e 6a8a4c
-    4f140f b2d633 42a2d1 452ac2 d4cabc 10f0dc 1d75ec 9a56c8 e98445 3fd145 fd3076 c7ffcb 72b6f6 ec0620 7e76f6 a9f905 ac1341 e55d1c a178d3
+    4f140f b2d633 42a2d1 7939c9 3822a7 10f0dc c8963d 1e165d e98445 8a8a64 fd3076 c7ffcb 72b6f6 ec0620 60577e 8ddf8b ac1341 bb9486 a178d3
     '''.split())[batch_code]
 
 
@@ -196,9 +196,9 @@ if __name__ == '__main__':
                 all_survey_data.append(dict(base_data,
                         participant_id=participant, survey=survey, idx=idx, name=k, value=v))
         non_excluded_participants.append(participant)
+    all_survey_data = pd.DataFrame(all_survey_data)
 
-
-    pd.DataFrame(all_survey_data).to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
+    all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
     pd.DataFrame(participant_level_data).to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     print('excluded:', excluded)
 
@@ -206,3 +206,100 @@ if __name__ == '__main__':
         pickle.dump([{k: all_log_analyses[k] for k in non_excluded_participants}, survey_data], f, -1)
         print("Wrote", f'data/analysis_{batch_code}_{run_id}.pkl')
 
+
+    all_survey_data[all_survey_data.value.str.len() > 5].to_csv('data/survey_freetexts.csv')
+#%%
+def extract_weighted_survey_results(all_survey_data, survey, items):
+    return (all_survey_data[all_survey_data.survey == survey]
+            .set_index(['participant_id', 'condition', 'idx', 'name'])
+            .value.unstack(level=-1)
+            .apply(lambda x: sum(weight*x[col] for weight, col in items), axis=1))
+#%%
+if False:
+    #%%
+    all_survey_data = pd.DataFrame(all_survey_data)
+#%%
+    opinions_suggs_postTask = [(1, 'suggs-were interesting'),
+        (1, 'suggs-were relevant'),
+        (-1, 'suggs-were distracting'),
+        (1, 'suggs-were helpful'),
+        (1, "suggs-made me say something I didn't want to say."),
+        (-1, 'suggs-felt pushy.'),
+        (1, 'suggs-were inspiring.'),
+        (1, 'suggs-were timely.')]
+
+    opinions_suggs_postFreewrite = [(1, 'suggs-gave me ideas about what to write about.'),
+        (-1, 'suggs-made it harder to come up with my own ideas about what to write about.'),
+        (1, 'suggs-gave me ideas about words or phrases to use.'),
+        (-1, 'suggs-made it harder for me to come up with my own words or phrases.'),
+        (1, 'suggs-were interesting.'),
+        (-1, 'suggs-were distracting.'),
+        (1, 'suggs-were relevant.'),
+        (-1, "suggs-didn't make sense."),
+        (-1, 'suggs-were repetitive.'),
+        (1, 'suggs-were inspiring.')]
+
+    pd.DataFrame(dict(
+        opinion_of_suggs_posttask=extract_weighted_survey_results(all_survey_data, 'postTask', opinions_suggs_postTask),
+        opinion_of_suggs_postfreewrite=extract_weighted_survey_results(all_survey_data, 'postFreewrite', opinions_suggs_postFreewrite)),
+    ).to_csv('data/opinion_of_suggs.csv')
+#%%
+
+    extract_weighted_survey_results(all_survey_data, 'postTask', [(1, 'final-I knew what I wanted to say.'),
+        (1, 'final-I knew how to say what I wanted to say.'),
+        (-1, 'final-I often paused to think of what to say.'),
+        (-1, 'final-I often paused to think of how to say what I wanted to say.'),
+        (1, 'final-I was able to express myself fluently.'),
+        (-1, 'final-I had trouble expressing myself fluently.')]).to_frame('expression').to_csv('data/expression.csv')
+
+#%%
+post_task = all_survey_data[all_survey_data.survey == 'postTask']
+results = []
+for participant in non_excluded_participants:
+    stars_post = post_task.set_index(['participant_id', 'condition', 'idx', 'name']).value.unstack(level=-1).loc[participant, "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;"].to_frame('stars_post')
+    log = all_log_analyses[participant]
+    places = pd.DataFrame([block['place'] for block in log['blocks']])
+    places.index.name = 'idx'
+#    places['condition'] = log['conditions']
+    results.append(
+            pd.merge(stars_post.reset_index(level=0), places.rename(columns={'stars': 'stars_pre'}), left_index=True, right_index=True, how='outer')
+            .assign(participant_id=participant).reset_index())
+pd.concat(results, ignore_index=True).to_csv('data/sentiment_change.csv')
+
+#%%
+personality_weights = dict(
+extraversion=[(1, 'pers-I am the life of the party.'),
+    (1, 'pers-I talk to a lot of different people at parties.'),
+    (-1, "pers-I don't talk a lot."),
+    (-1, 'pers-I keep in the background.')],
+agreeableness=[
+(1, "pers-I sympathize with others' feelings."),
+(1, "pers-I feel others' emotions."),
+(-1, 'pers-I am not really interested in others.'),
+(-1, "pers-I am not interested in other people's problems."),],
+
+conscientiousness=[
+(1, 'pers-I get chores done right away.'),
+(1, 'pers-I like order.'),
+(-1, 'pers-I often forget to put things back in their proper place.'),
+(-1, 'pers-I make a mess of things.'),],
+
+neuroticism=[
+(1, 'pers-I have frequent mood swings.'),
+(1, 'pers-I get upset easily.'),
+(-1, 'pers-I am relaxed most of the time.'),
+(-1, 'pers-I seldom feel blue.'),],
+
+imagination=[
+(1, 'pers-I have a vivid imagination.'),
+(-1, 'pers-I have difficulty understanding abstract ideas.'),
+(-1, 'pers-I am not interested in abstract ideas.'),
+(-1, 'pers-I do not have a good imagination. ')],
+
+NFC=[
+(1, 'pers-I would prefer complex to simple problems.'),
+(1, 'pers-I like to have the responsibility of handling a situation that requires a lot of thinking.'),
+(-1, 'pers-Thinking is not my idea of fun.'),
+(-1, 'pers-I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.'),])
+
+pd.DataFrame({k: extract_weighted_survey_results(all_survey_data, 'postExp', v) for k, v in personality_weights.items()}).to_csv('personality.csv')
