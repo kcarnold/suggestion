@@ -116,16 +116,18 @@ def extract_survey_data(survey, data):
 #%%
 
 def classify_annotated_event(evt):
+    typ = evt['type']
+    if typ in {'externalAction', 'next'}:
+        return None
     text = evt['curText']
     null_word = len(text) == 0 or text[-1] == ' '
-    typ = evt['type']
     if typ == 'tapKey':
         return 'tapKey'
     if typ == 'tapBackspace':
         return 'tapBackspace'
     if typ == 'tapSuggestion':
         return 'tapSugg_' + ('full' if null_word else 'part')
-    assert typ
+    assert False, typ
 
 from collections import Counter
 #%%
@@ -133,7 +135,7 @@ def flatten_dict(x, prefix=''):
     result = {}
     for k, v in x.items():
         if isinstance(v, dict):
-            result.update(flatten_dict(v, prefix=k+'_'))
+            result.update(flatten_dict(v, prefix=prefix + k + '_'))
         else:
             result[prefix + k] = v
     return result
@@ -175,7 +177,8 @@ if __name__ == '__main__':
         datum['dur_95'] = np.percentile(log_analyses['sug_gen_durs'], 95)
         for page, page_data in log_analyses['byExpPage'].items():
             for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
-                datum[f'{page}_num_{typ}'] = count
+                if typ is not None:
+                    datum[f'{page}_num_{typ}'] = count
         datum.update(flatten_dict({f'b{i}': b for i, b in enumerate(log_analyses['blocks'])}))
 
         if datum['dur_75'] > .75:
@@ -209,7 +212,7 @@ if __name__ == '__main__':
     all_survey_data = pd.DataFrame(all_survey_data)
 
     all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
-    pd.DataFrame(participant_level_data).to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
+    pd.DataFrame(participant_level_data).fillna(0).to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     print('excluded:', excluded)
 
     with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
