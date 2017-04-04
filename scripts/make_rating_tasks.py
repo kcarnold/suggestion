@@ -12,7 +12,8 @@ import pandas as pd
 #%%
 #data_file = 'data/analysis_study4_2017-04-02T17:14:44.194603.pkl'
 #data_file = 'data/analysis_study4_2017-04-02T20:37:11.374099.pkl'
-data_file = 'data/analysis_study4_2017-04-02T21:09:39.528242.pkl'
+#data_file = 'data/analysis_study4_2017-04-02T21:09:39.528242.pkl'
+data_file = 'data/analysis_study4_2017-04-04T13:11:10.932814.pkl'
 log_data, survey_data = pickle.load(open(data_file, 'rb'))
 participants = sorted(log_data.keys())
 #%%
@@ -77,16 +78,19 @@ rate_round_3 = ['10f0dc', 'ac1341', 'b2d633', 'c8963d']
 #%%
 #rate_round_4 = sorted(set(participants) - set(rate_round_1) - set(rate_round_2) - set(rate_round_3))
 rate_round_4 = ['7939c9', '8a8a64', 'bb9486', 'c7ffcb']
+#%%
+
+texts = {pid: [block['finalText'] for block in data['blocks']] for pid, data in log_data.items()}
 
 #%%
 import contextlib
 
-def dump_rating_task(basename, participants, log_data):
+def dump_rating_task(basename, participants, texts_by_participant_id):
     participant_hashes = []
 
     with open(f'{basename}-reviews.txt', 'w') as f, contextlib.redirect_stdout(f):
         for participant_id in participants:
-            texts = [block['finalText'] for block in log_data[participant_id]['blocks']]
+            texts = texts_by_participant_id[participant_id]
             if should_flip(participant_id):
                 texts = texts[::-1]
             participant_hash = make_participant_hash(participant_id)
@@ -105,8 +109,17 @@ def dump_rating_task(basename, participants, log_data):
         for participant_hash in participant_hashes:
             for attr in ["food", "drinks", "atmosphere", "service", "value", "detailed", "written", "quality"]:
                 print(f"{participant_hash},{attr},,")
-
-dump_rating_task('data/detail_ratings/input batches/round4', rate_round_4, log_data)
+#%%
+arnold16 = pd.read_csv('data/arnold16_full_participant_data.csv')
+arnold16_filtered = arnold16[arnold16.idx >= 2]
+arnold16_grouped_by_participant = {pid: [data[f'{i}'] for i in range(2,4)] for pid, data in
+                                         json.loads(arnold16_filtered.set_index(['participant_id', 'idx']).reviewText.unstack().to_json(orient='index')).items()}
+#for participant_id, texts in grouped_by_participant.items():
+#    order = rs.sample('pw', 2)
+#    pairs.append([(dict(participant_id=participant_id, cond=cond, text=texts[cond])) for cond in order])
+dump_rating_task('data/detail_ratings/input batches/old', sorted(arnold16_grouped_by_participant.keys()), arnold16_grouped_by_participant)
+#%%
+dump_rating_task('data/detail_ratings/input batches/round4', rate_round_4, texts)
 #%%
 conditions = []
 for author_id in participants:
