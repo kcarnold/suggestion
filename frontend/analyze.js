@@ -44,7 +44,7 @@ readStdin(function(err, res) {
         byExpPage[page] = pageData;
       }
       if (expState.curText !== lastText) {
-        pageData.annotated.push({...entry, curText: expState.curText});
+        pageData.annotated.push({...entry, curText: lastText});
         pageData.requests.push({...state.suggestionRequest});
         lastText = state.curText;
         if (pageData.displayedSuggs.length > 0) {
