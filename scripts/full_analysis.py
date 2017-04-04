@@ -75,7 +75,7 @@ a997ed
 7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split(),
     study4='''
     51aa50 aae8e4 83ada3 993876 8e4d93 10317e 6a8a4c
-    4f140f b2d633 42a2d1 7939c9 3822a7 10f0dc c8963d 1e165d e98445 8a8a64 fd3076 c7ffcb 72b6f6 ec0620 60577e 8ddf8b ac1341 bb9486 a178d3
+    4f140f b2d633 42a2d1 7939c9 3822a7 10f0dc c8963d 1e165d e98445 8a8a64 fd3076 c7ffcb 72b6f6 ab938b ec0620 60577e 8ddf8b ac1341 bb9486 a178d3
     '''.split())[batch_code]
 
 
@@ -128,7 +128,16 @@ def classify_annotated_event(evt):
     assert typ
 
 from collections import Counter
-
+#%%
+def flatten_dict(x, prefix=''):
+    result = {}
+    for k, v in x.items():
+        if isinstance(v, dict):
+            result.update(flatten_dict(v, prefix=k+'_'))
+        else:
+            result[prefix + k] = v
+    return result
+#%%
 if __name__ == '__main__':
     run_id = datetime.datetime.now().isoformat()
 
@@ -167,6 +176,7 @@ if __name__ == '__main__':
         for page, page_data in log_analyses['byExpPage'].items():
             for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
                 datum[f'{page}_num_{typ}'] = count
+        datum.update(flatten_dict({f'b{i}': b for i, b in enumerate(log_analyses['blocks'])}))
 
         if datum['dur_75'] > .75:
             excluded.append(participant)
