@@ -35,6 +35,11 @@ if (window.location.search.slice(1) === 'showall') {
         doEventToLastState({type: 'tapKey', key: chr});
       });
     }
+    if (newState.curScreen.screen === 'ReadyPhone' && !newState.passedQuiz) {
+      newState.replaying = false;
+      newState = copyState();
+      doEventToLastState({type: 'externalAction', externalAction: 'passedQuiz'});
+    }
     newState.replaying = false;
   }
 }
