@@ -73,11 +73,12 @@ def make_participant_hash(participant_id):
 #%%
 rate_round_1 = ['8ddf8b', '6a8a4c', '8e4d93', 'a178d3']
 rate_round_2 =['10317e',  '3822a7',  '42a2d1',  '51aa50', '60577e', '72b6f6', '83ada3', '993876', 'aae8e4', 'ec0620']
-#%%
 rate_round_3 = ['10f0dc', 'ac1341', 'b2d633', 'c8963d']
-#%%
-#rate_round_4 = sorted(set(participants) - set(rate_round_1) - set(rate_round_2) - set(rate_round_3))
 rate_round_4 = ['7939c9', '8a8a64', 'bb9486', 'c7ffcb']
+rate_round_5 = ['ab938b']
+all_rated = set(rate_round_1 + rate_round_2 + rate_round_3 + rate_round_4 + rate_round_5)
+#%%
+sorted(set(participants) - set(all_rated))
 #%%
 
 texts = {pid: [block['finalText'] for block in data['blocks']] for pid, data in log_data.items()}
@@ -119,7 +120,7 @@ arnold16_grouped_by_participant = {pid: [data[f'{i}'] for i in range(2,4)] for p
 #    pairs.append([(dict(participant_id=participant_id, cond=cond, text=texts[cond])) for cond in order])
 dump_rating_task('data/detail_ratings/input batches/old', sorted(arnold16_grouped_by_participant.keys()), arnold16_grouped_by_participant)
 #%%
-dump_rating_task('data/detail_ratings/input batches/round4', rate_round_4, texts)
+dump_rating_task('data/detail_ratings/input batches/round5', rate_round_5, texts)
 #%%
 conditions = []
 for author_id in participants:
@@ -168,12 +169,12 @@ def in_author_order(row):
     result['score_first'], result['score_second'] = scores
     return result
 results2 = results.apply(in_author_order, axis=1)
-results2.to_csv('data/detail_ratings.csv')
+#results2.to_csv('data/detail_ratings.csv')
 #%%
 standardized = results2.copy()
 for col in ['comparison_author', 'score_A', 'score_B', 'score_first', 'score_second']:
     standardized[col] = standardized.groupby('rater')[col].transform(lambda x: (x-x.mean()) / x.std())
-standardized.to_csv('data/detail_ratings_standardize.csv')
+standardized.to_csv('data/detail_ratings_standardize_complete_study4.csv')
 #%%
 from nltk.metrics.agreement import AnnotationTask
 def interval_distance(a, b):
