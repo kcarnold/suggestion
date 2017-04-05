@@ -170,21 +170,26 @@ if __name__ == '__main__':
             excluded.append((participant, 'incomplete'))
             continue
 
-        datum = dict(participant_id=participant,
+        base_datum = dict(participant_id=participant,
                      conditions=','.join(conditions),
                      config=log_analyses['config'])
-        datum['dur_75'] = np.percentile(log_analyses['sug_gen_durs'], 75)
-        datum['dur_95'] = np.percentile(log_analyses['sug_gen_durs'], 95)
-        for page, page_data in log_analyses['byExpPage'].items():
-            for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
-                if typ is not None:
-                    datum[f'{page}_num_{typ}'] = count
-        datum.update(flatten_dict({f'b{i}': b for i, b in enumerate(log_analyses['blocks'])}))
-
-        if datum['dur_75'] > .75:
+        base_datum['dur_75'] = np.percentile(log_analyses['sug_gen_durs'], 75)
+        base_datum['dur_95'] = np.percentile(log_analyses['sug_gen_durs'], 95)
+        if base_datum['dur_75'] > .75:
             excluded.append(participant)
             continue
-        participant_level_data.append(datum)
+        for page, page_data in log_analyses['byExpPage'].items():
+            datum = base_datum.copy()
+            kind, num = page.split('-')
+            num = int(num)
+            datum['kind'] = kind
+            datum['block'] = num
+            datum.update(flatten_dict(log_analyses['blocks'][num]))
+            for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
+                if typ is not None:
+                    datum[f'num_{typ}'] = count
+            participant_level_data.append(datum)
+
 
         print('\n'*10)
         print(participant)
@@ -212,7 +217,10 @@ if __name__ == '__main__':
     all_survey_data = pd.DataFrame(all_survey_data)
 
     all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
-    pd.DataFrame(participant_level_data).fillna(0).to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
+    participant_level_data = pd.DataFrame(participant_level_data).fillna(0)
+    participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
+    participant_level_data['finalLen'] = participant_level_data.finalText.str.len()
+    participant_level_data.to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     print('excluded:', excluded)
 
     with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
