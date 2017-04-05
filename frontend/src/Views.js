@@ -218,7 +218,7 @@ export const screenViews = {
 
   ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <div>
     <p>{state.isPrewrite ? texts.brainstormingInstructions : texts.revisionInstructions}</p>
-    <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, this would be a good time.)<br/><br/><NextBtn /></p></div>
+    <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
