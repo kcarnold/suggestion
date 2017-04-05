@@ -111,15 +111,6 @@ def dump_rating_task(basename, participants, texts_by_participant_id):
             for attr in ["food", "drinks", "atmosphere", "service", "value", "detailed", "written", "quality"]:
                 print(f"{participant_hash},{attr},,")
 #%%
-arnold16 = pd.read_csv('data/arnold16_full_participant_data.csv')
-arnold16_filtered = arnold16[arnold16.idx >= 2]
-arnold16_grouped_by_participant = {pid: [data[f'{i}'] for i in range(2,4)] for pid, data in
-                                         json.loads(arnold16_filtered.set_index(['participant_id', 'idx']).reviewText.unstack().to_json(orient='index')).items()}
-#for participant_id, texts in grouped_by_participant.items():
-#    order = rs.sample('pw', 2)
-#    pairs.append([(dict(participant_id=participant_id, cond=cond, text=texts[cond])) for cond in order])
-dump_rating_task('data/detail_ratings/input batches/old', sorted(arnold16_grouped_by_participant.keys()), arnold16_grouped_by_participant)
-#%%
 dump_rating_task('data/detail_ratings/input batches/round5', rate_round_5, texts)
 #%%
 conditions = []
@@ -135,14 +126,16 @@ conditions_as_rated = pd.DataFrame(conditions, columns=['author_id', 'cond_A', '
 participant_hash2id = pd.Series(participants, index=[make_participant_hash(x) for x in participants])
 
 ratings_files = [f'batch{batch+1}_{rater}' for batch in range(4) for rater in ['kf', 'km']]
+#ratings_files = [f'old_{rater}' for rater in ['kf', 'km']]
 
-rater_ids = ['kf', 'km']
 results = pd.concat([
         pd.read_csv(f'data/detail_ratings/{fname}.csv', header=None, names=['hash', 'attr', 'comparison', 'score_A', 'score_B'])
             .assign(rater=fname.split('_')[-1])
         for fname in ratings_files], ignore_index=True)
 results['comparison'] = results.comparison.str.lower()
 results['comp'] = results.comparison.map(lambda x: ['a', 'same', 'b'].index(x) - 1)
+#for col in ['score_A', 'score_B']: #'comp',
+#    results[col] = results.groupby('rater')[col].transform(lambda x: (x-x.mean()) / x.std())
 results = pd.merge(results, participant_hash2id.to_frame('author_id'), left_on='hash', right_index=True, how='left')
 results['item_code'] = results.author_id.str.cat(results.attr, sep='-')
 results = pd.merge(results, conditions_as_rated, left_on='author_id', right_on='author_id', how='left')
@@ -159,7 +152,7 @@ def in_author_order(row):
     result = row.copy()
     flip = should_flip(row['author_id'])
     # Encode the binary comparison.
-    comparison = dict(a=-1, same=0, b=1)[row['comparison']]
+    comparison = row['comp']
     if flip:
         comparison = -comparison
     result['comparison_author'] = comparison
@@ -169,7 +162,7 @@ def in_author_order(row):
     result['score_first'], result['score_second'] = scores
     return result
 results2 = results.apply(in_author_order, axis=1)
-#results2.to_csv('data/detail_ratings.csv')
+results2.to_csv('data/detail_ratings.csv')
 #%%
 standardized = results2.copy()
 for col in ['comparison_author', 'score_A', 'score_B', 'score_first', 'score_second']:
@@ -180,5 +173,62 @@ from nltk.metrics.agreement import AnnotationTask
 def interval_distance(a, b):
 #    return abs(a-b)
     return pow(a-b, 2)
-{col: AnnotationTask(data=standardized.groupby(('rater', 'author_id')).mean().reset_index().loc[:, ['rater', 'author_id', col]].values.tolist(), distance=interval_distance).alpha()
+{col: AnnotationTask(data=results2.groupby(('rater', 'author_id')).mean().reset_index().loc[:, ['rater', 'author_id', col]].values.tolist(), distance=interval_distance).alpha()
  for col in ['comp', 'score_A', 'score_B']}
+
+
+
+#%% Dump data to analyze arnold16 ratings.
+import json
+arnold16 = pd.read_csv('data/arnold16_full_participant_data.csv')
+arnold16_filtered = arnold16[arnold16.idx >= 2]
+arnold16_grouped_by_participant = {pid: [data[f'{i}'] for i in range(2,4)] for pid, data in
+                                         json.loads(arnold16_filtered.set_index(['participant_id', 'idx']).reviewText.unstack().to_json(orient='index')).items()}
+#for participant_id, texts in grouped_by_participant.items():
+#    order = rs.sample('pw', 2)
+#    pairs.append([(dict(participant_id=participant_id, cond=cond, text=texts[cond])) for cond in order])
+dump_rating_task('data/detail_ratings/input batches/old', sorted(arnold16_grouped_by_participant.keys()), arnold16_grouped_by_participant)
+
+
+
+#%% Analyze the results
+participants = sorted(arnold16_grouped_by_participant.keys())
+author_conditions = {str(k): [x[2], x[3]] for k, x in arnold16_filtered.set_index(['participant_id', 'idx']).condition.unstack(-1).to_dict('index').items()}
+conditions = []
+for author_id in participants:
+    author_conds = author_conditions[author_id]
+    if should_flip(author_id):
+        rating_conds = author_conds[::-1]
+    else:
+        rating_conds = author_conds
+    conditions.append([author_id, rating_conds[0], rating_conds[1], ','.join(author_conds)])
+conditions_as_rated = pd.DataFrame(conditions, columns=['author_id', 'cond_A', 'cond_B', 'author_conds'])
+
+participant_hash2id = pd.Series(participants, index=[make_participant_hash(x) for x in participants])
+ratings_files = [f'old_{rater}' for rater in ['kf', 'km']]
+results = pd.concat([
+        pd.read_csv(f'data/detail_ratings/{fname}.csv', header=None, names=['hash', 'attr', 'comparison', 'score_A', 'score_B'])
+            .assign(rater=fname.split('_')[-1])
+        for fname in ratings_files], ignore_index=True)
+results['comparison'] = results.comparison.str.lower()
+results['comp'] = results.comparison.map(lambda x: ['a', 'same', 'b'].index(x) - 1)
+results = pd.merge(results, participant_hash2id.to_frame('author_id'), left_on='hash', right_index=True, how='left')
+results['item_code'] = results.author_id.str.cat(results.attr, sep='-')
+results = pd.merge(results, conditions_as_rated, left_on='author_id', right_on='author_id', how='left')
+for col in ['comp', 'score_A', 'score_B']:
+    results[col] = results.groupby('rater')[col].transform(lambda x: (x-x.mean()) / x.std())
+results = results.apply(in_author_order, axis=1)
+
+results['score_diff'] = results['score_second'] - results['score_first']
+results.to_csv('data/arnold16_details.csv')
+#%%
+from nltk.metrics.agreement import AnnotationTask
+def interval_distance(a, b):
+#    return abs(a-b)
+    return pow(a-b, 2)
+{col: AnnotationTask(data=results.groupby(('rater', 'author_id')).mean().reset_index().loc[:, ['rater', 'author_id', col]].values.tolist(), distance=interval_distance).alpha()
+ for col in ['comparison_author', 'score_first', 'score_second', 'score_diff']}
+
+
+#.to_csv('arnold16_details.csv')
+
