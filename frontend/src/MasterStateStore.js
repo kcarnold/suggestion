@@ -110,7 +110,7 @@ const namedConditions = {
     showPhrase: false
   },
   phrase: {
-    sugFlags: ngramFlags,
+    sugFlags: {...ngramFlags, continuation_length: 3},
     showPhrase: true
   },
   rarePhrase: {
@@ -118,6 +118,7 @@ const namedConditions = {
       useSufarr: true,
       rare_word_bonus: 1,
       use_bos_suggs: false,
+      continuation_length: 3,
     },
     showPhrase: true
   }
