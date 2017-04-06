@@ -82,7 +82,7 @@ sorted(set(participants) - set(all_rated))
 #%%
 
 texts = {pid: [block['finalText'] for block in data['blocks']] for pid, data in log_data.items()}
-
+#texts = {pid: [block['condition'] for block in data['blocks']] for pid, data in log_data.items()}
 #%%
 import contextlib
 
@@ -111,8 +111,9 @@ def dump_rating_task(basename, participants, texts_by_participant_id):
             for attr in ["food", "drinks", "atmosphere", "service", "value", "detailed", "written", "quality"]:
                 print(f"{participant_hash},{attr},,")
 #%%
-dump_rating_task('data/detail_ratings/input batches/round5', rate_round_5, texts)
+dump_rating_task('data/detail_ratings/input batches/test', list(participants), texts)
 #%%
+participants = sorted(list(log_data.keys()))
 conditions = []
 for author_id in participants:
     author_conds = log_data[author_id]['conditions']
@@ -128,6 +129,7 @@ participant_hash2id = pd.Series(participants, index=[make_participant_hash(x) fo
 ratings_files = [f'batch{batch+1}_{rater}' for batch in range(4) for rater in ['kf', 'km']]
 #ratings_files = [f'old_{rater}' for rater in ['kf', 'km']]
 
+#ratings_files = ['test']
 results = pd.concat([
         pd.read_csv(f'data/detail_ratings/{fname}.csv', header=None, names=['hash', 'attr', 'comparison', 'score_A', 'score_B'])
             .assign(rater=fname.split('_')[-1])
