@@ -158,10 +158,12 @@ html, body {
     height: 42px;
     user-select: none;
     flex: 0 0 auto;
+    display: flex;
+    flex-flow: row nowrap;
 }
 
 .Suggestion {
-    display: inline-block;
+    display: block;
     color: white;
     border-right: 1px solid white;
     text-align: center;
@@ -172,8 +174,8 @@ html, body {
     /* padding: 0 4px; */
     line-height: normal;
     cursor: pointer;
-    width: 33.33333%;
     height: 100%;
+    flex: 1 0 0;
 }
 
 .Suggestion:last-child {
