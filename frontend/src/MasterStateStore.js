@@ -136,6 +136,13 @@ const MASTER_CONFIGS = {
     baseConditions: ['rarePhrase', 'phrase'],
     prewrite: true,
     isStudy1: false,
+    instructions: 'detailed',
+  },
+  funny: {
+    baseConditions: ['rarePhrase', 'phrase'],
+    prewrite: true,
+    isStudy1: false,
+    instructions: 'funny',
   }
 };
 

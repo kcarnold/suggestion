@@ -9,16 +9,24 @@ const hostname = window.location.host;
 
 const surveyURLs = {
   intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
-  instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
   postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
 }
 
 const texts = {
-  overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
-  brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you.</span>,
-  revisionInstructions: <span>Type the <b>most detailed true story you can</b> about your experience.</span>,
+  detailed: {
+    overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
+    brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
+    revisionInstructions: <span>Okay, this time for real. Type the <b>most detailed true story you can</b> about your experience.</span>,
+    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+  },
+  funny: {
+    overallInstructions: <span>Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
+    brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
+    revisionInstructions: <span>Okay, this time for real. Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
+    instructionsQuiz: null,
+  },
 };
 
 const tutorialTaskDescs = {
@@ -115,19 +123,31 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 
+
 const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(class RedirectToSurvey extends Component {
+  getRedirectURL() {
+    let afterEvent =  this.props.afterEvent || 'completeSurvey';
+    let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
+    let url = nextURL;
+    if (this.props.url) {
+      url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
+      if (this.props.extraParams) {
+        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      }
+    }
+    return url;
+  }
+
   componentDidMount() {
     if (this.props.spying) return;
     // This timeout is necessary to give the current page enough time to log the event that caused this render.
     // 2 seconds is probably overdoing it, but on the safe side.
     this.timeout = setTimeout(() => {
-      let afterEvent =  this.props.afterEvent || 'completeSurvey';
-      let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
-      let url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`
-      if (this.props.extraParams) {
-        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
+      window.location.href = this.getRedirectURL();
+      if (!this.props.url) {
+        // reload to trigger the event.
+        window.location.reload();
       }
-      window.location.href = url;
     }, 2000);
   }
 
@@ -138,10 +158,7 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
 
   render() {
     if (this.props.spying) {
-      let url = this.props.url;
-      if (this.props.extraParams) {
-        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
-      }
+      let url = this.getRedirectURL();
       return <div>(survey: {this.props.state.curScreen.controllerScreen}) <a href={url}>{url}</a></div>;
     }
     return <div>redirecting...</div>;
@@ -200,15 +217,15 @@ export const screenViews = {
     return <div>
       <h1>Let's write about your experience at {state.curPlace.name}!</h1>
       <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-      <p style={{border: '1px solid black', padding: '2px'}}>{texts.overallInstructions}</p>
+      <p style={{border: '1px solid black', padding: '2px'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
       {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
       {state.prewrite &&  <ol>
-        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts.brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
-        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts.revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
+        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
+        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
       </ol>}
       {state.prewrite
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
-        : <p>{false && texts.revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
+        : <p>{false && texts[state.masterConfig.instructions].revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
       <hr/>
       {state.passedQuiz || inExperiment
         ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
@@ -217,14 +234,15 @@ export const screenViews = {
   })),
 
   ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <div>
-    <p>{state.isPrewrite ? texts.brainstormingInstructions : texts.revisionInstructions}</p>
+    <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
+    <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
-    : <RedirectToSurvey url={surveyURLs.instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
+    : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
   RevisionComputer: inject('state')(observer(({state}) => <div>
-      {texts.revisionInstructions}
+      {texts[state.masterConfig.instructions].revisionInstructions}
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
