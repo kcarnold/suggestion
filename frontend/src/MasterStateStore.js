@@ -116,7 +116,7 @@ const namedConditions = {
   rarePhrase: {
     sugFlags: {
       useSufarr: true,
-      rare_word_bonus: 1,
+      rare_word_bonus: .75,
       use_bos_suggs: false,
       continuation_length: 3,
     },
