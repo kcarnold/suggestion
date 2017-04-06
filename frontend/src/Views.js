@@ -18,13 +18,13 @@ const texts = {
   detailed: {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
     brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
-    revisionInstructions: <span>Okay, this time for real. Type the <b>most detailed true story you can</b> about your experience.</span>,
+    revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent.</span>,
     instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
   },
   funny: {
     overallInstructions: <span>Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
     brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
-    revisionInstructions: <span>Okay, this time for real. Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
+    revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent -- but still funny!</span>,
     instructionsQuiz: null,
   },
 };
