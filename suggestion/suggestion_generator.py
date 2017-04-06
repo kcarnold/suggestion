@@ -370,7 +370,7 @@ def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_dis
     return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
 
 
-def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length_after_first=17, sug_state=None, **kw):
+def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length_after_first=17, sug_state=None, word_bonuses=None, **kw):
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -427,8 +427,11 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
-            # The multiplication makes a copy.
-            word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
+            if word_bonuses is None:
+                # The multiplication makes a copy.
+                word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
+            else:
+                word_bonuses = word_bonuses.copy()
             # Don't double-bonus words that have already been used.
             for word in set(toks):
                 word_idx = model.model.vocab_index(word)
