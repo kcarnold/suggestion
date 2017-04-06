@@ -191,7 +191,8 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         use_sufarr=request.get('useSufarr', False),
                         temperature=request.get('temperature', 0.),
                         sug_state=self.sug_state,
-                        use_bos_suggs=request['use_bos_suggs'])
+                        use_bos_suggs=request['use_bos_suggs'],
+                        length_after_first=request.get('continuation_length', 17))
                 except Exception:
                     traceback.print_exc()
                     phrases = []
