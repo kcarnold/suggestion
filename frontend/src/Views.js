@@ -185,18 +185,17 @@ const CurText = inject('spying')(observer(class CurText extends Component {
   }
 }));
 
-export const screenViews = {
-  Welcome: () => <div>
+export const Welcome = () => <div>
     <h1>Welcome</h1>
     <Consent />
     <p>If you consent to participate, click here: <NextBtn /></p>
-    </div>,
+    </div>;
 
-  ProbablyWrongCode: () => <div>
+export const  ProbablyWrongCode = () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
-  </div>,
+  </div>;
 
-  SelectRestaurants: inject('state')(observer(({state}) => <div>
+export const SelectRestaurants = inject('state')(observer(({state}) => <div>
     <p>Think of 2 <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
@@ -209,9 +208,9 @@ export const screenViews = {
     </div>
     <p>(The Next button will be enabled once all fields are filled out.)</p>
     <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2 knowWhat1 knowWhat2'.split(' '), x => state.controlledInputs.get(x))} />
-  </div>)),
+  </div>));
 
-  Instructions: inject('state')(observer(({state}) => {
+export const Instructions = inject('state')(observer(({state}) => {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
     let {isPrewrite} = state;
     return <div>
@@ -231,25 +230,25 @@ export const screenViews = {
         ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
-  })),
+  }));
 
-  ReadyPhone: inject('state')(observer(({state}) => state.passedQuiz ? <div>
+export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
-    : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />)),
+    : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
-  RevisionComputer: inject('state')(observer(({state}) => <div>
+export const RevisionComputer = inject('state')(observer(({state}) => <div>
       {texts[state.masterConfig.instructions].revisionInstructions}
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
       </div>}
-    </div>)),
+    </div>));
 
-  ExperimentScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
@@ -260,9 +259,9 @@ export const screenViews = {
         <SuggestionsBar />
         <Keyboard dispatch={dispatch} />
       </div>;
-    })),
+    }));
 
-  PracticePhone: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+export const PracticePhone = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     return <div className="ExperimentScreen">
       <div className="header">See computer for instructions. <div style={{float: 'right'}}>({state.block === 0 ? 'A' : 'B'})</div></div>
@@ -270,9 +269,9 @@ export const screenViews = {
       <SuggestionsBar />
       <Keyboard dispatch={dispatch} />
     </div>;
-  })),
+  }));
 
-  PracticeWord: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let allTasksDone = _.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.</p>
@@ -284,9 +283,9 @@ export const screenViews = {
       {['tapSuggestion'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
       {allTasksDone && <p>When you're ready, click here to move on: <NextBtn />.</p>}
     </div>;
-  })),
+  }));
 
-  PracticeComputer: inject('state', 'dispatch')(observer(({state, dispatch}) => {
+export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {isStudy1} = state.masterConfig;
     // <h1>Practice with Phrase Suggestions</h1>
     // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
@@ -304,34 +303,35 @@ export const screenViews = {
         Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p>}
     </div>;
-  })),
+  }));
 
-  PracticeComputer2: () => <div>
+export const PracticeComputer2 = () => <div>
     <h1>Practice with Session B Phrase Suggestions</h1>
 
     <p>We are now starting the second of two writing sessions, Session B. In this session, <b>the suggestions will show different kinds of phrases</b>. Other than that, nothing changed; you'll still tap once per word you want.</p>
 
     <p>We put up the practice keyboard on your phone again so you can try out the different phrase suggestions. <b>Try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b></p>
     <p>Once you've gotten some practice, click this button to move on: <NextBtn /></p>
-  </div>,
+  </div>;
 
-  TimesUpPhone: () => <div>Time is up. Follow the instructions on your computer.</div>,
+export const TimesUpPhone = () => <div>Time is up. Follow the instructions on your computer.</div>;
 
-  EditScreen: inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
+export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
       Now, edit what you wrote to make it better. <Timer />
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
-  </div>)),
+  </div>));
 
-  IntroSurvey: () => <RedirectToSurvey url={surveyURLs.intro} />,
-  PostFreewriteSurvey: () => <RedirectToSurvey url={surveyURLs.postFreewrite} />,
-  PostTaskSurvey: inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />),
-  PostExpSurvey: () => <RedirectToSurvey url={surveyURLs.postExp} />,
-  Done: inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>),
-  LookAtPhone: inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>),
-  LookAtComputer: inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>),
-  SetupPairingComputer: inject('clientId')(({clientId}) => {
+export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
+export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
+export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
+export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
+export const Done = inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>);
+export const LookAtPhone = inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>);
+export const LookAtComputer = inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>);
+
+export const SetupPairingComputer = inject('clientId')(({clientId}) => {
     let url = `http://${hostname}/?${clientId}-p`;
     return <div>
     <p>You will need two devices to complete this study: a <b>laptop/desktop computer</b> (you could use a tablet but we haven't tested it), and a <b>smartphone</b> with a web browser and WiFi (we will not be responsible for any data charges).</p>
@@ -344,10 +344,10 @@ export const screenViews = {
     </ul>
     <p>Once your phone is paired, there will be a button on that page to continue.</p>
   </div>;
-  }),
-  SetupPairingPhone: () => <div>Successfully paired! <NextBtn /></div>,
+  });
+export const SetupPairingPhone = () => <div>Successfully paired! <NextBtn /></div>;
 
-  ShowReviews: inject('state')(observer(({state}) => <div>
+export const ShowReviews = inject('state')(observer(({state}) => <div>
     <p>Here are the stories you wrote:</p>
     <h1>Session A ({state.places[0].name})</h1>
     <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-0').curText}</div>
@@ -355,28 +355,4 @@ export const screenViews = {
     <h1>Session B ({state.places[1].name})</h1>
     <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-1').curText}</div>
 
-  </div>)),
-};
-
-const shouldShowLabelOnScreen = {
-  Instructions: true,
-  PracticeComputer: true,
-  PracticeComputer2: true,
-  RevisionComputer: true,
-};
-
-export const MasterView = inject('state')(observer(({state, kind}) => {
-  if (state.replaying) return <div>Loading...</div>;
-  let screenDesc = state.screens[state.screenNum];
-  let screenName;
-  if (kind === 'c') {
-    screenName = screenDesc.controllerScreen || 'LookAtPhone';
-  } else {
-    screenName = screenDesc.screen || 'LookAtComputer';
-  }
-  return (
-    <div className="App">
-      {kind === 'c' && shouldShowLabelOnScreen[screenName] && <div style={{float: 'right'}}>{state.blockName}</div>}
-      {React.createElement(screenViews[screenName])}
-    </div>);
-}));
+  </div>));

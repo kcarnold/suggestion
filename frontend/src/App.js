@@ -4,7 +4,7 @@ import M from 'mobx';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
-import {MasterView} from './Views';
+import {MasterView} from './MasterView';
 import * as WSPinger from './WSPinger';
 
 const MAX_PING_TIME = 200;
