@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import {observer, Provider} from 'mobx-react';
 import {MasterStateStore} from './MasterStateStore';
-import {MasterView} from './Views';
+import {MasterView} from './MasterView';
 
 const fakeClientId = 'zzzzzz';
 

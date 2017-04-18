@@ -5,7 +5,7 @@ import moment from 'moment';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
-import {MasterView} from './Views';
+import {MasterView} from './MasterView';
 
 let match = window.location.search.slice(1).match(/^(\w+)-(\w+)$/);
 let panopt = match[1], panopticode = match[2];
