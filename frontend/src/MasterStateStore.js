@@ -87,6 +87,12 @@ const MASTER_CONFIGS = {
     prewrite: true,
     isStudy1: false,
     instructions: 'funny',
+  },
+  study4: {
+    baseConditions: ['rarePhrase', 'phrase'],
+    prewrite: false,
+    isStudy1: false,
+    instructions: 'review',
   }
 };
 

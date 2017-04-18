@@ -27,6 +27,12 @@ const texts = {
     revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent -- but still funny!</span>,
     instructionsQuiz: null,
   },
+  review: {
+    overallInstructions: <span>Write the highest-quality review you can of your experience.</span>,
+    brainstormingInstructions: <span />,
+    revisionInstructions: <span>Write the highest-quality review you can of your experience.</span>,
+    instructionsQuiz: null,
+  }
 };
 
 const tutorialTaskDescs = {
