@@ -196,7 +196,7 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 
 
 from collections import namedtuple
-BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, bonuses')
+BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
 def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None, rare_word_bonus=0.):
     if isinstance(model, str):
@@ -262,29 +262,31 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
 
 def beam_search_sufarr_init(model, start_words):
     start_state, start_score = model.get_state(start_words, bos=False)
-    return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx)))]
+    return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx), model.null_context_state))]
 
 
-def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, word_bonuses=None, prefix=''):
+def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, word_bonuses=None, prefix='', null_logprob_weight=0.):
     if isinstance(model, str):
         model = get_model(model)
     def candidates():
         for entry in beam:
-            score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx) = entry
+            score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx, penultimate_state_null) = entry
             if done:
                 yield entry
                 continue
             if last_word_idx is not None:
                 last_state = kenlm.State()
                 model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                last_state_null = kenlm.State()
+                model.model.base_score_from_idx(penultimate_state_null, last_word_idx, last_state_null)
             else:
                 last_state = penultimate_state
+                last_state_null = penultimate_state_null
             start_idx, end_idx = sufarr.search_range(context_tuple + tuple(words) + (prefix,), lo=prev_start_idx, hi=prev_end_idx)
             next_word_ids = collect_words_in_range(start_idx, end_idx, iteration_num + 1, docs_by_id)
             if len(next_word_ids) == 0:
                 assert iteration_num == 0 or model.id2str[last_word_idx] == '</S>', "We only expect to run out of words at an end-of-sentence that's also an end-of-document."
                 continue
-            bound_indices = start_idx, end_idx
             new_state = kenlm.State()
             for next_idx, word_idx in enumerate(next_word_ids):
                 if word_idx == 0: continue
@@ -293,9 +295,10 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
                 new_num_chars = num_chars + 1 + len(word) if iteration_num > 0 else 0
                 logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                 unigram_bonus = word_bonuses[word_idx] if word not in words else 0.
-                new_score = score + logprob + unigram_bonus
+                logprob_null = LOG10 * model.model.base_score_from_idx(last_state_null, word_idx, new_state)
+                new_score = score + logprob + null_logprob_weight * logprob_null + unigram_bonus
                 done = new_num_chars >= length_after_first
-                yield new_score, new_words, done, last_state, word_idx, new_num_chars, bound_indices#bonuses + [unigram_bonus])
+                yield new_score, new_words, done, last_state, word_idx, new_num_chars, (start_idx, end_idx, last_state_null)#bonuses + [unigram_bonus])
     return heapq.nlargest(beam_width, candidates())
 
 
@@ -439,10 +442,11 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus,
             for i in range(length_after_first):
                 beam_chunks = cytoolz.partition_all(8, beam)
                 parallel_futures = yield [executor.submit(
-                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix)
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix, **kw)
                     for chunk in beam_chunks]
                 parallel_beam = list(cytoolz.concat(parallel_futures))
                 prefix = ''
+                # FIXME: maintain diversity in first-words here?
                 beam = heapq.nlargest(beam_width, parallel_beam)
                 # entry 2 is "DONE"
                 if all(ent[2] for ent in beam):
