@@ -13,7 +13,8 @@ import pandas as pd
 #data_file = 'data/analysis_study4_2017-04-02T17:14:44.194603.pkl'
 #data_file = 'data/analysis_study4_2017-04-02T20:37:11.374099.pkl'
 #data_file = 'data/analysis_study4_2017-04-02T21:09:39.528242.pkl'
-data_file = 'data/analysis_study4_2017-04-04T13:11:10.932814.pkl'
+#data_file = 'data/analysis_study4_2017-04-04T13:11:10.932814.pkl'
+data_file = 'data/analysis_funny_2017-04-07T09:58:07.316857.pkl'
 log_data, survey_data = pickle.load(open(data_file, 'rb'))
 participants = sorted(log_data.keys())
 #%%
@@ -111,7 +112,7 @@ def dump_rating_task(basename, participants, texts_by_participant_id):
             for attr in ["food", "drinks", "atmosphere", "service", "value", "detailed", "written", "quality"]:
                 print(f"{participant_hash},{attr},,")
 #%%
-dump_rating_task('data/detail_ratings/input batches/test', list(participants), texts)
+dump_rating_task('data/detail_ratings/input batches/funny1', list(participants), texts)
 #%%
 participants = sorted(list(log_data.keys()))
 conditions = []

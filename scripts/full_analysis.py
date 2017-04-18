@@ -7,6 +7,7 @@ import pandas as pd
 import json
 import numpy as np
 import datetime
+import itertools
 
 root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
@@ -72,11 +73,14 @@ a997ed
 773fa0
 43cd2c
 706d74
-7d5d97'''.split(), study3='''4265fc 6e3526 15b070 a10da3 6c0f8a'''.split(),
+7d5d97''', study3='''4265fc 6e3526 15b070 a10da3 6c0f8a''',
     study4='''
     51aa50 aae8e4 83ada3 993876 8e4d93 10317e 6a8a4c
     4f140f b2d633 42a2d1 7939c9 3822a7 10f0dc c8963d 1e165d e98445 8a8a64 fd3076 c7ffcb 72b6f6 ab938b ec0620 60577e 8ddf8b ac1341 bb9486 a178d3
-    '''.split())[batch_code]
+    ''',
+    funny='''f44a6b
+cdf1be
+495e52''')[batch_code].split()
 
 
 def run_log_analysis(participant):
@@ -121,12 +125,20 @@ def classify_annotated_event(evt):
         return None
     text = evt['curText']
     null_word = len(text) == 0 or text[-1] == ' '
+    text = text.strip()
+    bos = len(text) == 0 or text[-1] in '.?!'
     if typ == 'tapKey':
         return 'tapKey'
     if typ == 'tapBackspace':
         return 'tapBackspace'
     if typ == 'tapSuggestion':
-        return 'tapSugg_' + ('full' if null_word else 'part')
+        if bos:
+            sugg_mode = 'bos'
+        elif null_word:
+            sugg_mode = 'full'
+        else:
+            sugg_mode = 'part'
+        return 'tapSugg_' + sugg_mode
     assert False, typ
 
 from collections import Counter
@@ -185,7 +197,11 @@ if __name__ == '__main__':
             datum['kind'] = kind
             datum['block'] = num
             datum.update(flatten_dict(log_analyses['blocks'][num]))
-            for typ, count in Counter(classify_annotated_event(evt) for evt in page_data['annotated']).items():
+            classified_events = [classify_annotated_event(evt) for evt in page_data['annotated']]
+            transitions = Counter(zip(itertools.chain(['start'], classified_events), itertools.chain(classified_events, ['end']))).most_common()
+            for (a, b), count in transitions:
+                datum[f'x_{a}_{b}'] = count
+            for typ, count in Counter(classified_events).items():
                 if typ is not None:
                     datum[f'num_{typ}'] = count
             participant_level_data.append(datum)
