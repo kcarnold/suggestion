@@ -10,15 +10,15 @@ class Consent extends React.Component {
           Participants should have normal or corrected-to-normal vision and experience entering text on a touchscreen device. <b>You will need a smartphone with WiFi to complete this task.</b> Participants must be adults (at least 18 years old). <strong>If you have previously completed this study, please don't do it again. If you realize partway through, that's ok, finish it and leave a note.</strong></p>
         <p>Your phone will need to have a good connection with our server for this task.</p>
 
-        <table border={1} cellPadding={0} cellSpacing={0} style={{marginLeft: '5.4pt', borderCollapse: 'collapse', border: 'none'}}>
+        <table cellPadding={0} cellSpacing={0} style={{marginLeft: '5.4pt', borderCollapse: 'collapse', border: 'none'}}>
           <tbody>
             <tr>
-              <td style={{border: 'solid black 1.5pt', borderBottom: 'solid silver 1.5pt', padding: '0in 2.15pt 0in 2.9pt'}} valign="top">
+              <td style={{border: 'solid black 1.5pt', borderBottom: 'solid silver 1.5pt', padding: '0in 2.15pt 0in 2.9pt'}}>
                 <p><span style={{fontSize: '14.0pt'}}>Study Title: Predictive typing with long suggestions</span></p>
               </td>
             </tr>
             <tr>
-              <td style={{border: 'solid black 1.5pt', borderTop: 'none', padding: '0in 2.15pt 0in 2.9pt'}} valign="top">
+              <td style={{border: 'solid black 1.5pt', borderTop: 'none', padding: '0in 2.15pt 0in 2.9pt'}}>
                 <p><span style={{fontSize: '14.0pt'}}>Researcher: Kenneth C. Arnold</span></p>
               </td>
             </tr>
