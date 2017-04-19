@@ -28,6 +28,8 @@ def download_surveys(out_path):
     for name, survey_id in surveys.items():
         print(name)
         survey = get_survey(survey_id)
+        if 'responseCounts' in survey:
+            del survey['responseCounts']
         with open(os.path.join(out_path, '{}.qsf'.format(name)), 'w') as f:
             json.dump(survey, f, indent=2)
         responses = get_responses(survey_id)

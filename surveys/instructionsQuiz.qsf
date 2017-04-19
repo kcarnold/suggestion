@@ -301,10 +301,5 @@
     }
   ],
   "comments": {},
-  "loopAndMerge": {},
-  "responseCounts": {
-    "auditable": 73,
-    "generated": 1,
-    "deleted": 0
-  }
+  "loopAndMerge": {}
 }

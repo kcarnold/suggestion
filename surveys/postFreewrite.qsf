@@ -461,10 +461,5 @@
     }
   ],
   "comments": {},
-  "loopAndMerge": {},
-  "responseCounts": {
-    "auditable": 128,
-    "generated": 0,
-    "deleted": 0
-  }
+  "loopAndMerge": {}
 }

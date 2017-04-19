@@ -833,10 +833,5 @@
       ]
     }
   },
-  "loopAndMerge": {},
-  "responseCounts": {
-    "auditable": 81,
-    "generated": 0,
-    "deleted": 0
-  }
+  "loopAndMerge": {}
 }
