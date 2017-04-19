@@ -193,23 +193,24 @@ export const Instructions = inject('state')(observer(({state}) => {
       <p style={{border: '1px solid black', padding: '2px'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
       {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
       {state.prewrite &&  <ol>
-        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].brainstormingInstructions} ({state.times.prewriteTimer / 60} minutes)</li>
-        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].revisionInstructions} ({state.times.finalTimer / 60} minutes)</li>
+        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].brainstormingInstructions}</li>
+        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].revisionInstructions}</li>
       </ol>}
       {state.prewrite
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
-        : <p>{false && texts[state.masterConfig.instructions].revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
+        : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
-        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
+        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   }));
 
+//     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
+
 export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
-    <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
-    <p>Tap Next when you're ready to start. You will have {state.nextScreen.timer / 60} minutes (note the timer on top). (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
+    <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
@@ -228,7 +229,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
-          {state.isPrewrite ? "Brainstorming for your" : "Revised"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           <div style={{float: 'right'}}></div>
         </div>
         <CurText text={experimentState.curText} />
@@ -284,10 +285,10 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
 export const PracticeComputer2 = () => <div>
     <h1>Practice with Session B Phrase Suggestions</h1>
 
-    <p>We are now starting the second of two writing sessions, Session B. In this session, <b>the suggestions will show different kinds of phrases</b>. Other than that, nothing changed; you'll still tap once per word you want.</p>
+    <p>We are now starting the second of two writing sessions, Session B. In this session, <b>the suggestions will show different kinds of phrases</b>. Other than that, nothing changed.</p>
 
-    <p>We put up the practice keyboard on your phone again so you can try out the different phrase suggestions. <b>Try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b></p>
-    <p>Once you've gotten some practice, click this button to move on: <NextBtn /></p>
+    <p>We put up the practice keyboard on your phone again so you can try out the different phrase suggestions. <b>Try writing a few sentences</b> to get a feel for the new suggestions. Use both the keys and the suggestions.</p>
+    <p>When you're comfortable with the new phrases, click this button to move on: <NextBtn /></p>
   </div>;
 
 export const TimesUpPhone = () => <div>Time is up. Follow the instructions on your computer.</div>;

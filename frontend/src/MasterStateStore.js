@@ -23,14 +23,14 @@ function experimentBlock(block:number, conditionName: string, includePrewrite: b
       preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `pre-${block}`},
     },
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
-    {screen: 'TimesUpPhone', controllerScreen: 'PostFreewriteSurvey'},
+    {controllerScreen: 'PostFreewriteSurvey'},
   ];
 
   let finalPhase = [
     {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
-    {screen: 'TimesUpPhone', controllerScreen: 'PostTaskSurvey'},
+    {controllerScreen: 'PostTaskSurvey'},
   ];
 
   if (includePrewrite) {
