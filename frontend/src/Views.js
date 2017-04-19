@@ -200,7 +200,7 @@ export const Instructions = inject('state')(observer(({state}) => {
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
         : <p>{false && texts[state.masterConfig.instructions].revisionInstructions} You will have {state.times.finalTimer / 60} minutes.</p>}
       <hr/>
-      {state.passedQuiz || inExperiment
+      {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}. The experiment will automatically advance when time is up.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
