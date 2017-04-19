@@ -52,7 +52,14 @@ const namedConditions = {
     showPhrase: false
   },
   phrase: {
-    sugFlags: {...ngramFlags, continuation_length: 3},
+    //sugFlags: {...ngramFlags, continuation_length: 17},
+    sugFlags: {
+      useSufarr: true,
+      rare_word_bonus: 0,
+      null_logprob_weight: 0,
+      use_bos_suggs: false,
+      continuation_length: 17,
+    },
     showPhrase: true
   },
   rarePhrase: {
