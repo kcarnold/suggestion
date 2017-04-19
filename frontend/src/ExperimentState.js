@@ -1,5 +1,6 @@
 import M from 'mobx';
 import _ from 'lodash';
+import countWords from './CountWords';
 
 /**** Main state store!
 
@@ -46,6 +47,9 @@ export class ExperimentStateStore {
       lastSuggestionsFromServer: [],
       activeSuggestion: null,
       lastSpaceWasAuto: false,
+      get wordCount() {
+        return countWords(this.curText);
+      },
       get activeSuggestionWords() {
         return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
       },

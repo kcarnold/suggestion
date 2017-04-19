@@ -14,6 +14,8 @@ const surveyURLs = {
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
 }
 
+const wordCountTarget = 100;
+
 const texts = {
   detailed: {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
@@ -28,9 +30,9 @@ const texts = {
     instructionsQuiz: null,
   },
   review: {
-    overallInstructions: <span>Write the highest-quality review you can of your experience.</span>,
+    overallInstructions: <span>Write the highest-quality review you can of your experience. Aim for about {wordCountTarget} words.</span>,
     brainstormingInstructions: <span />,
-    revisionInstructions: <span>Write the highest-quality review you can of your experience.</span>,
+    revisionInstructions: <span>Write the highest-quality review you can of your experience. Aim for about {wordCountTarget} words.</span>,
     instructionsQuiz: null,
   }
 };
@@ -214,6 +216,8 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
 
 export const RevisionComputer = inject('state')(observer(({state}) => <div>
       {texts[state.masterConfig.instructions].revisionInstructions}
+      <div>Word count: {state.experimentState.wordCount}</div>
+      {state.experimentState.wordCount < wordCountTarget ? <div>Try to write {wordCountTarget} words.</div> : <div>When you're done, click here: <NextBtn /></div>}
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
@@ -225,7 +229,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       return <div className="ExperimentScreen">
         <div className="header">
           {state.isPrewrite ? "Brainstorming for your" : "Revised"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
-          <div style={{float: 'right'}}><Timer /></div>
+          <div style={{float: 'right'}}></div>
         </div>
         <CurText text={experimentState.curText} />
         <SuggestionsBar />
@@ -290,7 +294,7 @@ export const TimesUpPhone = () => <div>Time is up. Follow the instructions on yo
 
 export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="EditPage">
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
-      Now, edit what you wrote to make it better. <Timer />
+      Now, edit what you wrote to make it better.
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>));
