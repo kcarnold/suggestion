@@ -26,37 +26,44 @@
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -76,25 +83,29 @@
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -115,25 +126,29 @@
           "recode": "1",
           "description": "Pay careful attention to grammar, accuracy, and structure.",
           "choiceText": "Pay careful attention to grammar, accuracy, and structure.",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Make sure you organize the details in a coherent order.",
           "choiceText": "Make sure you organize the details in a coherent order.",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Ensure that everything you write accurately depicts your experience.",
           "choiceText": "Ensure that everything you write accurately depicts your experience.",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "None of the above; these are only important in the <strong>second</strong> step.",
           "choiceText": "None of the above; these are only important in the <strong>second</strong> step.",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -154,25 +169,29 @@
           "recode": "1",
           "description": "Your overall impressions, likes, and dislikes, based on several visits",
           "choiceText": "Your overall impressions, likes, and dislikes, based on several visits",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Recommendations and tips about how to make the most of a visit",
           "choiceText": "Recommendations and tips about how to make the most of a visit",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Detailed descriptions of various aspects of the experience",
           "choiceText": "Detailed descriptions of various aspects of the experience",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Comparisons of the establishment with other similar establishments",
           "choiceText": "Comparisons of the establishment with other similar establishments",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       },
       "randomization": {
@@ -282,6 +301,7 @@
     }
   ],
   "comments": {},
+  "loopAndMerge": {},
   "responseCounts": {
     "auditable": 73,
     "generated": 1,

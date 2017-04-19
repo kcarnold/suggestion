@@ -38,37 +38,44 @@
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -88,25 +95,29 @@
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -151,27 +162,32 @@
         "1": {
           "recode": "1",
           "description": "A, definitely",
-          "choiceText": "A, definitely"
+          "choiceText": "A, definitely",
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "A, somewhat",
-          "choiceText": "A, somewhat"
+          "choiceText": "A, somewhat",
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "about the same",
-          "choiceText": "about the same"
+          "choiceText": "about the same",
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "B, somewhat",
-          "choiceText": "B, somewhat"
+          "choiceText": "B, somewhat",
+          "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "B, definitely",
-          "choiceText": "B, definitely"
+          "choiceText": "B, definitely",
+          "analyze": true
         }
       }
     },
@@ -217,13 +233,15 @@
           "recode": "1",
           "description": "Yes",
           "choiceText": "Yes",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "No",
           "choiceText": "No",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -255,25 +273,29 @@
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -438,27 +460,32 @@
         "1": {
           "recode": "1",
           "description": "Very <strong>Inaccurate</strong",
-          "choiceText": "Very <strong>Inaccurate</strong"
+          "choiceText": "Very <strong>Inaccurate</strong",
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Moderately Inaccurate",
-          "choiceText": "Moderately Inaccurate"
+          "choiceText": "Moderately Inaccurate",
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Neither Accurate Nor Inaccurate",
-          "choiceText": "Neither Accurate Nor Inaccurate"
+          "choiceText": "Neither Accurate Nor Inaccurate",
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Moderately Accurate",
-          "choiceText": "Moderately Accurate"
+          "choiceText": "Moderately Accurate",
+          "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "Very <strong>Accurate</strong>",
-          "choiceText": "Very <strong>Accurate</strong>"
+          "choiceText": "Very <strong>Accurate</strong>",
+          "analyze": true
         }
       },
       "randomization": {
@@ -772,8 +799,9 @@
     }
   ],
   "comments": {},
+  "loopAndMerge": {},
   "responseCounts": {
-    "auditable": 74,
+    "auditable": 75,
     "generated": 0,
     "deleted": 0
   }

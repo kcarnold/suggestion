@@ -38,37 +38,44 @@
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -118,49 +125,57 @@
           "recode": "1",
           "description": "Less than high school degree",
           "choiceText": "Less than high school degree",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "High school graduate (high school diploma or equivalent including GED)",
           "choiceText": "High school graduate (high school diploma or equivalent including GED)",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Some college but no degree",
           "choiceText": "Some college but no degree",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Associate degree in college (2-year)",
           "choiceText": "Associate degree in college (2-year)",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "Bachelor's degree in college (4-year)",
           "choiceText": "Bachelor's degree in college (4-year)",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "6": {
           "recode": "6",
           "description": "Master's degree",
           "choiceText": "Master's degree",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "7": {
           "recode": "7",
           "description": "Doctoral degree",
           "choiceText": "Doctoral degree",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "8": {
           "recode": "8",
           "description": "Professional degree (JD, MD)",
           "choiceText": "Professional degree (JD, MD)",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -180,19 +195,22 @@
           "recode": "1",
           "description": "Male",
           "choiceText": "Male",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Female",
           "choiceText": "Female",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Something else, or I'd prefer not to say",
           "choiceText": "Something else, or I'd prefer not to say",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -212,25 +230,29 @@
           "recode": "1",
           "description": "Basic",
           "choiceText": "Basic",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Conversational",
           "choiceText": "Conversational",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Fluent",
           "choiceText": "Fluent",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Native or bilingual",
           "choiceText": "Native or bilingual",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -262,25 +284,29 @@
           "recode": "1",
           "description": "Desktop computer",
           "choiceText": "Desktop computer",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Laptop, notebook, Chromebook, or similar",
           "choiceText": "Laptop, notebook, Chromebook, or similar",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Smartphone",
           "choiceText": "Smartphone",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Tablet",
           "choiceText": "Tablet",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -300,19 +326,22 @@
           "recode": "1",
           "description": "I am among the first people to check out a new electronic device or gadget",
           "choiceText": "I am among the first people to check out a new electronic device or gadget",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "I usually wait until I see others try a new technology, then I try it myself",
           "choiceText": "I usually wait until I see others try a new technology, then I try it myself",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "I tend to wait a long time to try new technology",
           "choiceText": "I tend to wait a long time to try new technology",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -333,19 +362,22 @@
           "recode": "2",
           "description": "built-in keyboard where you tap keys",
           "choiceText": "built-in keyboard where you tap keys",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "built-in keyboard where you swipe words",
           "choiceText": "built-in keyboard where you swipe words",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "3rd-party keyboard (please specify)",
           "choiceText": "3rd-party keyboard (please specify)",
           "variableName": null,
+          "analyze": true,
           "textEntry": {}
         }
       }
@@ -385,27 +417,32 @@
         "1": {
           "recode": "1",
           "description": "Never",
-          "choiceText": "Never"
+          "choiceText": "Never",
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Once per month",
-          "choiceText": "Once per month"
+          "choiceText": "Once per month",
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Once per week",
-          "choiceText": "Once per week"
+          "choiceText": "Once per week",
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Once per day",
-          "choiceText": "Once per day"
+          "choiceText": "Once per day",
+          "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "Several times per day",
-          "choiceText": "Several times per day"
+          "choiceText": "Several times per day",
+          "analyze": true
         }
       }
     },
@@ -444,32 +481,38 @@
         "1": {
           "recode": "1",
           "description": "Never",
-          "choiceText": "Never"
+          "choiceText": "Never",
+          "analyze": true
         },
         "6": {
           "recode": "6",
           "description": "On occasion",
-          "choiceText": "On occasion"
+          "choiceText": "On occasion",
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Once every few sentences",
-          "choiceText": "Once every few sentences"
+          "choiceText": "Once every few sentences",
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Once per sentence",
-          "choiceText": "Once per sentence"
+          "choiceText": "Once per sentence",
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Several times per sentence",
-          "choiceText": "Several times per sentence"
+          "choiceText": "Several times per sentence",
+          "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "Nearly every word",
-          "choiceText": "Nearly every word"
+          "choiceText": "Nearly every word",
+          "analyze": true
         }
       }
     },
@@ -508,37 +551,44 @@
         "13": {
           "recode": "13",
           "description": "Like a great deal",
-          "choiceText": "Like a great deal"
+          "choiceText": "Like a great deal",
+          "analyze": true
         },
         "14": {
           "recode": "14",
           "description": "Like a moderate amount",
-          "choiceText": "Like a moderate amount"
+          "choiceText": "Like a moderate amount",
+          "analyze": true
         },
         "15": {
           "recode": "15",
           "description": "Like a little",
-          "choiceText": "Like a little"
+          "choiceText": "Like a little",
+          "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Neither like nor dislike",
-          "choiceText": "Neither like nor dislike"
+          "choiceText": "Neither like nor dislike",
+          "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Dislike a little",
-          "choiceText": "Dislike a little"
+          "choiceText": "Dislike a little",
+          "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Dislike a moderate amount",
-          "choiceText": "Dislike a moderate amount"
+          "choiceText": "Dislike a moderate amount",
+          "analyze": true
         },
         "19": {
           "recode": "19",
           "description": "Dislike a great deal",
-          "choiceText": "Dislike a great deal"
+          "choiceText": "Dislike a great deal",
+          "analyze": true
         }
       }
     },
@@ -783,8 +833,9 @@
       ]
     }
   },
+  "loopAndMerge": {},
   "responseCounts": {
-    "auditable": 80,
+    "auditable": 81,
     "generated": 0,
     "deleted": 0
   }

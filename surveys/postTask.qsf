@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-03-08T16:02:11Z",
-  "lastModifiedDate": "2017-03-23T18:51:13Z",
+  "lastModifiedDate": "2017-04-19T15:25:12Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -26,37 +26,44 @@
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -76,25 +83,29 @@
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -104,7 +115,7 @@
         "selector": "SAHR",
         "subSelector": "TX"
       },
-      "questionText": "How accurately does what you just wrote reflect your experience?",
+      "questionText": "How accurately does what you just wrote reflect your experience? (it's perfectly fine if it wasn't)",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
@@ -114,31 +125,36 @@
           "recode": "32",
           "description": "Extremely accurately",
           "choiceText": "Extremely accurately",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "33": {
           "recode": "33",
           "description": "Very accurately",
           "choiceText": "Very accurately",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "34": {
           "recode": "34",
           "description": "Moderately accurately",
           "choiceText": "Moderately accurately",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "35": {
           "recode": "35",
           "description": "Slightly accurately",
           "choiceText": "Slightly accurately",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "36": {
           "recode": "36",
           "description": "Not accurately at all",
           "choiceText": "Not accurately at all",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -148,7 +164,7 @@
         "selector": "SAHR",
         "subSelector": "TX"
       },
-      "questionText": "How detailed is the review you just wrote?",
+      "questionText": "How detailed is the review you just wrote? (it's perfectly fine if it wasn't)",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
@@ -158,31 +174,36 @@
           "recode": "25",
           "description": "Extremely detailed",
           "choiceText": "Extremely detailed",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "26": {
           "recode": "26",
           "description": "Very detailed",
           "choiceText": "Very detailed",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "27": {
           "recode": "27",
           "description": "Moderately detailed",
           "choiceText": "Moderately detailed",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "28": {
           "recode": "28",
           "description": "Slightly detailed",
           "choiceText": "Slightly detailed",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         },
         "29": {
           "recode": "29",
           "description": "Not detailed at all",
           "choiceText": "Not detailed at all",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -202,7 +223,8 @@
           "recode": "1",
           "description": "&nbsp;",
           "choiceText": "&nbsp;",
-          "variableName": null
+          "variableName": null,
+          "analyze": true
         }
       }
     },
@@ -259,37 +281,44 @@
         "15": {
           "recode": "15",
           "description": "Strongly agree",
-          "choiceText": "Strongly agree"
+          "choiceText": "Strongly agree",
+          "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Agree",
-          "choiceText": "Agree"
+          "choiceText": "Agree",
+          "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Somewhat agree",
-          "choiceText": "Somewhat agree"
+          "choiceText": "Somewhat agree",
+          "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Neither agree nor disagree",
-          "choiceText": "Neither agree nor disagree"
+          "choiceText": "Neither agree nor disagree",
+          "analyze": true
         },
         "19": {
           "recode": "19",
           "description": "Somewhat disagree",
-          "choiceText": "Somewhat disagree"
+          "choiceText": "Somewhat disagree",
+          "analyze": true
         },
         "20": {
           "recode": "20",
           "description": "Disagree",
-          "choiceText": "Disagree"
+          "choiceText": "Disagree",
+          "analyze": true
         },
         "21": {
           "recode": "21",
           "description": "Strongly disagree",
-          "choiceText": "Strongly disagree"
+          "choiceText": "Strongly disagree",
+          "analyze": true
         }
       }
     },
@@ -346,37 +375,44 @@
         "15": {
           "recode": "15",
           "description": "Strongly agree",
-          "choiceText": "Strongly agree"
+          "choiceText": "Strongly agree",
+          "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Agree",
-          "choiceText": "Agree"
+          "choiceText": "Agree",
+          "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Somewhat agree",
-          "choiceText": "Somewhat agree"
+          "choiceText": "Somewhat agree",
+          "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Neither agree nor disagree",
-          "choiceText": "Neither agree nor disagree"
+          "choiceText": "Neither agree nor disagree",
+          "analyze": true
         },
         "19": {
           "recode": "19",
           "description": "Somewhat disagree",
-          "choiceText": "Somewhat disagree"
+          "choiceText": "Somewhat disagree",
+          "analyze": true
         },
         "20": {
           "recode": "20",
           "description": "Disagree",
-          "choiceText": "Disagree"
+          "choiceText": "Disagree",
+          "analyze": true
         },
         "21": {
           "recode": "21",
           "description": "Strongly disagree",
-          "choiceText": "Strongly disagree"
+          "choiceText": "Strongly disagree",
+          "analyze": true
         }
       }
     },
@@ -469,37 +505,44 @@
         "12": {
           "recode": "12",
           "description": "Strongly agree",
-          "choiceText": "Strongly agree"
+          "choiceText": "Strongly agree",
+          "analyze": true
         },
         "13": {
           "recode": "13",
           "description": "Agree",
-          "choiceText": "Agree"
+          "choiceText": "Agree",
+          "analyze": true
         },
         "14": {
           "recode": "14",
           "description": "Somewhat agree",
-          "choiceText": "Somewhat agree"
+          "choiceText": "Somewhat agree",
+          "analyze": true
         },
         "15": {
           "recode": "15",
           "description": "Neither agree nor disagree",
-          "choiceText": "Neither agree nor disagree"
+          "choiceText": "Neither agree nor disagree",
+          "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Somewhat disagree",
-          "choiceText": "Somewhat disagree"
+          "choiceText": "Somewhat disagree",
+          "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Disagree",
-          "choiceText": "Disagree"
+          "choiceText": "Disagree",
+          "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Strongly disagree",
-          "choiceText": "Strongly disagree"
+          "choiceText": "Strongly disagree",
+          "analyze": true
         }
       }
     },
@@ -694,12 +737,7 @@
         {
           "type": "Question",
           "questionId": "QID14"
-        }
-      ]
-    },
-    "BL_d6zXUCEc36neihv": {
-      "description": "Process",
-      "elements": [
+        },
         {
           "type": "Question",
           "questionId": "QID8"
@@ -715,12 +753,7 @@
         {
           "type": "Question",
           "questionId": "QID24"
-        }
-      ]
-    },
-    "BL_ezE4WNHBpDJf6WF": {
-      "description": "Suggestions",
-      "elements": [
+        },
         {
           "type": "Question",
           "questionId": "QID11"
@@ -728,12 +761,7 @@
         {
           "type": "Question",
           "questionId": "QID3"
-        }
-      ]
-    },
-    "BL_a67Uktl1JovYplX": {
-      "description": "Block 3",
-      "elements": [
+        },
         {
           "type": "Question",
           "questionId": "QID12"
@@ -765,18 +793,6 @@
       "type": "Block"
     },
     {
-      "id": "BL_d6zXUCEc36neihv",
-      "type": "Block"
-    },
-    {
-      "id": "BL_ezE4WNHBpDJf6WF",
-      "type": "Block"
-    },
-    {
-      "id": "BL_a67Uktl1JovYplX",
-      "type": "Block"
-    },
-    {
       "type": "EmbeddedData"
     }
   ],
@@ -802,8 +818,9 @@
     }
   ],
   "comments": {},
+  "loopAndMerge": {},
   "responseCounts": {
-    "auditable": 147,
+    "auditable": 149,
     "generated": 0,
     "deleted": 0
   }
