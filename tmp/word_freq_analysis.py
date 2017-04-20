@@ -1,65 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 17 13:32:52 2017
-
-@author: kcarnold
-"""
 import pandas as pd
 import pickle
 import numpy as np
 import cytoolz
 
-#%% Load all the reviews.
-data = pickle.load(open('yelp_preproc/all_data.pkl','rb'))
-vocab, counts = data['vocab']
-reviews = data['data'].reset_index(drop=True)
-del data
-#%%
-freqs = counts / counts.sum()
-word2idx = {word: idx for idx, word in enumerate(vocab)}
-log_freqs = np.log(freqs)
-#%%
-np.random.seed(0)
-train_frac = 1 - .05 - .05
-num_docs = len(reviews)
-indices = np.random.permutation(num_docs)
-splits = (np.cumsum([train_frac, .05]) * num_docs).astype(int)
-segment_indices = np.split(indices, splits)
-names = ['train', 'valid', 'test']
-for name, indices in zip(names, segment_indices):
-    indicator = np.zeros(len(reviews), dtype=bool)
-    indicator[indices] = True
-    reviews[f'is_{name}'] = indicator
-#%%
 
-#%%
-def lookup_indices(sent):
-    tmp = (word2idx.get(word) for word in sent)
-    return [w for w in tmp if w is not None]
+def analyze_all(reviews, analyzer):
+    return reviews.tokenized.apply(lambda doc: pd.Series(analyzer(doc)))
 
-def mean_log_freq(indices):
-    return np.mean(log_freqs[indices]) if len(indices) else None
 
-def min_log_freq(indices):
-    return np.min(log_freqs[indices]) if len(indices) else None
-#%%
-doc_sentence_indices = [[lookup_indices(sent.split()) for sent in doc.lower().split('\n')] for doc in reviews.tokenized]
-#%%
-mean_llk = [list(cytoolz.filter(None, [mean_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
-min_llk = [list(cytoolz.filter(None, [min_log_freq(indices) for indices in doc_indices])) for doc_indices in doc_sentence_indices]
-#%%
-mean_mean_llk = pd.Series([np.mean(llks) if len(llks) > 0 else None for llks in mean_llk])
-mean_min_llk = pd.Series([np.mean(llks) if len(llks) > 0 else None for llks in min_llk])
-#%%
-mean_llk_first5 = pd.Series([np.nanmean([log_freqs[indices[:5]] for indices in sent_indices if len(indices) > 5]) if len(sent_indices) else None for sent_indices in doc_sentence_indices])
-#%% Identify the best reviews.
-# Mark the top reviews: top-5 ranked reviews of restaurants with at least the median # reviews,
-# as long as they have >= 10 votes.
-reviews['total_votes'] = reviews['votes_cool'] + reviews['votes_funny'] + reviews['votes_useful']
-reviews['total_votes_rank'] = reviews.groupby('business_id').total_votes.rank(ascending=False)
-business_review_counts = reviews.groupby('business_id').review_count.mean()
-median_review_count = np.median(business_review_counts)
-yelp_is_best = (reviews.review_count >= median_review_count) & (reviews.total_votes >= 10) & (reviews.total_votes_rank <= 5)
 #%%
 num_sents = np.array([len(text.split('\n')) for text in reviews.tokenized])
 #%%
@@ -90,34 +38,9 @@ plt.xlabel("Mean mean unigram log likelihood, first 5 words")
 #plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
 
 #%%
-from suggestion import clustering
-#%%
-cnnb = clustering.ConceptNetNumberBatch.load()
-#%%
-from sklearn.feature_extraction.text import TfidfVectorizer
-vectorizer = TfidfVectorizer(min_df=5, max_df=.5, stop_words='english')
-all_vecs = vectorizer.fit_transform(reviews.tokenized)
-#%%
-import wordfreq
-sklearn_vocab = vectorizer.get_feature_names()
-def get_or_zero(cnnb, item):
-    try:
-        return cnnb[item]
-    except KeyError:
-        return np.zeros(cnnb.ndim)
-cnnb_vecs_for_sklearn_vocab = np.array([get_or_zero(cnnb, word) for word in sklearn_vocab])
-wordfreqs_for_sklearn_vocab = [wordfreq.word_frequency(word, 'en', 'large', minimum=1e-9) for word in sklearn_vocab]
-projection_mat = -np.log(wordfreqs_for_sklearn_vocab)[:,None] * cnnb_vecs_for_sklearn_vocab
-#%%
-from scipy.spatial.distance import pdist
-#%%
-def smooth_ecdf(x, samples):
-    return np.interp(samples, np.sort(x), np.linspace(0,1,len(x)))
 #%%
 import tqdm
 #%%
-len_chars = reviews.text.str.len()
-reviews['len_chars'] = len_chars
 #%%
 mean_len_chars = np.mean(len_chars)
 samples = np.linspace(0, 50, 500)

@@ -6,6 +6,7 @@ class paths:
     ui = os.path.join(parent, 'frontend/build')
     logdir = os.path.join(parent, 'logs')
     db = os.path.join(parent, 'database.db')
+    preproc = os.path.join(parent, 'yelp_preproc')
 
     cache = os.path.join(parent, 'cache')
     models = os.path.join(parent, 'models')

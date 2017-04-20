@@ -250,6 +250,23 @@ if __name__ == '__main__':
 
     all_survey_data[all_survey_data.value.str.len() > 5].to_csv('data/survey_freetexts.csv')
 #%%
+def tokenize(text):
+    import nltk
+    return '\n'.join(' '.join(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text))
+participant_level_data['tokenized'] = participant_level_data.finalText.apply(tokenize)
+#%%
+from suggestion import analyzers
+wordfreq_analyzer = analyzers.WordFreqAnalyzer.build()
+#%%
+
+#%%
+pld = pd.concat([
+        participant_level_data,
+        participant_level_data.tokenized.apply(lambda doc: pd.Series(wordfreq_analyzer(doc))),
+        participant_level_data.finalText.apply(lambda doc: wp_analyzer(doc)).to_frame('dist_from_best'),
+        ], axis=1)
+pld[pld.kind != 'practice'].to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}_analyzed.csv', index=False)
+#%%
 def extract_weighted_survey_results(all_survey_data, survey, items):
     return (all_survey_data[all_survey_data.survey == survey]
             .set_index(['participant_id', 'condition', 'idx', 'name'])
