@@ -89,7 +89,75 @@ sns.kdeplot(to_plot[~yelp_is_best].dropna(), clip=clip, label='Yelp rest')
 plt.xlabel("Mean mean unigram log likelihood, first 5 words")
 #plt.savefig('figures/mean_mean_unigram_llk_2.pdf')
 
+#%%
+from suggestion import clustering
+#%%
+cnnb = clustering.ConceptNetNumberBatch.load()
+#%%
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer = TfidfVectorizer(min_df=5, max_df=.5, stop_words='english')
+all_vecs = vectorizer.fit_transform(reviews.tokenized)
+#%%
+import wordfreq
+sklearn_vocab = vectorizer.get_feature_names()
+def get_or_zero(cnnb, item):
+    try:
+        return cnnb[item]
+    except KeyError:
+        return np.zeros(cnnb.ndim)
+cnnb_vecs_for_sklearn_vocab = np.array([get_or_zero(cnnb, word) for word in sklearn_vocab])
+wordfreqs_for_sklearn_vocab = [wordfreq.word_frequency(word, 'en', 'large', minimum=1e-9) for word in sklearn_vocab]
+projection_mat = -np.log(wordfreqs_for_sklearn_vocab)[:,None] * cnnb_vecs_for_sklearn_vocab
+#%%
+from scipy.spatial.distance import pdist
+#%%
+def smooth_ecdf(x, samples):
+    return np.interp(samples, np.sort(x), np.linspace(0,1,len(x)))
+#%%
+import tqdm
+#%%
+len_chars = reviews.text.str.len()
+reviews['len_chars'] = len_chars
+#%%
+mean_len_chars = np.mean(len_chars)
+samples = np.linspace(0, 50, 500)
+ecdfs = np.empty((len(reviews), len(samples)))
+for doc_idx in tqdm.tqdm(range(len(reviews))):
+    words = all_vecs[doc_idx]
+    if len(words.indices) < 2:
+        ecdfs[doc_idx] = np.nan
+    else:
+        dists = pdist(words.data[:,None] * projection_mat[words.indices]) / (len_chars[doc_idx] / mean_len_chars) ** 2
+        ecdfs[doc_idx] = smooth_ecdf(dists, samples)
 
+#%%
+prototypical_ecdf_all = np.nanmean(ecdfs, axis=0)
+#ks_stats = np.max(np.abs(ecdfs - prototypical_ecdf[None,:]), axis=1)
+#%%
+prototypical_ecdf_best = np.nanmean(ecdfs[np.flatnonzero(yelp_is_best & ~reviews.is_train)], axis=0)
+ks_stats = np.max(np.abs(ecdfs - prototypical_ecdf_best[None,:]), axis=1)
+#%%
+plt.plot(samples, prototypical_ecdf_all, label="All")
+#plt.plot(samples, np.nanmean(ecdfs[np.flatnonzero(~yelp_is_best & ~reviews.is_train)], axis=0), label="Rest non-train")
+#plt.plot(samples, np.nanmean(ecdfs[np.flatnonzero(~yelp_is_best & reviews.is_train)], axis=0), label="Rest train")
+plt.plot(samples, np.nanmean(ecdfs[np.flatnonzero(yelp_is_best & ~reviews.is_train)], axis=0), label="Best non-train")
+plt.plot(samples, np.nanmean(ecdfs[np.flatnonzero(yelp_is_best & reviews.is_train)], axis=0), label="Best train")
+plt.legend(loc='best')
+#%%
+train_is_best = yelp_is_best & reviews.is_train
+train_is_rest = ~yelp_is_best & reviews.is_train
+
+#%%
+to_plot = pd.Series(ks_stats).dropna()
+clip = np.percentile(to_plot, [2.5, 97.5])
+sns.kdeplot(to_plot[train_is_best], clip=clip, label='Yelp best')
+sns.kdeplot(to_plot[train_is_rest].dropna(), clip=clip, label='Yelp rest')
+plt.xlabel("K-S statistic to prototypical distribution (from 10% sample) of pairwise word-vec distances (on remaining 90%)")
+#plt.savefig("prototypicality.pdf")
+#%%
+reviews['atypicality'] = ks_stats
+#%%
+reviews.to_csv('yelp_with_prototypicality_norm1.csv')
 #%% Pretend to retype the best reviews, look at suggestions.
 from suggestion import suggestion_generator
 DEFAULT_CONFIG = dict(domain='yelp_train', temperature=0., rare_word_bonus=0.)
