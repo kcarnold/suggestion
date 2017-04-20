@@ -53,7 +53,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'study4'
+batch_code = 'study4_2'
 participants = dict(study2='''81519e
 81f6b6
 9b6cd1
@@ -80,7 +80,10 @@ a997ed
     ''',
     funny='''f44a6b
 cdf1be
-495e52''')[batch_code].split()
+495e52''',
+    study4_2='''86f454
+f53eb0
+b4408e''')[batch_code].split()
 
 
 def run_log_analysis(participant):
@@ -234,7 +237,8 @@ if __name__ == '__main__':
 
     all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
     participant_level_data = pd.DataFrame(participant_level_data).fillna(0)
-    participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
+    if 'prewriteText' in participant_level_data.columns:
+        participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
     participant_level_data['finalLen'] = participant_level_data.finalText.str.len()
     participant_level_data.to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     print('excluded:', excluded)
