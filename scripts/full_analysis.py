@@ -8,9 +8,9 @@ import json
 import numpy as np
 import datetime
 import itertools
-
+#%%
 root_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-
+#%%
 survey_names =  ['intro', 'postFreewrite', 'postTask', 'postExp']
 #'instructionsQuiz',
 
@@ -84,12 +84,35 @@ cdf1be
     study4_2='''86f454
 f53eb0
 b4408e''')[batch_code].split()
-
-
-def run_log_analysis(participant):
+#%%
+def get_rev(participant):
     logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
     with open(logpath) as logfile:
-        result = subprocess.check_output([os.path.join(root_path, 'frontend', 'analysis')], stdin=logfile)
+        for line in logfile:
+            line = json.loads(line)
+            if 'rev' in line:
+                return line['rev']
+
+#%%
+def get_analyzer(git_rev):
+    import shutil
+    by_rev = os.path.join(root_path, 'old-code')
+    rev_root = os.path.join(by_rev, git_rev)
+    if not os.path.isdir(rev_root):
+        print("Checking out repository at", git_rev)
+        subprocess.check_call(['git', 'clone', '..', git_rev], cwd=by_rev)
+        subprocess.check_call(['git', 'checkout', git_rev], cwd=rev_root)
+        print("Installing npm packages")
+        subprocess.check_call(['yarn'], cwd=os.path.join(rev_root, 'frontend'))
+        subprocess.check_call(['yarn', 'add', 'babel-cli'], cwd=os.path.join(rev_root, 'frontend'))
+        shutil.copy(os.path.join(root_path, 'frontend', 'analyze.js'), os.path.join(rev_root, 'frontend', 'analyze.js'))
+    return os.path.join(rev_root, 'frontend', 'analysis')
+#%%
+def run_log_analysis(participant):
+    logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
+    analyzer_path = get_analyzer(get_rev(participant))
+    with open(logpath) as logfile:
+        result = subprocess.check_output([analyzer_path], stdin=logfile)
     bundled_participants = json.loads(result)
     assert len(bundled_participants) == 1
     pid, analyzed = bundled_participants[0]
