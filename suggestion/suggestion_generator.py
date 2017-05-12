@@ -373,12 +373,31 @@ def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_dis
     return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
 
 
-def get_suggestions_async(executor, *, sofar, cur_word, domain, rare_word_bonus, use_sufarr, temperature, use_bos_suggs, length_after_first=17, sug_state=None, word_bonuses=None, **kw):
+def get_suggestions_async(executor, *, sofar, cur_word, domain,
+    rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
+    length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None, **kw):
+
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
+
+    if word_bonuses is None and prewrite_info is not None:
+        known_words = set()
+        unknown_words = set()
+        word_bonuses = np.zeros(len(model.id2str))
+        unigram_probs = model.unigram_probs_wordsonly
+        for word in prewrite_info['text'].split():
+            idx = model.model.vocab_index(word)
+            if idx != 0:
+                word_bonuses[idx] = prewrite_info['amount'] * -unigram_probs[idx]
+                known_words.add(word)
+            else:
+                unknown_words.add(word)
+        print(f"Bonusing {len(known_words)} prewrite words: {' '.join(sorted(known_words))}")
+        print(f"Not bonusing {len(unknown_words)} unknown words: {' '.join(sorted(unknown_words))}")
+
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:

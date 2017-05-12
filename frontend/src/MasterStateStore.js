@@ -91,6 +91,20 @@ const namedConditions = {
       continuation_length: 17,
     },
     showPhrase: true
+  },
+  withPrewrite: {
+    sugFlags: {
+      useSufarr: true,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: false,
+      continuation_length: 17,
+      prewrite_info: {
+        text: 'chicken salsa burrito line condiments',
+        amount: .75
+      }
+    },
+    showPhrase: true,
   }
 };
 

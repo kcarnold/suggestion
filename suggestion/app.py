@@ -193,7 +193,9 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         sug_state=self.sug_state,
                         use_bos_suggs=request['use_bos_suggs'],
                         length_after_first=request.get('continuation_length', 17),
-                        null_logprob_weight=request.get('null_logprob_weight', 0.))
+                        null_logprob_weight=request.get('null_logprob_weight', 0.),
+                        prewrite_info=request.get('prewrite_info'),
+                        word_bonuses=None)
                 except Exception:
                     traceback.print_exc()
                     phrases = []
