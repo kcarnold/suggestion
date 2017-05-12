@@ -434,14 +434,28 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 sent_cluster_distribs=sent_cluster_distribs,
                 new_dists_opts=np.eye(clizer.n_clusters))[:3].tolist()
         else:
-            topics_to_suggest = [1,3,7]
+            topics_to_suggest = [1,3,8]
 
-        print("Suggesting topics", topics_to_suggest)
+        print(f"{use_bos_suggs} suggesting topics", topics_to_suggest)
         phrases = []
-        for cluster_idx in topics_to_suggest:
-            suggest_idx = most_distinctive[cluster_idx]
-            suggested_already.append(suggest_idx)
-            phrases.append((clizer.unique_starts[suggest_idx], None))
+        if use_bos_suggs == 'antidiverse':
+            # Pick the single most likely topic.
+            topic = topics_to_suggest[0]
+            first_words = []
+            for suggest_idx in np.argsort(scores_by_cluster[:,topic])[::-1]:
+                phrase = clizer.unique_starts[suggest_idx]
+                if phrase[0] in first_words:
+                    continue
+                first_words.append(phrase[0])
+                suggested_already.append(suggest_idx)
+                phrases.append((phrase, None))
+                if len(phrases) == 3:
+                    break
+        else:
+            for cluster_idx in topics_to_suggest:
+                suggest_idx = most_distinctive[cluster_idx]
+                suggested_already.append(suggest_idx)
+                phrases.append((clizer.unique_starts[suggest_idx], None))
         return phrases, sug_state
 
     if temperature == 0:
