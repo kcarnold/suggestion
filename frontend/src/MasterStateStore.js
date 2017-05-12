@@ -74,7 +74,7 @@ const namedConditions = {
   },
   diverse: {
     sugFlags: {
-      useSufarr: true,
+      useSufarr: false,
       rare_word_bonus: 0.,
       null_logprob_weight: 0.,
       use_bos_suggs: true,
@@ -84,7 +84,7 @@ const namedConditions = {
   },
   nondiverse: {
     sugFlags: {
-      useSufarr: true,
+      useSufarr: false,
       rare_word_bonus: 0.,
       null_logprob_weight: 0.,
       use_bos_suggs: false,
