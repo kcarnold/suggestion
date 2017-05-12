@@ -410,7 +410,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
         scores_by_cluster = clizer.scores_by_cluster.copy()
         likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
-        scores_by_cluster -= likelihood_bias
+        scores_by_cluster -= .85 * likelihood_bias
         scores_by_cluster[suggested_already] = -np.inf
         scores_by_cluster[clizer.omit] = -np.inf
         most_distinctive = np.argmax(scores_by_cluster, axis=0)
@@ -428,15 +428,15 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 (normal_lik, .5),
                 clustering.normalize_dists
                 )
+            topics_to_suggest = get_topics_to_suggest_for_new_sentence(
+                clizer=clizer,
+                target_dist=clizer.target_dists['best'],
+                sent_cluster_distribs=sent_cluster_distribs,
+                new_dists_opts=np.eye(clizer.n_clusters))[:3].tolist()
         else:
-            sent_cluster_distribs = np.zeros((0, clizer.n_clusters))
+            topics_to_suggest = [1,3,7]
 
-        topics_to_suggest = get_topics_to_suggest_for_new_sentence(
-            clizer=clizer,
-            target_dist=clizer.target_dists['best'],
-            sent_cluster_distribs=sent_cluster_distribs,
-            new_dists_opts=np.eye(clizer.n_clusters))[:3]
-        print("Suggesting topics", topics_to_suggest.tolist())
+        print("Suggesting topics", topics_to_suggest)
         phrases = []
         for cluster_idx in topics_to_suggest:
             suggest_idx = most_distinctive[cluster_idx]
