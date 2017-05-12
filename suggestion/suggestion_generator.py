@@ -21,7 +21,7 @@ def get_model(name):
     return models[name]
 
 
-enable_bos_suggs = False
+enable_bos_suggs = True
 
 if True:
     print("Loading docs...", end='', file=sys.stderr, flush=True)

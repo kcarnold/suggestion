@@ -71,6 +71,26 @@ const namedConditions = {
       continuation_length: 17,
     },
     showPhrase: true
+  },
+  diverse: {
+    sugFlags: {
+      useSufarr: true,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: true,
+      continuation_length: 17,
+    },
+    showPhrase: true
+  },
+  nondiverse: {
+    sugFlags: {
+      useSufarr: true,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: false,
+      continuation_length: 17,
+    },
+    showPhrase: true
   }
 };
 
@@ -100,6 +120,12 @@ const MASTER_CONFIGS = {
     prewrite: false,
     isStudy1: false,
     instructions: 'review',
+  },
+  diversity: {
+    baseConditions: ['diverse', 'nondiverse'],
+    prewrite: false,
+    isStudy1: false,
+    instructions: 'detailed'
   }
 };
 
