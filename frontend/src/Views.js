@@ -300,6 +300,14 @@ export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>));
 
+export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="ListWords">
+    <div style={{backgroundColor: '#ccc', color: 'black'}}>
+      Write a dozen words that come to mind that you might use in your writing. Consider details about the food, drinks, service, ambiance, location, etc.
+    </div>
+    <textarea value={"Hi"} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
+  </div>));
+
+
 export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
 export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
 export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);

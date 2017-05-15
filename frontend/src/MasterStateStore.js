@@ -150,7 +150,7 @@ const MASTER_CONFIGS = {
   },
   infoSource: {
     baseConditions: ['withPrewrite', 'phrase'],
-    prewrite: true,
+    prewrite: false,
     isStudy1: false,
     instructions: 'detailed'
   }
@@ -172,6 +172,18 @@ function getScreens(masterConfigName: string, conditions: string[]) {
       ...experimentBlock(0, conditions[0], masterConfig.prewrite),
       ...experimentBlock(1, conditions[1], masterConfig.prewrite),
     ]);
+
+  } else if (masterConfigName === 'infoSource') {
+    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'});
+    conditions.forEach((conditionName, block) => {
+      result = result.concat([
+        {controllerScreen: 'ListWords'},
+        {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
+        {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
+        {controllerScreen: 'PostTaskSurvey'},
+      ]);
+    });
+
   } else {
     result = result.concat([
       {preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
