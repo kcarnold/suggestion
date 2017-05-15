@@ -304,7 +304,8 @@ export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}
     <div style={{backgroundColor: '#ccc', color: 'black'}}>
       Write a dozen words that come to mind that you might use in your writing. Consider details about the food, drinks, service, ambiance, location, etc.
     </div>
-    <textarea value={"Hi"} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
+    <textarea placeholder={"One word or phrase per line"} value={state.prewriteText}
+      onChange={evt => {dispatch({type: 'prewriteTextChanged', value: evt.target.value});}} />;
   </div>));
 
 

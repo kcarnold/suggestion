@@ -43,19 +43,29 @@ if (window.location.search.slice(1) === 'showall') {
     newState.replaying = false;
   }
 }
+
 const ShowAllScreens = observer(class ShowAllScreens extends Component {
   render() {
+    function innerView(i, state, kind) {
+      return <Provider
+        state={state}
+        dispatch={event => {
+          event.jsTimestamp = +new Date();
+          event.kind = kind;
+          state.handleEvent(event);
+        }}
+        clientId={fakeClientId}
+        clientKind={kind}
+        spying={true}
+      ><MasterView kind={kind}/></Provider>;
+    }
     return <div>
       {states.map((state, i) => <div key={i} style={{display: 'flex', flewFlow: 'row'}}>
         <div style={{overflow: 'hidden', width: 360, height: 599, border: '1px solid black'}}>
-          <Provider state={state} dispatch={() => {}} clientId={fakeClientId} clientKind={'p'} spying={true}>
-            <MasterView kind={'p'}/>
-          </Provider>
+          {innerView(i, state, 'p')}
         </div>
         <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black'}}>
-          <Provider state={state} dispatch={() => {}} clientId={fakeClientId} clientKind={'c'} spying={true}>
-            <MasterView kind={'c'} />
-          </Provider>
+          {innerView(i, state, 'c')}
         </div>
       </div>)
     }</div>;

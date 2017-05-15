@@ -177,8 +177,8 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     result.push({preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'});
     conditions.forEach((conditionName, block) => {
       result = result.concat([
-        {controllerScreen: 'ListWords'},
         {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
+        {controllerScreen: 'ListWords'},
         {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
         {controllerScreen: 'PostTaskSurvey'},
       ]);
@@ -247,6 +247,7 @@ export class MasterStateStore {
       masterConfig: null,
       participantCode: null,
       get prewrite() { return this.masterConfig.prewrite; },
+      prewriteText: '',
       lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
@@ -342,7 +343,7 @@ export class MasterStateStore {
         };
         if (this.condition.usePrewriteText) {
           response['prewrite_info'] = {
-            text: experimentState.prewriteText,
+            text: this.prewriteText,
             amount: .75
           };
         }
@@ -420,6 +421,9 @@ export class MasterStateStore {
       break;
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);
+      break;
+    case 'prewriteTextChanged':
+      this.prewriteText = event.value;
       break;
     case 'resized':
       if (event.kind === 'p') {

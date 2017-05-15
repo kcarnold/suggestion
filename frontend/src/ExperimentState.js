@@ -41,7 +41,6 @@ export class ExperimentStateStore {
     this.__version__ = 1;
     this.condition = condition;
     M.extendObservable(this, {
-      prewriteText: 'chicken salsa burrito line condiments',
       curText: '',
       tapLocations: [],
       contextSequenceNum: 0,
