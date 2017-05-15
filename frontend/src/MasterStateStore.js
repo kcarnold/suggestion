@@ -156,8 +156,41 @@ const MASTER_CONFIGS = {
   }
 };
 
+function getScreens(masterConfigName: string, conditions: string[]) {
+  let masterConfig = MASTER_CONFIGS[masterConfigName];
+  let [c1, c2] = conditions;
+  let result = [
+    {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
+    {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
+    {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+    {controllerScreen: 'IntroSurvey'},
+  ];
+  if (masterConfig.isStudy1) {
+    result = result.concat([
+      {preEvent: {type: 'setupExperiment', block: null, condition: 'word', name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeWord'},
+      {preEvent: {type: 'setupExperiment', block: null, condition: 'phrase', name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+      ...experimentBlock(0, conditions[0], masterConfig.prewrite),
+      ...experimentBlock(1, conditions[1], masterConfig.prewrite),
+    ]);
+  } else {
+    result = result.concat([
+      {preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+      ...experimentBlock(0, conditions[0], masterConfig.prewrite),
+      {preEvent: {type: 'setupExperiment', block: 1, condition: c2, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
+      ...experimentBlock(1, conditions[1], masterConfig.prewrite),
+    ]);
+  }
+  result = result.concat([
+    {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
+    {screen: 'Done', controllerScreen: 'Done'},
+  ]);
+  return result;
+}
+
+
 export class MasterStateStore {
   masterConfig: Object;
+  masterConfigName: string;
   prewrite: boolean;
   clientId: string;
   swapConditionOrder: boolean;
@@ -244,33 +277,7 @@ export class MasterStateStore {
             screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
           }];
         }
-        let [c1, c2] = this.conditions;
-        let result = [
-          {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
-          {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
-          {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-          {controllerScreen: 'IntroSurvey'},
-        ];
-        if (this.masterConfig.isStudy1) {
-          result = result.concat([
-            {preEvent: {type: 'setupExperiment', block: null, condition: 'word', name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeWord'},
-            {preEvent: {type: 'setupExperiment', block: null, condition: 'phrase', name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-            ...experimentBlock(0, this.conditions[0], this.prewrite),
-            ...experimentBlock(1, this.conditions[1], this.prewrite),
-          ]);
-        } else {
-          result = result.concat([
-            {preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-            ...experimentBlock(0, this.conditions[0], this.prewrite),
-            {preEvent: {type: 'setupExperiment', block: 1, condition: c2, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
-            ...experimentBlock(1, this.conditions[1], this.prewrite),
-          ]);
-        }
-        result = result.concat([
-          {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
-          {screen: 'Done', controllerScreen: 'Done'},
-        ]);
-        return result;
+        return getScreens(this.masterConfigName, this.conditions);
       },
       get curScreen() {
         return this.screens[this.screenNum];
