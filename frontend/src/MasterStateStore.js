@@ -109,12 +109,9 @@ const namedConditions = {
       null_logprob_weight: 0.,
       use_bos_suggs: false,
       continuation_length: 17,
-      prewrite_info: {
-        text: 'chicken salsa burrito line condiments',
-        amount: .75
-      }
     },
     showPhrase: true,
+    usePrewriteText: true,
   }
 };
 
@@ -148,6 +145,12 @@ const MASTER_CONFIGS = {
   diversity: {
     baseConditions: ['diverse', 'antidiverse'],
     prewrite: false,
+    isStudy1: false,
+    instructions: 'detailed'
+  },
+  infoSource: {
+    baseConditions: ['withPrewrite', 'phrase'],
+    prewrite: true,
     isStudy1: false,
     instructions: 'detailed'
   }
@@ -311,13 +314,20 @@ export class MasterStateStore {
 
         let seqNum = experimentState.contextSequenceNum;
         let {prefix, curWord} = experimentState.getSuggestionContext();
-        return {
+        let response = {
           type: 'requestSuggestions',
           request_id: seqNum,
           sofar: prefix,
           cur_word: curWord,
           ...this.suggestionRequestParams
         };
+        if (this.condition.usePrewriteText) {
+          response['prewrite_info'] = {
+            text: experimentState.prewriteText,
+            amount: .75
+          };
+        }
+        return response;
       }
     });
 

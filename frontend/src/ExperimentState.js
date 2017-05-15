@@ -41,6 +41,7 @@ export class ExperimentStateStore {
     this.__version__ = 1;
     this.condition = condition;
     M.extendObservable(this, {
+      prewriteText: 'chicken salsa burrito line condiments',
       curText: '',
       tapLocations: [],
       contextSequenceNum: 0,
@@ -191,7 +192,7 @@ export class ExperimentStateStore {
     }
     return {
       prefix: sofar.slice(0, lastSpaceIdx + 1),
-      curWord
+      curWord,
     };
   }
 
