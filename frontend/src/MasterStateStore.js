@@ -152,7 +152,7 @@ const MASTER_CONFIGS = {
     baseConditions: ['withPrewrite', 'phrase'],
     prewrite: false,
     isStudy1: false,
-    instructions: 'detailed'
+    instructions: 'detailedNoBrainstorm'
   }
 };
 

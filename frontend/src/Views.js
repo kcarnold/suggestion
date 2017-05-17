@@ -23,6 +23,11 @@ const texts = {
     revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent.</span>,
     instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
   },
+  detailedNoBrainstorm: {
+    overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
+    revisionInstructions: <span>Try to make it reasonably accurate and coherent.</span>,
+    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+  },
   funny: {
     overallInstructions: <span>Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
     brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
@@ -38,7 +43,7 @@ const texts = {
 };
 
 const tutorialTaskDescs = {
-  typeKeyboard: 'Type a few words on the keyboard.',
+  typeKeyboard: 'Type a few words by tapping letters on the keyboard.',
   backspace: 'Try deleting a few letters.',
   specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
   tapSuggestion: 'Try tapping a box to insert the word.',
@@ -209,6 +214,7 @@ export const Instructions = inject('state')(observer(({state}) => {
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
 export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
+    <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
