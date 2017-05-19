@@ -33,11 +33,11 @@ html, body {
     flex-flow: column nowrap;
 }
 
-.EditPage {
-    height: 100vh;
+.ListWords {
+/*     height: 100vh; */
 }
 
-.EditPage textarea {
+.ListWords textarea {
     width: 100%;
     height: 100%;
 }

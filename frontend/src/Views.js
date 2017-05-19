@@ -307,11 +307,12 @@ export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch
   </div>));
 
 export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="ListWords">
-    <div style={{backgroundColor: '#ccc', color: 'black'}}>
-      Write a dozen words that come to mind that you might use in your writing. Consider details about the food, drinks, service, ambiance, location, etc.
+    <div>
+      Write 5-10 words that come to mind as you think about your experience that you might use in your writing. (Use single words, not phrases.) Consider the food, drinks, service, ambiance, location, etc.
     </div>
-    <textarea placeholder={"One word or phrase per line"} value={state.prewriteText}
-      onChange={evt => {dispatch({type: 'prewriteTextChanged', value: evt.target.value});}} />;
+    <textarea rows={12} value={state.prewriteText}
+      onChange={evt => {dispatch({type: 'prewriteTextChanged', value: evt.target.value});}} />
+    <NextBtn/>
   </div>));
 
 
