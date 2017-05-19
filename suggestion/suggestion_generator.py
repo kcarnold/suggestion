@@ -428,11 +428,17 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
         topic_seq_state = topic_seq_model.get_state([topic_tags[topic] for topic in topic_seq], bos=True)[0]
         topic_likelihood = topic_seq_model.eval_logprobs_for_words(topic_seq_state, topic_word_indices)
         if len(topic_seq):
+            # Ensure that we don't continue the same topic.
             last_topic = topic_seq[-1]
             topic_likelihood[last_topic] = -np.inf
+
+            # # Penalize already-covered topics.
+            # for topic in topic_seq:
+            #     topic_likelihood[topic] -= 1.0
+
         topics_to_suggest = np.argsort(topic_likelihood)[-3:][::-1].tolist()
 
-    print(f"{bos_sugg_flag} suggesting topics", topics_to_suggest)
+    print(f"seq={topic_seq} flag={bos_sugg_flag} suggesting={topics_to_suggest}")
 
     if bos_sugg_flag == 'continue':
         scores_by_cluster = clizer.topic_continuation_scores.copy()
