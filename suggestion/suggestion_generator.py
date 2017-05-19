@@ -372,6 +372,65 @@ def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_dis
     dist_with_new_dist = clustering.normalize_dists(np.mean(with_new_dist, axis=1))
     return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
 
+def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
+    if sug_state is None:
+        sug_state = {}
+    if 'suggested_already' not in sug_state:
+        sug_state['suggested_already'] = []
+    suggested_already = sug_state['suggested_already']
+    print("Already suggested", suggested_already)
+
+    scores_by_cluster = clizer.scores_by_cluster.copy()
+    likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
+    scores_by_cluster -= .85 * likelihood_bias
+    scores_by_cluster[suggested_already] = -np.inf
+    scores_by_cluster[clizer.omit] = -np.inf
+    most_distinctive = np.argmax(scores_by_cluster, axis=0)
+
+    def normal_lik(x, sigma):
+        return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+    sents = nltk.sent_tokenize(sofar)
+
+    if len(sents):
+        sent_cluster_distribs = cytoolz.thread_first(
+            sents,
+            clizer.vectorize_sents,
+            clustering.normalize_vecs,
+            clizer.clusterer.transform,
+            (normal_lik, .5),
+            clustering.normalize_dists
+            )
+        topics_to_suggest = get_topics_to_suggest_for_new_sentence(
+            clizer=clizer,
+            target_dist=clizer.target_dists['best'],
+            sent_cluster_distribs=sent_cluster_distribs,
+            new_dists_opts=np.eye(clizer.n_clusters))[:3].tolist()
+    else:
+        topics_to_suggest = [1,3,8]
+
+    print(f"{bos_sugg_flag} suggesting topics", topics_to_suggest)
+    phrases = []
+    if bos_sugg_flag == 'antidiverse':
+        # Pick the single most likely topic.
+        topic = topics_to_suggest[0]
+        first_words = []
+        for suggest_idx in np.argsort(scores_by_cluster[:,topic])[::-1]:
+            phrase = clizer.unique_starts[suggest_idx]
+            if phrase[0] in first_words:
+                continue
+            first_words.append(phrase[0])
+            suggested_already.append(suggest_idx)
+            phrases.append((phrase, None))
+            if len(phrases) == 3:
+                break
+    else:
+        for cluster_idx in topics_to_suggest:
+            suggest_idx = most_distinctive[cluster_idx]
+            suggested_already.append(suggest_idx)
+            phrases.append((clizer.unique_starts[suggest_idx], None))
+    return phrases, sug_state
+
 
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
@@ -398,65 +457,11 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
         print(f"Bonusing {len(known_words)} prewrite words: {' '.join(sorted(known_words))}")
         print(f"Not bonusing {len(unknown_words)} unknown words: {' '.join(sorted(unknown_words))}")
 
+    # Beginning of sentence suggestions
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
-        if sug_state is None:
-            sug_state = {}
-        if 'suggested_already' not in sug_state:
-            sug_state['suggested_already'] = []
-        suggested_already = sug_state['suggested_already']
-        print("Already suggested", suggested_already)
-
-        scores_by_cluster = clizer.scores_by_cluster.copy()
-        likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
-        scores_by_cluster -= .85 * likelihood_bias
-        scores_by_cluster[suggested_already] = -np.inf
-        scores_by_cluster[clizer.omit] = -np.inf
-        most_distinctive = np.argmax(scores_by_cluster, axis=0)
-
-        def normal_lik(x, sigma):
-            return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
-
-        sents = nltk.sent_tokenize(sofar)
-        if len(sents):
-            sent_cluster_distribs = cytoolz.thread_first(
-                sents,
-                clizer.vectorize_sents,
-                clustering.normalize_vecs,
-                clizer.clusterer.transform,
-                (normal_lik, .5),
-                clustering.normalize_dists
-                )
-            topics_to_suggest = get_topics_to_suggest_for_new_sentence(
-                clizer=clizer,
-                target_dist=clizer.target_dists['best'],
-                sent_cluster_distribs=sent_cluster_distribs,
-                new_dists_opts=np.eye(clizer.n_clusters))[:3].tolist()
-        else:
-            topics_to_suggest = [1,3,8]
-
-        print(f"{use_bos_suggs} suggesting topics", topics_to_suggest)
-        phrases = []
-        if use_bos_suggs == 'antidiverse':
-            # Pick the single most likely topic.
-            topic = topics_to_suggest[0]
-            first_words = []
-            for suggest_idx in np.argsort(scores_by_cluster[:,topic])[::-1]:
-                phrase = clizer.unique_starts[suggest_idx]
-                if phrase[0] in first_words:
-                    continue
-                first_words.append(phrase[0])
-                suggested_already.append(suggest_idx)
-                phrases.append((phrase, None))
-                if len(phrases) == 3:
-                    break
-        else:
-            for cluster_idx in topics_to_suggest:
-                suggest_idx = most_distinctive[cluster_idx]
-                suggested_already.append(suggest_idx)
-                phrases.append((clizer.unique_starts[suggest_idx], None))
-        return phrases, sug_state
+        return get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs)
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
