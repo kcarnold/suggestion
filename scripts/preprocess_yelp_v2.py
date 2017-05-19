@@ -17,10 +17,8 @@ import pandas as pd
 import tqdm
 import cytoolz
 import operator
-import spacy
+import nltk
 from suggestion import tokenization
-
-nlp = None
 
 def flatten_dict(x, prefix=''):
     result = {}
@@ -63,8 +61,7 @@ def join_yelp(data):
 
 def tokenize(text):
     text = tokenization.URL_RE.sub(lambda match: ' '*(match.end() - match.start()), text)
-    # Use spacy's sentence tokenizer.
-    sents = (sent.text for sent in nlp(text).sents)
+    sents = nltk.sent_tokenize(text)
     # Use our simple word tokenizer, since spacy breaks apart contractions.
     token_spaced_sents = (' '.join(sent[a:b] for a, b in tokenization.token_spans(sent)) for sent in sents)
     return '\n'.join(token_spaced_sents)
@@ -104,7 +101,6 @@ if __name__ == '__main__':
         os.makedirs(args.outdir)
 
     print("Loading SpaCy model", args.spacy, flush=True)
-    nlp = spacy.load(args.spacy)
 
     # Consistent train-test splits.
     np.random.seed(0)
