@@ -16,7 +16,7 @@ from . import suffix_array, clustering
 LOG10 = np.log(10)
 
 
-models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train']}
+models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_topic_seqs']}
 def get_model(name):
     return models[name]
 
@@ -43,6 +43,7 @@ if enable_bos_suggs:
     print("Loading goal-oriented suggestion data...", end='', file=sys.stderr, flush=True)
     with open(os.path.join(paths.parent, 'models', 'goal_oriented_suggestion_data.pkl'), 'rb') as f:
         clizer = pickle.load(f)
+    topic_tags = [f'<T{i}>' for i in range(clizer.n_clusters)]
     print("Done.", file=sys.stderr)
 
 
