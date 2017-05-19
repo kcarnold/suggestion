@@ -153,10 +153,10 @@ const MASTER_CONFIGS = {
     instructions: 'review',
   },
   diversity: {
-    baseConditions: ['diverse', 'antidiverse'],
+    baseConditions: ['diverse', 'continue'],
     prewrite: false,
     isStudy1: false,
-    instructions: 'detailed'
+    instructions: 'detailedNoBrainstorm'
   },
   infoSource: {
     baseConditions: ['withPrewrite', 'phrase'],
