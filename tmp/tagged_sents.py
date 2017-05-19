@@ -96,7 +96,7 @@ def get_topic_seq(sents):
     return np.argmin(cluster_distances, axis=1)
 topic_seqs =  [get_topic_seq(tokenized.split('\n')) for tokenized in tqdm.tqdm(reviews.tokenized)]
 #%%
-# TODO: This actually needs to pass --discount_fallback to lmplz.
+# TODO: This actually needs to pass --discount_fallback to lmplz, and may want to use a high order like 12-gram
 util.dump_kenlm('yelp_topic_seqs', [' '.join(topic_tags[c] for c in seq) for seq in topic_seqs])
 #%%
 def review_to_tagged_sents(topic_seq, sents):
@@ -104,3 +104,7 @@ def review_to_tagged_sents(topic_seq, sents):
     for i, sent in enumerate(sents):
         res.append([topic_tags[c] for c in topic_seq[:i+1][-4:]] + sent.lower().split())
     return res
+#%%
+
+topic_seq_model = suggestion_generator.get_model('yelp_topic_seqs')
+topic_word_indices = [topic_seq_model.model.vocab_index(tag) for tag in suggestion_generator.topic_tags]

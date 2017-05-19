@@ -102,6 +102,16 @@ const namedConditions = {
     },
     showPhrase: true
   },
+  continue: {
+    sugFlags: {
+      useSufarr: false,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: 'continue',
+      continuation_length: 17,
+    },
+    showPhrase: true
+  },
   withPrewrite: {
     sugFlags: {
       useSufarr: true,

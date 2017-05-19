@@ -43,7 +43,10 @@ if enable_bos_suggs:
     print("Loading goal-oriented suggestion data...", end='', file=sys.stderr, flush=True)
     with open(os.path.join(paths.parent, 'models', 'goal_oriented_suggestion_data.pkl'), 'rb') as f:
         clizer = pickle.load(f)
+    clizer.topic_continuation_scores = np.load('topic_continuation_scores.npy')
     topic_tags = [f'<T{i}>' for i in range(clizer.n_clusters)]
+    topic_seq_model = get_model('yelp_topic_seqs')
+    topic_word_indices = [topic_seq_model.model.vocab_index(tag) for tag in topic_tags]
     print("Done.", file=sys.stderr)
 
 
@@ -367,11 +370,36 @@ def predict_forward(domain, toks, first_word, beam_width, length_after_first):
 
 
 
-def get_topics_to_suggest_for_new_sentence(clizer, target_dist, sent_cluster_distribs, new_dists_opts):
+def try_to_match_topic_distribution(clizer, target_dist, sents):
+    def normal_lik(x, sigma):
+        return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
+
+    sent_cluster_distribs = cytoolz.thread_first(
+        sents,
+        clizer.vectorize_sents,
+        clustering.normalize_vecs,
+        clizer.clusterer.transform,
+        (normal_lik, .5),
+        clustering.normalize_dists
+        )
+
+    new_dists_opts = np.eye(clizer.n_clusters)
+
     from scipy.special import kl_div
     with_new_dist = np.array([np.concatenate((sent_cluster_distribs, new_dist_opt[None]), axis=0) for new_dist_opt in new_dists_opts])
     dist_with_new_dist = clustering.normalize_dists(np.mean(with_new_dist, axis=1))
-    return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))
+    return np.argsort(kl_div(dist_with_new_dist, target_dist).sum(axis=1))[:3].tolist()
+
+def get_topic_seq(sents):
+    if len(sents) == 0:
+        return []
+    cluster_distances = cytoolz.thread_first(
+        sents,
+        clizer.vectorize_sents,
+        clustering.normalize_vecs,
+        clizer.clusterer.transform)
+    return np.argmin(cluster_distances, axis=1).tolist()
+
 
 def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
     if sug_state is None:
@@ -381,41 +409,44 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
     suggested_already = sug_state['suggested_already']
     print("Already suggested", suggested_already)
 
-    scores_by_cluster = clizer.scores_by_cluster.copy()
-    likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
-    scores_by_cluster -= .85 * likelihood_bias
-    scores_by_cluster[suggested_already] = -np.inf
-    scores_by_cluster[clizer.omit] = -np.inf
-    most_distinctive = np.argmax(scores_by_cluster, axis=0)
-
-    def normal_lik(x, sigma):
-        return np.exp(-.5*(x/sigma)**2) / (2*np.pi*sigma)
-
     sents = nltk.sent_tokenize(sofar)
 
-    if len(sents):
-        sent_cluster_distribs = cytoolz.thread_first(
-            sents,
-            clizer.vectorize_sents,
-            clustering.normalize_vecs,
-            clizer.clusterer.transform,
-            (normal_lik, .5),
-            clustering.normalize_dists
-            )
-        topics_to_suggest = get_topics_to_suggest_for_new_sentence(
+    if False:
+        topics_to_suggest = try_to_match_topic_distribution(
             clizer=clizer,
             target_dist=clizer.target_dists['best'],
-            sent_cluster_distribs=sent_cluster_distribs,
-            new_dists_opts=np.eye(clizer.n_clusters))[:3].tolist()
+            sents=sents)
+
+    topic_seq = get_topic_seq(sents)
+    if bos_sugg_flag == 'continue':
+        if len(topic_seq) == 0:
+            return None, sug_state
+        last_topic = topic_seq[-1]
+        topics_to_suggest = [last_topic] * 3
     else:
-        topics_to_suggest = [1,3,8]
+        # Find the most likely next topics.
+        topic_seq_state = topic_seq_model.get_state([topic_tags[topic] for topic in topic_seq], bos=True)[0]
+        topic_likelihood = topic_seq_model.eval_logprobs_for_words(topic_seq_state, topic_word_indices)
+        if len(topic_seq):
+            last_topic = topic_seq[-1]
+            topic_likelihood[last_topic] = -np.inf
+        topics_to_suggest = np.argsort(topic_likelihood)[-3:][::-1].tolist()
 
     print(f"{bos_sugg_flag} suggesting topics", topics_to_suggest)
+
+    if bos_sugg_flag == 'continue':
+        scores_by_cluster = clizer.topic_continuation_scores.copy()
+    else:
+        scores_by_cluster = clizer.scores_by_cluster.copy()
+        likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
+        scores_by_cluster -= .85 * likelihood_bias
+    scores_by_cluster[suggested_already] = -np.inf
+    scores_by_cluster[clizer.omit] = -np.inf
+
     phrases = []
-    if bos_sugg_flag == 'antidiverse':
-        # Pick the single most likely topic.
-        topic = topics_to_suggest[0]
-        first_words = []
+    first_words = []
+    for topic in topics_to_suggest:
+        # Try to find a start for this topic that doesn't overlap an existing one in first word.
         for suggest_idx in np.argsort(scores_by_cluster[:,topic])[::-1]:
             phrase = clizer.unique_starts[suggest_idx]
             if phrase[0] in first_words:
@@ -423,13 +454,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
             first_words.append(phrase[0])
             suggested_already.append(suggest_idx)
             phrases.append((phrase, None))
-            if len(phrases) == 3:
-                break
-    else:
-        for cluster_idx in topics_to_suggest:
-            suggest_idx = most_distinctive[cluster_idx]
-            suggested_already.append(suggest_idx)
-            phrases.append((clizer.unique_starts[suggest_idx], None))
+            break
     return phrases, sug_state
 
 
@@ -462,7 +487,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
-        return get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs)
+        phrases, sug_state = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs)
+        if phrases is not None:
+            return phrases, sug_state
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
