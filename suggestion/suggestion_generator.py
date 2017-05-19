@@ -405,7 +405,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
     if sug_state is None:
         sug_state = {}
     if 'suggested_already' not in sug_state:
-        sug_state['suggested_already'] = []
+        sug_state['suggested_already'] = set()
     suggested_already = sug_state['suggested_already']
     print("Already suggested", suggested_already)
 
@@ -446,7 +446,6 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
         scores_by_cluster = clizer.scores_by_cluster.copy()
         likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
         scores_by_cluster -= .85 * likelihood_bias
-    scores_by_cluster[suggested_already] = -np.inf
     scores_by_cluster[clizer.omit] = -np.inf
 
     phrases = []
@@ -457,8 +456,11 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
             phrase = clizer.unique_starts[suggest_idx]
             if phrase[0] in first_words:
                 continue
+            beginning = ' '.join(phrase[:3])
+            if beginning in suggested_already:
+                continue
             first_words.append(phrase[0])
-            suggested_already.append(suggest_idx)
+            suggested_already.add(beginning)
             phrases.append((phrase, None))
             break
     return phrases, sug_state
