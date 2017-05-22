@@ -410,7 +410,7 @@ def get_topic_seq(sents):
     return np.argmin(cluster_distances, axis=1).tolist()
 
 
-def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints=None):
+def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
     if sug_state is None:
         sug_state = {}
     if 'suggested_already' not in sug_state:
