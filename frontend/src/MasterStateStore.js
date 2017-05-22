@@ -357,7 +357,7 @@ export class MasterStateStore {
           constraints,
           ...this.suggestionRequestParams
         };
-        if (this.condition.usePrewriteText) {
+        if (this.condition.usePrewriteText && this.prewriteLines.length) {
           response['prewrite_info'] = {
             text: this.prewriteLines[this.curPrewriteLine],
             amount: 1.

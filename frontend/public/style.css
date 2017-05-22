@@ -50,10 +50,10 @@ html, body {
 }
 
 .ExperimentScreen .header {
-    overflow: auto;
+    overflow: scroll;
     background-color: #ccc;
     color: black;
-    flex: 0 0 auto;
+    flex: 0 4 auto;
 }
 
 /*** TEXT ***/
@@ -215,6 +215,7 @@ span.word {
 }
 
 .OutlineSelector span {
+    font-size: small;
     display: inline-block;
     padding: 5px;
     background: white;

@@ -330,14 +330,12 @@ export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch
   </div>));
 
 export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="ListWords">
-    <h1>Let's write about your experience at {state.curPlace.name}!</h1>
     <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-    <p style={{border: '1px solid black', padding: '2px'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
+    <p style={{border: '1px solid black', padding: '2px', maxWidth: '50%'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
-    <div>
-      <p>Write 5-10 words or phrases, one per line, that come to mind as you think about your experience.</p>
-      <p>Consider the food, drinks, service, ambiance, location, etc.</p>
-    </div>
+    <p style={{paddingTop: "10px"}}><b>Write 5-10 words or phrases, one per line, that come to mind as you think about your experience.</b></p>
+    <p>Consider the food, drinks, service, ambiance, location, etc.</p>
+
     <textarea rows={12} value={state.prewriteText}
       placeholder="One word or phrase per line"
       onChange={evt => {dispatch({type: 'prewriteTextChanged', value: evt.target.value});}} />
