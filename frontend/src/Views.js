@@ -239,6 +239,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           <div style={{float: 'right'}}></div>
+          {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
         </div>
         <CurText text={experimentState.curText} />
         <SuggestionsBar />

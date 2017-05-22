@@ -42,6 +42,16 @@ export class ExperimentStateStore {
     this.condition = condition;
     M.extendObservable(this, {
       curText: '',
+      useConstraints: {avoidLetter: true},
+      constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
+      get curSentenceNum() {
+        return (this.curText.match(/\.\s/g) || []).length;
+      },
+      get curConstraint() {
+        return {
+          avoidLetter: this.useConstraints.avoidLetter ? this.constraintsBySentence[this.curSentenceNum % this.constraintsBySentence.length] : null
+        };
+      },
       tapLocations: [],
       contextSequenceNum: 0,
       lastSuggestionsFromServer: [],
@@ -98,6 +108,10 @@ export class ExperimentStateStore {
         let isNonWord = event.key.match(/\W/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         let toInsert = event.key;
+        if (this.curConstraint.avoidLetter === toInsert) {
+          // Disallow insertion of the avoid-letter.
+          return;
+        }
         let taps = [{x: event.x, y: event.y}];
         let autoSpace = isNonWord && event.key !== " " && event.key !== "'" && event.key !== '-';
         if (autoSpace) {
@@ -192,6 +206,7 @@ export class ExperimentStateStore {
     return {
       prefix: sofar.slice(0, lastSpaceIdx + 1),
       curWord,
+      constraints: this.curConstraint
     };
   }
 

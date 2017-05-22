@@ -202,9 +202,10 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=None, rare_word_bonus=0.):
+def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logprobs=None, rare_word_bonus=0., constraints):
     if isinstance(model, str):
         model = get_model(model)
+    avoid_letter = constraints.get('avoidLetter')
     unigram_probs = model.unigram_probs_wordsonly
     start_state, start_score = model.get_state(start_words, bos=False)
     beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
@@ -248,6 +249,8 @@ def beam_search_phrases(model, start_words, beam_width, length, prefix_logprobs=
                     else:
                         prob = 0.
                     word = model.id2str[word_idx]
+                    if avoid_letter is not None and avoid_letter in word:
+                        continue
                     unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
                     new_score = score + prob + unigram_bonus + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     new_words = words + [word]
@@ -269,9 +272,10 @@ def beam_search_sufarr_init(model, start_words):
     return [(0., [], False, start_state, None, 0, (0, len(sufarr.doc_idx), model.null_context_state))]
 
 
-def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, word_bonuses=None, prefix='', null_logprob_weight=0.):
+def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_width, length_after_first, *, word_bonuses=None, prefix='', null_logprob_weight=0., constraints):
     if isinstance(model, str):
         model = get_model(model)
+    avoid_letter = constraints.get('avoidLetter')
     def candidates():
         for entry in beam:
             score, words, done, penultimate_state, last_word_idx, num_chars, (prev_start_idx, prev_end_idx, penultimate_state_null) = entry
@@ -295,6 +299,8 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
             for next_idx, word_idx in enumerate(next_word_ids):
                 if word_idx == 0: continue
                 word = model.id2str[word_idx]
+                if avoid_letter is not None and avoid_letter in word:
+                    continue
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num > 0 else 0
                 logprob = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
@@ -356,10 +362,10 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], meta=meta) for phrase, meta in phrases]
 
 
-def predict_forward(domain, toks, first_word, beam_width, length_after_first):
+def predict_forward(domain, toks, first_word, beam_width, length_after_first, constraints):
     model = get_model(domain)
     continuations = beam_search_phrases(model, toks + [first_word],
-        beam_width=beam_width, length=length_after_first)
+        beam_width=beam_width, length=length_after_first, constraints=constraints)
     if len(continuations) > 0:
         continuation = continuations[0].words
     else:
@@ -399,7 +405,7 @@ def get_topic_seq(sents):
     return np.argmin(cluster_distances, axis=1).tolist()
 
 
-def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
+def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints=None):
     if sug_state is None:
         sug_state = {}
     if 'suggested_already' not in sug_state:
@@ -446,6 +452,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
         scores_by_cluster -= .85 * likelihood_bias
     scores_by_cluster[clizer.omit] = -np.inf
 
+    avoid_letter = constraints.get('avoidLetter')
     phrases = []
     first_words = []
     for topic in topics_to_suggest:
@@ -457,6 +464,8 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
             beginning = ' '.join(phrase[:3])
             if beginning in suggested_already:
                 continue
+            if avoid_letter is not None and (avoid_letter in beginning or avoid_letter in ''.join(phrase)):
+                continue
             first_words.append(phrase[0])
             suggested_already.add(beginning)
             phrases.append((phrase, 'bos'))
@@ -466,7 +475,8 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
 
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
-    length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None, **kw):
+    length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
+    constraints={}, **kw):
 
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -493,7 +503,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
-        phrases, sug_state = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs)
+        phrases, sug_state = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
             return phrases, sug_state
 
@@ -514,7 +524,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             for i in range(length_after_first):
                 beam_chunks = cytoolz.partition_all(8, beam)
                 parallel_futures = yield [executor.submit(
-                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix, **kw)
+                    beam_search_sufarr_extend, domain, chunk, context_tuple, i, beam_width, length_after_first=length_after_first, word_bonuses=word_bonuses, prefix=prefix, constraints=constraints, **kw)
                     for chunk in beam_chunks]
                 parallel_beam = list(cytoolz.concat(parallel_futures))
                 prefix = ''
@@ -526,7 +536,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             ents = [BeamEntry(*ent) for ent in beam]
             if len(ents) == 0:
                 # Fall back on the full LM, but just for one word.
-                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
+                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 phrases = [(ent.words, None) for ent in first_word_ents[:3]]
             else:
                 result = [ents.pop(0)]
@@ -538,9 +548,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     result.append(best)
                 phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
         else:
-            first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs)
+            first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
             next_words = [ent.words[0] for ent in first_word_ents[:3]]
-            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first) for oneword_suggestion in next_words])
+            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
