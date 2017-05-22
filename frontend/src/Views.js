@@ -36,9 +36,9 @@ const texts = {
     instructionsQuiz: null,
   },
   review: {
-    overallInstructions: <span>Write the highest-quality review you can of your experience. Aim for about {wordCountTarget} words.</span>,
+    overallInstructions: <span>Write a review of your experience that you'd be proud to post on a review site. Use at least {wordCountTarget} words.</span>,
     brainstormingInstructions: <span />,
-    revisionInstructions: <span>Write the highest-quality review you can of your experience. Aim for about {wordCountTarget} words.</span>,
+    revisionInstructions: <span/>,
     instructionsQuiz: null,
   }
 };
@@ -208,7 +208,7 @@ export const Instructions = inject('state')(observer(({state}) => {
         : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
-        ? <p>Use your phone to type out {isPrewrite ? 'your brainstorming' : `your ${state.prewrite ? "revised " : ""}story`}.</p>
+        ? <p>Use your phone to complete this step.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
     </div>;
   }));

@@ -156,7 +156,7 @@ const MASTER_CONFIGS = {
     baseConditions: ['diverse', 'continue'],
     prewrite: false,
     isStudy1: false,
-    instructions: 'detailedNoBrainstorm'
+    instructions: 'review'
   },
   infoSource: {
     baseConditions: ['withPrewrite', 'phrase'],
