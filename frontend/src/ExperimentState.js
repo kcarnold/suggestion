@@ -13,7 +13,7 @@ A Suggestion is an important object. It contains:
   prefix: string : characters before this suggestion
   tapLocations: array of {x: int, y: int}: cur-word taps
   words: array of string: the words of the suggestion
-  probs: array of float: the natural-log generation probabilities of each word
+  meta: metadata about this suggestion (e.g., if it's a beginning-of-sentence suggestion)
   isValid: for a visible suggestion, whether it's valid in the current suggestion context.
 }
 
@@ -165,7 +165,7 @@ export class ExperimentStateStore {
           orig: sugg,
           contextSequenceNum: msg.request_id,
           words: sugg.one_word.words.concat(sugg.continuation.length ? sugg.continuation[0].words : []),
-          probs: sugg.probs,
+          meta: sugg.meta,
         }));
       }),
     });

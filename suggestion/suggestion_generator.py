@@ -353,9 +353,7 @@ def tokenize_sofar(sofar):
 
 
 def phrases_to_suggs(phrases):
-    def de_numpy(x):
-        return x.tolist() if x is not None else None
-    return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], probs=de_numpy(probs)) for phrase, probs in phrases]
+    return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], meta=meta) for phrase, meta in phrases]
 
 
 def predict_forward(domain, toks, first_word, beam_width, length_after_first):
@@ -461,7 +459,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag):
                 continue
             first_words.append(phrase[0])
             suggested_already.add(beginning)
-            phrases.append((phrase, None))
+            phrases.append((phrase, 'bos'))
             break
     return phrases, sug_state
 

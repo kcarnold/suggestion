@@ -204,3 +204,7 @@ span.word {
     padding: 4px;
     display: block;
 }
+
+.Suggestion.bos {
+    background: #74a4bd;
+}

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import {observer, inject} from 'mobx-react';
+import classNames from 'classnames';
 import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
 import Consent from './Consent';
@@ -51,9 +52,9 @@ const tutorialTaskDescs = {
 
 class Suggestion extends Component {
   render() {
-    let {onTap, word, preview, isValid} = this.props;
+    let {onTap, word, preview, isValid, meta} = this.props;
     return <div
-      className={"Suggestion" + (isValid ? '' : ' invalid')}
+      className={classNames("Suggestion", {invalid: !isValid, bos: isValid && meta === 'bos'})}
       onTouchStart={isValid ? onTap : null}
       onTouchEnd={evt => {evt.preventDefault();}}>
       <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>
@@ -76,7 +77,8 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
         }}
         word={sugg.words[0]}
         preview={showPhrase ? sugg.words.slice(1) : []}
-        isValid={sugg.isValid} />
+        isValid={sugg.isValid}
+        meta={sugg.meta} />
       )}
     </div>;
   }
