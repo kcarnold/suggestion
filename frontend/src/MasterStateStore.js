@@ -162,7 +162,7 @@ const MASTER_CONFIGS = {
     baseConditions: ['withPrewrite', 'phrase'],
     prewrite: false,
     isStudy1: false,
-    instructions: 'detailedNoBrainstorm'
+    instructions: 'review'
   }
 };
 
@@ -187,8 +187,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     result.push({preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'});
     conditions.forEach((conditionName, block) => {
       result = result.concat([
-        {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
-        {controllerScreen: 'ListWords'},
+        {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'ListWords'},
         {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
         {controllerScreen: 'PostTaskSurvey'},
       ]);
@@ -260,7 +259,9 @@ export class MasterStateStore {
       prewriteText: '',
       curPrewriteLine: 0,
       get prewriteLines() {
-        return this.prewriteText.split('\n');
+        let text = this.prewriteText.trim();
+        if (text === '') return [];
+        return text.split('\n');
       },
       lastEventTimestamp: null,
       replaying: true,
@@ -446,7 +447,7 @@ export class MasterStateStore {
       this.prewriteText = event.value;
       break;
     case 'addPrewriteItem':
-      this.prewriteText = this.prewriteText + '\n' + event.line;
+      this.prewriteText = this.prewriteText.trim() + '\n' + event.line;
       break;
     case 'selectOutline':
       this.curPrewriteLine = event.idx;
