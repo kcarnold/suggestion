@@ -178,14 +178,14 @@ export const  ProbablyWrongCode = () => <div>
 
 export const SelectRestaurants = inject('state')(observer(({state}) => <div>
     <p>Think of 2 <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
-    <div>1. <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
+    <div className="Restaurant">1. Name: <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
       <br />How would you rate that visit? <ControlledStarRating name="star1" />
-      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say" <ControlledInput name="knowWhat1" />
+      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/><ControlledInput name="knowWhat1" />
     </div>
     <br/>
-    <div>2. <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
+    <div className="Restaurant">2. Name: <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
       <br />How would you rate that visit? <ControlledStarRating name="star2" />
-      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say" <ControlledInput name="knowWhat2" />
+      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/><ControlledInput name="knowWhat2" />
     </div>
     <p>(The Next button will be enabled once all fields are filled out.)</p>
     <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2 knowWhat1 knowWhat2'.split(' '), x => state.controlledInputs.get(x))} />

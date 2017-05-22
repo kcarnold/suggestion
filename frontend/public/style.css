@@ -208,3 +208,8 @@ span.word {
 .Suggestion.bos {
     background: #74a4bd;
 }
+
+.Restaurant {
+    border-bottom: 1px solid black;
+    padding-bottom: 12px;
+}
