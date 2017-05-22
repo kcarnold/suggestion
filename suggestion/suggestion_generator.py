@@ -257,7 +257,8 @@ def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logpro
                     new_score = score + prob + unigram_bonus + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     new_words = words + [word]
                     new_num_chars = num_chars + prefix_chars + len(word)
-                    new_entry = (new_score, new_words, new_num_chars >= length, last_state, word_idx, new_num_chars, None)
+                    done = new_num_chars >= length
+                    new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, None)
                     if len(new_beam) == beam_width:
                         heapq.heapreplace(new_beam, new_entry)
                     else:
