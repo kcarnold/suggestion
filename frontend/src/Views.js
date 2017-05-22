@@ -219,6 +219,7 @@ export const Instructions = inject('state')(observer(({state}) => {
 export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
+    <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you make your best writing, use it. If a suggestion doesn't help you, ignore it.</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
