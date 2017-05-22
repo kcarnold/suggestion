@@ -235,12 +235,26 @@ export const RevisionComputer = inject('state')(observer(({state}) => <div>
       </div>}
     </div>));
 
+const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch}) => {
+  return <div className="OutlineSelector">
+    {state.prewriteLines.map((line, idx) => <span key={idx} className={classNames({cur: idx===state.curPrewriteLine})} onClick={() => dispatch({type: 'selectOutline', idx})}>{line}</span>)}
+    <button onClick={() => {
+      let line = prompt();
+      if (line && line.length) {
+        dispatch({type: "addPrewriteItem", line});
+      }
+    }}>Add</button>
+  </div>;
+}));
+
+
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
       return <div className="ExperimentScreen">
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
+          <OutlineSelector />
         </div>
         <CurText text={experimentState.curText} />
         <SuggestionsBar />

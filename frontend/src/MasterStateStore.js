@@ -258,6 +258,10 @@ export class MasterStateStore {
       participantCode: null,
       get prewrite() { return this.masterConfig.prewrite; },
       prewriteText: '',
+      curPrewriteLine: 0,
+      get prewriteLines() {
+        return this.prewriteText.split('\n');
+      },
       lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
@@ -354,16 +358,18 @@ export class MasterStateStore {
         };
         if (this.condition.usePrewriteText) {
           response['prewrite_info'] = {
-            text: this.prewriteText,
-            amount: .75
+            text: this.prewriteLines[this.curPrewriteLine],
+            amount: 1.
           };
         }
         return response;
       }
     });
 
-    if (isDemo)
+    if (isDemo) {
       this.setMasterConfig('demo');
+      this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+    }
   }
 
   initScreen() {
@@ -438,6 +444,12 @@ export class MasterStateStore {
       break;
     case 'prewriteTextChanged':
       this.prewriteText = event.value;
+      break;
+    case 'addPrewriteItem':
+      this.prewriteText = this.prewriteText + '\n' + event.line;
+      break;
+    case 'selectOutline':
+      this.curPrewriteLine = event.idx;
       break;
     case 'resized':
       if (event.kind === 'p') {

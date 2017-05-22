@@ -125,6 +125,8 @@ registerHandler(state.handleEvent);
 let inflightRequests = M.observable(M.asMap({}));
 window.inflightRequests = inflightRequests;
 
+const preventDuplicateRequests = false;
+
 
 function startRequestingSuggestions() {
   // Auto-runner to watch the context and request suggestions.
@@ -144,7 +146,7 @@ function startRequestingSuggestions() {
     }
 
     let {request_id} = suggestionRequest;
-    if (M.untracked(() => inflightRequests.has(request_id))) {
+    if (preventDuplicateRequests && M.untracked(() => inflightRequests.has(request_id))) {
       console.warn(`Would have made a duplicate request ${request_id}.`);
       return;
     }
