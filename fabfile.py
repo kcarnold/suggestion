@@ -2,7 +2,10 @@ from fabric.api import local, lcd, env, cd, run
 from fabric.contrib.project import rsync_project
 
 env.use_ssh_config = True
-env.hosts = ['megacomplete-aws']
+env.hosts = [
+    'iis-dev',
+#    'megacomplete-aws',
+]
 
 def deploy():
     with cd('~/code/suggestion'):
