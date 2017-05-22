@@ -251,6 +251,8 @@ def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logpro
                     word = model.id2str[word_idx]
                     if avoid_letter is not None and avoid_letter in word:
                         continue
+                    if word[0] in '.?!':
+                        continue
                     unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
                     new_score = score + prob + unigram_bonus + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                     new_words = words + [word]
@@ -300,6 +302,8 @@ def beam_search_sufarr_extend(model, beam, context_tuple, iteration_num, beam_wi
                 if word_idx == 0: continue
                 word = model.id2str[word_idx]
                 if avoid_letter is not None and avoid_letter in word:
+                    continue
+                if word[0] in '.?!':
                     continue
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num > 0 else 0
