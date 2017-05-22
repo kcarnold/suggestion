@@ -7,6 +7,7 @@ import numpy as np
 import nltk
 import cytoolz
 import joblib
+from scipy.misc import logsumexp
 
 from .paths import paths
 from .tokenization import tokenize_mid_document
@@ -44,6 +45,21 @@ if enable_bos_suggs:
     with open(os.path.join(paths.parent, 'models', 'goal_oriented_suggestion_data.pkl'), 'rb') as f:
         clizer = pickle.load(f)
     clizer.topic_continuation_scores = np.load('topic_continuation_scores.npy')
+
+    keep = np.full(len(clizer.unique_starts), True, dtype=bool)
+    keep[clizer.omit] = 0
+    np.mean(keep)
+    clizer.scores_by_cluster = clizer.scores_by_cluster[keep]
+    clizer.topic_continuation_scores = clizer.topic_continuation_scores[keep]
+    clizer.unique_starts = [clizer.unique_starts[i] for i in np.flatnonzero(keep)]
+
+    likelihood_bias = logsumexp(clizer.scores_by_cluster, axis=1, keepdims=True)
+    clizer.scores_by_cluster = clizer.scores_by_cluster - .85 * likelihood_bias
+
+    del keep
+    del likelihood_bias
+
+
     topic_tags = [f'<T{i}>' for i in range(clizer.n_clusters)]
     topic_seq_model = get_model('yelp_topic_seqs')
     topic_word_indices = [topic_seq_model.model.vocab_index(tag) for tag in topic_tags]
@@ -76,7 +92,6 @@ def collect_words_in_range(start, after_end, word_idx, docs):
 
 
 
-from scipy.misc import logsumexp
 def softmax(scores):
     return np.exp(scores - logsumexp(scores))
 
@@ -450,12 +465,9 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
     print(f"seq={topic_seq} flag={bos_sugg_flag} suggesting={topics_to_suggest}")
 
     if bos_sugg_flag == 'continue':
-        scores_by_cluster = clizer.topic_continuation_scores.copy()
+        scores_by_cluster = clizer.topic_continuation_scores
     else:
-        scores_by_cluster = clizer.scores_by_cluster.copy()
-        likelihood_bias = logsumexp(scores_by_cluster, axis=1, keepdims=True)
-        scores_by_cluster -= .85 * likelihood_bias
-    scores_by_cluster[clizer.omit] = -np.inf
+        scores_by_cluster = clizer.scores_by_cluster
 
     avoid_letter = constraints.get('avoidLetter')
     phrases = []
