@@ -239,7 +239,6 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       return <div className="ExperimentScreen">
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} story about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
-          <div style={{float: 'right'}}></div>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
         </div>
         <CurText text={experimentState.curText} />
@@ -251,7 +250,9 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
 export const PracticePhone = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let {experimentState} = state;
     return <div className="ExperimentScreen">
-      <div className="header">See computer for instructions. <div style={{float: 'right'}}>({state.block === 0 ? 'A' : 'B'})</div></div>
+      <div className="header">See computer for instructions.
+          {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
+      </div>
       <CurText text={experimentState.curText} />
       <SuggestionsBar />
       <Keyboard dispatch={dispatch} />
@@ -284,6 +285,7 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
       <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on a suggestion box to insert a word.</TutorialTodo>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
+      <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>
       <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) && <p>
