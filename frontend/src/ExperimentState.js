@@ -42,7 +42,7 @@ export class ExperimentStateStore {
     this.condition = condition;
     M.extendObservable(this, {
       curText: '',
-      useConstraints: {avoidLetter: true},
+      useConstraints: {},
       constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
       get curSentenceNum() {
         return (this.curText.match(/\.\s/g) || []).length;

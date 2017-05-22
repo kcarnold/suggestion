@@ -381,6 +381,9 @@ export class MasterStateStore {
         this.curExperiment = preEvent.name;
         this.experiments.set(preEvent.name, new ExperimentStateStore(this.condition));
         this.tutorialTasks = new TutorialTasks();
+        if (this.masterConfig.useConstraints) {
+          this.experimentState.useConstraints = this.masterConfig.useConstraints;
+        }
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);
