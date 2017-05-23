@@ -53,7 +53,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'study4_2'
+batch_code = 'diversity_0'
 participants = dict(study2='''81519e
 81f6b6
 9b6cd1
@@ -83,7 +83,9 @@ cdf1be
 495e52''',
     study4_2='''86f454
 f53eb0
-b4408e''')[batch_code].split()
+b4408e''',
+    diversity_0='''487fc2 d0f6af 2cb385'''
+)[batch_code].split()
 #%%
 def get_rev(participant):
     logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
