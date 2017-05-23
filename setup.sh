@@ -1,3 +1,3 @@
 #!/bin/bash
-conda install -y tornado ujson cython numpy datrie nltk scipy numba scikit-learn cytoolz attrs tqdm
+conda install -y tornado ujson cython numpy datrie nltk scipy numba scikit-learn cytoolz attrs tqdm fabric3
 pip install -r requirements.txt
