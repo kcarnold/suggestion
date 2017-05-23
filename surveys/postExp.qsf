@@ -21,7 +21,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
-      }
+      },
+      "questionName": "Q10"
     },
     "QID1": {
       "questionType": {
@@ -34,46 +35,54 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q1",
       "choices": {
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -90,11 +99,13 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q2",
       "choices": {
         "1": {
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -102,6 +113,7 @@
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -109,6 +121,7 @@
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -116,6 +129,7 @@
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -132,30 +146,35 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q8",
       "subQuestions": {
         "1": {
           "recode": "1",
           "description": "more detailed?",
           "choiceText": "more detailed?",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "2": {
           "recode": "2",
           "description": "more coherent?",
           "choiceText": "more coherent?",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "4": {
           "recode": "4",
           "description": "a more accurate representation of your experience?",
           "choiceText": "a more accurate representation of your experience?",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "5": {
           "recode": "5",
           "description": "a more vivid picture for the reader?",
           "choiceText": "a more vivid picture for the reader?",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         }
       },
       "choices": {
@@ -163,30 +182,35 @@
           "recode": "1",
           "description": "A, definitely",
           "choiceText": "A, definitely",
+          "imageDescription": null,
           "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "A, somewhat",
           "choiceText": "A, somewhat",
+          "imageDescription": null,
           "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "about the same",
           "choiceText": "about the same",
+          "imageDescription": null,
           "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "B, somewhat",
           "choiceText": "B, somewhat",
+          "imageDescription": null,
           "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "B, definitely",
           "choiceText": "B, definitely",
+          "imageDescription": null,
           "analyze": true
         }
       }
@@ -202,7 +226,8 @@
       "validation": {
         "doesForceResponse": false,
         "doesRequestResponse": true
-      }
+      },
+      "questionName": "Q5"
     },
     "QID6": {
       "questionType": {
@@ -215,7 +240,8 @@
       "validation": {
         "doesForceResponse": false,
         "doesRequestResponse": true
-      }
+      },
+      "questionName": "Q6"
     },
     "QID16": {
       "questionType": {
@@ -228,11 +254,13 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q16",
       "choices": {
         "1": {
           "recode": "1",
           "description": "Yes",
           "choiceText": "Yes",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -240,6 +268,7 @@
           "recode": "3",
           "description": "No",
           "choiceText": "No",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -255,7 +284,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
-      }
+      },
+      "questionName": "Q7"
     },
     "QID15": {
       "questionType": {
@@ -268,11 +298,13 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q16",
       "choices": {
         "1": {
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -280,6 +312,7 @@
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -287,6 +320,7 @@
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -294,6 +328,7 @@
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -310,150 +345,175 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q14",
       "subQuestions": {
         "1": {
           "recode": "1",
           "description": "I am the life of the party.",
           "choiceText": "I am the life of the party.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "2": {
           "recode": "2",
           "description": "I talk to a lot of different people at parties.",
           "choiceText": "I talk to a lot of different people at parties.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "3": {
           "recode": "3",
           "description": "I don't talk a lot.",
           "choiceText": "I don't talk a lot.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "4": {
           "recode": "4",
           "description": "I keep in the background.",
           "choiceText": "I keep in the background.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "5": {
           "recode": "5",
           "description": "I sympathize with others' feelings.",
           "choiceText": "I sympathize with others' feelings.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "6": {
           "recode": "6",
           "description": "I feel others' emotions.",
           "choiceText": "I feel others' emotions.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "7": {
           "recode": "7",
           "description": "I am not really interested in others.",
           "choiceText": "I am not really interested in others.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "8": {
           "recode": "8",
           "description": "I am not interested in other people's problems.",
           "choiceText": "I am not interested in other people's problems.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "9": {
           "recode": "9",
           "description": "I get chores done right away.",
           "choiceText": "I get chores done right away.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "10": {
           "recode": "10",
           "description": "I like order.",
           "choiceText": "I like order.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "11": {
           "recode": "11",
           "description": "I often forget to put things back in their proper place.",
           "choiceText": "I often forget to put things back in their proper place.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "12": {
           "recode": "12",
           "description": "I make a mess of things.",
           "choiceText": "I make a mess of things.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "13": {
           "recode": "13",
           "description": "I have frequent mood swings.",
           "choiceText": "I have frequent mood swings.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "14": {
           "recode": "14",
           "description": "I get upset easily.",
           "choiceText": "I get upset easily.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "15": {
           "recode": "15",
           "description": "I am relaxed most of the time.",
           "choiceText": "I am relaxed most of the time.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "16": {
           "recode": "16",
           "description": "I seldom feel blue.",
           "choiceText": "I seldom feel blue.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "17": {
           "recode": "17",
           "description": "I have a vivid imagination.",
           "choiceText": "I have a vivid imagination.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "18": {
           "recode": "18",
           "description": "I have difficulty understanding abstract ideas.",
           "choiceText": "I have difficulty understanding abstract ideas.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "19": {
           "recode": "19",
           "description": "I am not interested in abstract ideas.",
           "choiceText": "I am not interested in abstract ideas.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "20": {
           "recode": "20",
           "description": "I do not have a good imagination. ",
           "choiceText": "I do not have a good imagination. ",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "21": {
           "recode": "21",
           "description": "I would prefer complex to simple problems.",
           "choiceText": "I would prefer complex to simple problems.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "22": {
           "recode": "22",
           "description": "I like to have the responsibility of handling a situation that requires a lot of thinking.",
           "choiceText": "I like to have the responsibility of handling a situation that requires a lot of thinking.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "23": {
           "recode": "23",
           "description": "Thinking is not my idea of fun.",
           "choiceText": "Thinking is not my idea of fun.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "24": {
           "recode": "24",
           "description": "I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.",
           "choiceText": "I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         }
       },
       "choices": {
@@ -461,30 +521,35 @@
           "recode": "1",
           "description": "Very <strong>Inaccurate</strong",
           "choiceText": "Very <strong>Inaccurate</strong",
+          "imageDescription": null,
           "analyze": true
         },
         "2": {
           "recode": "2",
           "description": "Moderately Inaccurate",
           "choiceText": "Moderately Inaccurate",
+          "imageDescription": null,
           "analyze": true
         },
         "3": {
           "recode": "3",
           "description": "Neither Accurate Nor Inaccurate",
           "choiceText": "Neither Accurate Nor Inaccurate",
+          "imageDescription": null,
           "analyze": true
         },
         "4": {
           "recode": "4",
           "description": "Moderately Accurate",
           "choiceText": "Moderately Accurate",
+          "imageDescription": null,
           "analyze": true
         },
         "5": {
           "recode": "5",
           "description": "Very <strong>Accurate</strong>",
           "choiceText": "Very <strong>Accurate</strong>",
+          "imageDescription": null,
           "analyze": true
         }
       },
@@ -502,7 +567,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
-      }
+      },
+      "questionName": "Q4"
     }
   },
   "exportColumnMap": {

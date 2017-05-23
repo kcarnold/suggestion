@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-03-08T16:02:11Z",
-  "lastModifiedDate": "2017-04-19T15:25:12Z",
+  "lastModifiedDate": "2017-05-19T16:11:46Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -22,46 +22,54 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q1",
       "choices": {
         "1": {
           "description": "Browser",
           "choiceText": "Browser",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "2": {
           "description": "Version",
           "choiceText": "Version",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "3": {
           "description": "Operating System",
           "choiceText": "Operating System",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "4": {
           "description": "Screen Resolution",
           "choiceText": "Screen Resolution",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "5": {
           "description": "Flash Version",
           "choiceText": "Flash Version",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "6": {
           "description": "Java Support",
           "choiceText": "Java Support",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
         "7": {
           "description": "User Agent",
           "choiceText": "User Agent",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -78,11 +86,13 @@
       "validation": {
         "doesForceResponse": false
       },
+      "questionName": "Q2",
       "choices": {
         "1": {
           "recode": "1",
           "description": "First Click",
           "choiceText": "First Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -90,6 +100,7 @@
           "recode": "2",
           "description": "Last Click",
           "choiceText": "Last Click",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -97,6 +108,7 @@
           "recode": "3",
           "description": "Page Submit",
           "choiceText": "Page Submit",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -104,6 +116,7 @@
           "recode": "4",
           "description": "Click Count",
           "choiceText": "Click Count",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -115,16 +128,18 @@
         "selector": "SAHR",
         "subSelector": "TX"
       },
-      "questionText": "How accurately does what you just wrote reflect your experience? (it's perfectly fine if it wasn't)",
+      "questionText": "How accurately does what you just wrote reflect your experience? (it's perfectly fine if it doesn't)",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q4",
       "choices": {
         "32": {
           "recode": "32",
           "description": "Extremely accurately",
           "choiceText": "Extremely accurately",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -132,6 +147,7 @@
           "recode": "33",
           "description": "Very accurately",
           "choiceText": "Very accurately",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -139,6 +155,7 @@
           "recode": "34",
           "description": "Moderately accurately",
           "choiceText": "Moderately accurately",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -146,6 +163,7 @@
           "recode": "35",
           "description": "Slightly accurately",
           "choiceText": "Slightly accurately",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -153,6 +171,7 @@
           "recode": "36",
           "description": "Not accurately at all",
           "choiceText": "Not accurately at all",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -169,11 +188,13 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q6",
       "choices": {
         "25": {
           "recode": "25",
           "description": "Extremely detailed",
           "choiceText": "Extremely detailed",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -181,6 +202,7 @@
           "recode": "26",
           "description": "Very detailed",
           "choiceText": "Very detailed",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -188,6 +210,7 @@
           "recode": "27",
           "description": "Moderately detailed",
           "choiceText": "Moderately detailed",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -195,6 +218,7 @@
           "recode": "28",
           "description": "Slightly detailed",
           "choiceText": "Slightly detailed",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         },
@@ -202,6 +226,7 @@
           "recode": "29",
           "description": "Not detailed at all",
           "choiceText": "Not detailed at all",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -218,11 +243,13 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q14",
       "choices": {
         "1": {
           "recode": "1",
           "description": "&nbsp;",
           "choiceText": "&nbsp;",
+          "imageDescription": null,
           "variableName": null,
           "analyze": true
         }
@@ -239,42 +266,49 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q8",
       "subQuestions": {
         "2": {
           "recode": "2",
           "description": "I knew <strong>what</strong> I wanted to say.",
           "choiceText": "I knew <strong>what</strong> I wanted to say.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "3": {
           "recode": "3",
           "description": "I knew <strong>how to say</strong> what I wanted to say.",
           "choiceText": "I knew <strong>how to say</strong> what I wanted to say.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "7": {
           "recode": "7",
           "description": "I often paused to think of <strong>what</strong> to say.",
           "choiceText": "I often paused to think of <strong>what</strong> to say.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "8": {
           "recode": "8",
           "description": "I often paused to think of <strong>how to say</strong> what I wanted to say.",
           "choiceText": "I often paused to think of <strong>how to say</strong> what I wanted to say.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "4": {
           "recode": "4",
           "description": "I was able to express myself fluently.",
           "choiceText": "I was able to express myself fluently.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "5": {
           "recode": "5",
           "description": "I had trouble expressing myself fluently.",
           "choiceText": "I had trouble expressing myself fluently.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         }
       },
       "choices": {
@@ -282,42 +316,49 @@
           "recode": "15",
           "description": "Strongly agree",
           "choiceText": "Strongly agree",
+          "imageDescription": null,
           "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Agree",
           "choiceText": "Agree",
+          "imageDescription": null,
           "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Somewhat agree",
           "choiceText": "Somewhat agree",
+          "imageDescription": null,
           "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Neither agree nor disagree",
           "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "19": {
           "recode": "19",
           "description": "Somewhat disagree",
           "choiceText": "Somewhat disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "20": {
           "recode": "20",
           "description": "Disagree",
           "choiceText": "Disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "21": {
           "recode": "21",
           "description": "Strongly disagree",
           "choiceText": "Strongly disagree",
+          "imageDescription": null,
           "analyze": true
         }
       }
@@ -328,11 +369,12 @@
         "selector": "ML",
         "subSelector": null
       },
-      "questionText": "How would you describe the process you used to write your ${e://Field/revisionDesc}?",
+      "questionText": "How would you describe the process you used when writing?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
-      }
+      },
+      "questionName": "Q10"
     },
     "QID22": {
       "questionType": {
@@ -345,30 +387,35 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q22",
       "subQuestions": {
         "10": {
           "recode": "10",
           "description": "The brainstorming gave me ideas.",
           "choiceText": "The brainstorming gave me ideas.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "11": {
           "recode": "11",
           "description": "The brainstorming step was a waste of time.",
           "choiceText": "The brainstorming step was a waste of time.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "14": {
           "recode": "14",
           "description": "I used <strong>topics</strong> from my brainstorm in the final writing.",
           "choiceText": "I used <strong>topics</strong> from my brainstorm in the final writing.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "15": {
           "recode": "15",
           "description": "I used <strong>words or phrases</strong> from my brainstorm in the final writing.",
           "choiceText": "I used <strong>words or phrases</strong> from my brainstorm in the final writing.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         }
       },
       "choices": {
@@ -376,42 +423,49 @@
           "recode": "15",
           "description": "Strongly agree",
           "choiceText": "Strongly agree",
+          "imageDescription": null,
           "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Agree",
           "choiceText": "Agree",
+          "imageDescription": null,
           "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Somewhat agree",
           "choiceText": "Somewhat agree",
+          "imageDescription": null,
           "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Neither agree nor disagree",
           "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "19": {
           "recode": "19",
           "description": "Somewhat disagree",
           "choiceText": "Somewhat disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "20": {
           "recode": "20",
           "description": "Disagree",
           "choiceText": "Disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "21": {
           "recode": "21",
           "description": "Strongly disagree",
           "choiceText": "Strongly disagree",
+          "imageDescription": null,
           "analyze": true
         }
       }
@@ -426,7 +480,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
-      }
+      },
+      "questionName": "Q24"
     },
     "QID11": {
       "questionType": {
@@ -438,7 +493,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
-      }
+      },
+      "questionName": "Q11"
     },
     "QID3": {
       "questionType": {
@@ -451,54 +507,63 @@
       "validation": {
         "doesForceResponse": true
       },
+      "questionName": "Q3",
       "subQuestions": {
         "2": {
           "recode": "2",
           "description": "The suggestions were interesting",
           "choiceText": "The suggestions were interesting",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "3": {
           "recode": "3",
           "description": "The suggestions were relevant",
           "choiceText": "The suggestions were relevant",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "4": {
           "recode": "4",
           "description": "The suggestions were distracting",
           "choiceText": "The suggestions were distracting",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "5": {
           "recode": "5",
           "description": "The suggestions were helpful",
           "choiceText": "The suggestions were helpful",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "6": {
           "recode": "6",
           "description": "The suggestions made me say something I didn't want to say.",
           "choiceText": "The suggestions made me say something I didn't want to say.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "7": {
           "recode": "7",
           "description": "The suggestions felt pushy.",
           "choiceText": "The suggestions felt pushy.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "8": {
           "recode": "8",
           "description": "The suggestions were inspiring.",
           "choiceText": "The suggestions were inspiring.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         },
         "9": {
           "recode": "9",
           "description": "The suggestions were timely.",
           "choiceText": "The suggestions were timely.",
-          "variableName": null
+          "variableName": null,
+          "imageDescription": null
         }
       },
       "choices": {
@@ -506,42 +571,49 @@
           "recode": "12",
           "description": "Strongly agree",
           "choiceText": "Strongly agree",
+          "imageDescription": null,
           "analyze": true
         },
         "13": {
           "recode": "13",
           "description": "Agree",
           "choiceText": "Agree",
+          "imageDescription": null,
           "analyze": true
         },
         "14": {
           "recode": "14",
           "description": "Somewhat agree",
           "choiceText": "Somewhat agree",
+          "imageDescription": null,
           "analyze": true
         },
         "15": {
           "recode": "15",
           "description": "Neither agree nor disagree",
           "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "16": {
           "recode": "16",
           "description": "Somewhat disagree",
           "choiceText": "Somewhat disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "17": {
           "recode": "17",
           "description": "Disagree",
           "choiceText": "Disagree",
+          "imageDescription": null,
           "analyze": true
         },
         "18": {
           "recode": "18",
           "description": "Strongly disagree",
           "choiceText": "Strongly disagree",
+          "imageDescription": null,
           "analyze": true
         }
       }
@@ -556,7 +628,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
-      }
+      },
+      "questionName": "Q12"
     },
     "QID13": {
       "questionType": {
@@ -568,7 +641,8 @@
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
-      }
+      },
+      "questionName": "Q13"
     }
   },
   "exportColumnMap": {
