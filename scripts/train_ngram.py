@@ -6,6 +6,8 @@ import joblib
 from suggestion.util import spacy_tok_to_doc, dump_kenlm
 from suggestion.suffix_array import DocSuffixArray
 from suggestion import tokenization
+import pandas as pd
+import numpy as np
 
 import re
 cant_type = re.compile(r'[^\-a-z., !\']')
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print("Loading...", flush=True)
-    data = pickle.load(open(args.input, 'rb'))
+    data = pd.read_pickle(args.input)
     reviews = data['data']
 
     tokenized_reviews = [convert_tokenization(tokenized)
