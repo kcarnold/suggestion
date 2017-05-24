@@ -17,7 +17,7 @@ from . import suffix_array, clustering
 LOG10 = np.log(10)
 
 
-models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_train-1star', 'yelp_train-5star', 'yelp_topic_seqs']}
+models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_train-1star', 'yelp_train-balanced', 'yelp_train-5star', 'yelp_topic_seqs']}
 def get_model(name):
     return models[name]
 
@@ -574,7 +574,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 phrases = (yield [
                     executor.submit(predict_forward,
                         domain+suffix, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints)
-                    for suffix, oneword_suggestion in zip(['-1star', '', '-5star'], next_words)])
+                    for suffix, oneword_suggestion in zip(['-1star', '-balanced', '-5star'], next_words)])
                 # phrases = (yield [executor.submit(beam_search_phrases,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-1star', '', '-5star']])

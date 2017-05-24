@@ -57,6 +57,11 @@ if __name__ == '__main__':
             all_indices = np.flatnonzero(reviews.stars_review == stars)
             selected_indices = np.random.choice(all_indices, size=args.subsample_stars, replace=False)
             dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(selected_indices, desc="Writing")))
+        balanced_indices = np.concatenate(
+            [np.random.choice(np.flatnonzero(reviews.stars_review == stars), size=args.subsample_stars, replace=False)
+            for stars in [1,2,3,4,5]], axis=0)
+        np.random.shuffle(balanced_indices) # for good measure, even tho it shouldn't matter.
+        dump_kenlm(f"{args.model_name}-balanced", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(balanced_indices, desc="Writing")))
     else:
         print("Saving reviews")
         with open('models/tokenized_reviews.pkl', 'wb') as f:
