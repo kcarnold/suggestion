@@ -217,28 +217,36 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logprobs=None, rare_word_bonus=0., constraints):
+def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logprobs=None, rare_word_bonus=0., constraints, contrast_models=[]):
     if isinstance(model, str):
         model = get_model(model)
+    contrast_models = [get_model(c_model) if isinstance(c_model, str) else c_model for c_model in contrast_models]
     avoid_letter = constraints.get('avoidLetter')
     unigram_probs = model.unigram_probs_wordsonly
     start_state, start_score = model.get_state(start_words, bos=False)
-    beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
+    contrast_states = [c_model.get_state(start_words, bos=False)[0] for c_model in contrast_models]
+    beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, contrast_states)]
     for i in range(length):
         bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
         prefix_chars = 1 if i > 0 else 0
         DONE = 2
         new_beam = [ent for ent in beam if ent[DONE]]
         for entry in beam:
-            score, words, done, penultimate_state, last_word_idx, num_chars, bonuses = entry
+            score, words, done, penultimate_state, last_word_idx, num_chars, contrast_penultimate_states = entry
             if done:
                 continue
             else:
                 if i > 0:
                     last_state = kenlm.State()
                     model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                    last_contrast_states = []
+                    for c_state, c_model in zip(contrast_penultimate_states, contrast_models):
+                        state = kenlm.State()
+                        c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(words[-1]), state)
+                        last_contrast_states.append(state)
                 else:
                     last_state = penultimate_state
+                    last_contrast_states = contrast_penultimate_states
                 probs = None
                 if i == 0 and prefix_logprobs is not None:
                     next_words = []
@@ -269,11 +277,15 @@ def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logpro
                     if word[0] in '.?!':
                         continue
                     unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
-                    new_score = score + prob + unigram_bonus + LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                    # ok to reuse new_state, since it's model-agnostic and we're gonna throw it away.
+                    contrast_scores = [LOG10 * c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(word), new_state)
+                        for c_state, c_model in zip(last_contrast_states, contrast_models)]
+                    new_score = score + prob + unigram_bonus + main_model_score - np.sum(contrast_scores) * .5
                     new_words = words + [word]
                     new_num_chars = num_chars + prefix_chars + len(word)
                     done = new_num_chars >= length
-                    new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, None)
+                    new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, last_contrast_states)
                     if len(new_beam) == beam_width:
                         heapq.heapreplace(new_beam, new_entry)
                     else:
@@ -382,10 +394,10 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], meta=meta) for phrase, meta in phrases]
 
 
-def predict_forward(domain, toks, first_word, beam_width, length_after_first, constraints):
+def predict_forward(domain, toks, first_word, beam_width, length_after_first, constraints, contrast_models=[]):
     model = get_model(domain)
     continuations = beam_search_phrases(model, toks + [first_word],
-        beam_width=beam_width, length=length_after_first, constraints=constraints)
+        beam_width=beam_width, length=length_after_first, constraints=constraints, contrast_models=contrast_models)
     if len(continuations) > 0:
         continuation = continuations[0].words
     else:
@@ -573,8 +585,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if polarity_split == '1a5':
                 phrases = (yield [
                     executor.submit(predict_forward,
-                        domain+suffix, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints)
-                    for suffix, oneword_suggestion in zip(['-1star', '-balanced', '-5star'], next_words)])
+                        domain+suffix, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints,
+                        contrast_models=[domain+contrast_suffix for contrast_suffix in contrast_suffixes])
+                    for (suffix, contrast_suffixes), oneword_suggestion in zip([('-1star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-5star', ['-balanced'])], next_words)])
                 # phrases = (yield [executor.submit(beam_search_phrases,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-1star', '', '-5star']])
