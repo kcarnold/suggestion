@@ -249,6 +249,7 @@ export class MasterStateStore {
     this.swapPlaceOrder = rng() < .5;
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
+    let demoConditionName = clientId.slice(4);
 
     this.times = {prewriteTimer, finalTimer};
 
@@ -299,7 +300,6 @@ export class MasterStateStore {
       },
       get screens() {
         if (isDemo) {
-          let demoConditionName = clientId.slice(4);
           return [{
             preEvent: {type: 'setupExperiment', block: 0, condition: demoConditionName, name: 'demo'},
             screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
@@ -369,7 +369,9 @@ export class MasterStateStore {
 
     if (isDemo) {
       this.setMasterConfig('demo');
-      this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+      if (demoConditionName === 'withPrewrite') {
+        this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+      }
     }
   }
 
