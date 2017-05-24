@@ -75,15 +75,15 @@ export class ExperimentStateStore {
         }));
 
         if (this.activeSuggestion) {
-          // Reorder the suggestions to match the active suggestion.
-          // - find the corresponding next-word suggestion.
-          let activeSuggestionNextWord = this.activeSuggestionWords[0];
-          let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
-          if (nextWordIdx !== -1) {
-            // Remove the now-redundant suggestion.
-            suggestions.splice(nextWordIdx, 1);
-          }
-          suggestions.splice(this.activeSuggestion.slot, 0, {
+          // // Reorder the suggestions to match the active suggestion.
+          // // - find the corresponding next-word suggestion.
+          // let activeSuggestionNextWord = this.activeSuggestionWords[0];
+          // let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
+          // if (nextWordIdx !== -1) {
+          //   // Remove the now-redundant suggestion.
+          //   suggestions.splice(nextWordIdx, 1);
+          // }
+          suggestions.splice(this.activeSuggestion.slot, 1, {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
             words: this.activeSuggestionWords,

@@ -17,7 +17,7 @@ from . import suffix_array, clustering
 LOG10 = np.log(10)
 
 
-models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_topic_seqs']}
+models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_train-1star', 'yelp_train-5star', 'yelp_topic_seqs']}
 def get_model(name):
     return models[name]
 
@@ -493,7 +493,9 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
-    constraints={}, **kw):
+    constraints={},
+    polarity_split='1a5',
+    **kw):
 
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -526,6 +528,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
+            assert polarity_split is None, "sufarr doesn't support polarity_split."
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
@@ -567,7 +570,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
         else:
             first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
             next_words = [ent.words[0] for ent in first_word_ents[:3]]
-            phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
+            if polarity_split == '1a5':
+                phrases = (yield [
+                    executor.submit(predict_forward,
+                        domain+suffix, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints)
+                    for suffix, oneword_suggestion in zip(['-1star', '', '-5star'], next_words)])
+                # phrases = (yield [executor.submit(beam_search_phrases,
+                #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
+                #     for suffix in ['-1star', '', '-5star']])
+            else:
+                phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(
