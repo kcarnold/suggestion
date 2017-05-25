@@ -287,7 +287,7 @@ def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logpro
                     # ok to reuse new_state, since it's model-agnostic and we're gonna throw it away.
                     contrast_scores = [LOG10 * c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(word), new_state)
                         for c_state, c_model in zip(last_contrast_states, contrast_models)]
-                    new_score = score + prob + unigram_bonus + main_model_score - np.sum(contrast_scores) * .5
+                    new_score = score + prob + unigram_bonus + main_model_score# - np.sum(contrast_scores) * .5
                     new_words = words + [word]
                     new_num_chars = num_chars + prefix_chars + len(word)
                     done = new_num_chars >= length
