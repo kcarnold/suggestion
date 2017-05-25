@@ -16,8 +16,14 @@ from . import suffix_array, clustering
 
 LOG10 = np.log(10)
 
-
-models = {name: Model.from_basename(paths.model_basename(name)) for name in ['yelp_train', 'yelp_train-1star', 'yelp_train-balanced', 'yelp_train-5star', 'yelp_topic_seqs']}
+PRELOAD_MODELS = '''
+yelp_train
+yelp_train-1star
+yelp_train-balanced
+yelp_train-5star
+yelp_topic_seqs
+tweeterinchief'''.split()
+models = {name: Model.from_basename(paths.model_basename(name)) for name in PRELOAD_MODELS}
 def get_model(name):
     return models[name]
 
@@ -506,7 +512,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
     constraints={},
-    polarity_split='1a5',
+    polarity_split=None,
     **kw):
 
     model = get_model(domain)

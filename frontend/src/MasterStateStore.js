@@ -47,6 +47,15 @@ const ngramFlags = {
 };
 
 const namedConditions = {
+  trump: {
+    sugFlags: {
+      useSufarr: false,
+      temperature: 0,
+      use_bos_suggs: false,
+      domain: 'tweeterinchief'
+    },
+    showPhrase: true,
+  },
   word: {
     sugFlags: ngramFlags,
     showPhrase: false
@@ -326,8 +335,8 @@ export class MasterStateStore {
       },
       get suggestionRequestParams() {
         return {
+          domain: 'yelp_train',
           ...this.condition.sugFlags,
-          domain: 'yelp_train'
         };
       },
       get curPlace() {
