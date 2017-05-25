@@ -586,18 +586,19 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     result.append(best)
                 phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
         else:
-            first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
-            next_words = [ent.words[0] for ent in first_word_ents[:3]]
             if polarity_split == '1a5':
                 phrases = (yield [
-                    executor.submit(predict_forward,
-                        domain+suffix, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints,
+                    executor.submit(beam_search_phrases,
+                        domain+suffix, toks, beam_width=50, length=1+length_after_first, constraints=constraints,
                         contrast_models=[domain+contrast_suffix for contrast_suffix in contrast_suffixes])
-                    for (suffix, contrast_suffixes), oneword_suggestion in zip([('-1star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-5star', ['-balanced'])], next_words)])
+                    for suffix, contrast_suffixes in [('-1star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-5star', ['-balanced'])]])
+                phrases = [(phrase[0].words, None) for phrase in phrases]
                 # phrases = (yield [executor.submit(beam_search_phrases,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-1star', '', '-5star']])
             else:
+                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
+                next_words = [ent.words[0] for ent in first_word_ents[:3]]
                 phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag
