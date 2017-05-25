@@ -140,6 +140,8 @@ export class ExperimentStateStore {
               slot: slot,
               wordIdx: 1
             };
+          } else {
+            this.activeSuggestion = null;
           }
         } else {
           // Invalid suggestion, ignore it.

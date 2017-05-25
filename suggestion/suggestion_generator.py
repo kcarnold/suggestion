@@ -402,6 +402,8 @@ def phrases_to_suggs(phrases):
 
 def predict_forward(domain, toks, first_word, beam_width, length_after_first, constraints, contrast_models=[]):
     model = get_model(domain)
+    if first_word in '.?!':
+        return [first_word], None
     continuations = beam_search_phrases(model, toks + [first_word],
         beam_width=beam_width, length=length_after_first, constraints=constraints, contrast_models=contrast_models)
     if len(continuations) > 0:
@@ -508,6 +510,21 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
     return phrases, sug_state
 
 
+def get_sentence_enders(model, start_words):
+    if isinstance(model, str):
+        model = get_model(model)
+    start_state, start_score = model.get_state(start_words, bos=False)
+    toks = list('.?!')
+    end_indices = [model.model.vocab_index(tok) for tok in toks]
+    scores = np.exp(model.eval_logprobs_for_words(start_state, end_indices))
+    cum_score = np.sum(scores)
+    if cum_score > 2/3:
+        return [toks[i] for i in np.argsort(scores)[-1][:2]]
+    elif cum_score > 1/3:
+        return [toks[np.argmax(scores)]]
+    return []
+
+
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
@@ -601,8 +618,12 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-5star', '', '-1star']])
             else:
+                if prefix_logprobs is None:
+                    sentence_enders = yield executor.submit(get_sentence_enders, domain, toks)
+                else:
+                    sentence_enders = []
                 first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
-                next_words = [ent.words[0] for ent in first_word_ents[:3]]
+                next_words = sentence_enders + [ent.words[0] for ent in first_word_ents[:3]]
                 if promise is not None:
                     next_promised_word = promise['words'][0]
                     if next_promised_word in next_words:
