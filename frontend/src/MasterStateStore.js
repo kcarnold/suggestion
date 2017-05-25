@@ -91,6 +91,16 @@ const namedConditions = {
     },
     showPhrase: true
   },
+  wdiverse: {
+    sugFlags: {
+      useSufarr: false,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: true,
+      continuation_length: 17,
+    },
+    showPhrase: false
+  },
   antidiverse: {
     sugFlags: {
       useSufarr: false,
@@ -163,6 +173,12 @@ const MASTER_CONFIGS = {
   },
   diversity: {
     baseConditions: ['diverse', 'continue'],
+    prewrite: false,
+    isStudy1: false,
+    instructions: 'review'
+  },
+  wdiversity: {
+    baseConditions: ['diverse', 'wdiverse'],
     prewrite: false,
     isStudy1: false,
     instructions: 'review'
