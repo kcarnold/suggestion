@@ -512,6 +512,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
     constraints={},
+    promise=None,
     polarity_split=None,
     **kw):
 
@@ -540,13 +541,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
+        if promise is not None:
+            print("Warning: promise enabled but making beginning-of-sentence suggestions!")
         phrases, sug_state = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
             return phrases, sug_state
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
-            assert polarity_split is None, "sufarr doesn't support polarity_split."
+            assert polarity_split is None, "sufarr doesn't support polarity_split yet"
+            assert promise is None, "sufarr doesn't support promises yet"
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
             context_tuple = (toks[-1],)
@@ -599,6 +603,12 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             else:
                 first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 next_words = [ent.words[0] for ent in first_word_ents[:3]]
+                if promise is not None:
+                    next_promised_word = promise['words'][0]
+                    if next_promised_word in next_words:
+                        # Remove the duplicate word
+                        next_words.remove(next_promised_word)
+                    next_words.insert(promise['slot'], next_promised_word)
                 phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
     else:
         # TODO: upgrade to use_sufarr flag

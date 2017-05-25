@@ -373,13 +373,14 @@ export class MasterStateStore {
           return null;
 
         let seqNum = experimentState.contextSequenceNum;
-        let {prefix, curWord, constraints} = experimentState.getSuggestionContext();
+        let {prefix, curWord, constraints, promise} = experimentState.getSuggestionContext();
         let response = {
           type: 'requestSuggestions',
           request_id: seqNum,
           sofar: prefix,
           cur_word: curWord,
           constraints,
+          promise,
           ...this.suggestionRequestParams
         };
         if (this.condition.usePrewriteText && this.prewriteLines.length) {

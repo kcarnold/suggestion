@@ -196,6 +196,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         null_logprob_weight=request.get('null_logprob_weight', 0.),
                         prewrite_info=request.get('prewrite_info'),
                         constraints=request.get('constraints'),
+                        promise=request.get('promise'),
                         word_bonuses=None)
                 except Exception:
                     traceback.print_exc()
