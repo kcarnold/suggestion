@@ -47,6 +47,15 @@ const ngramFlags = {
 };
 
 const namedConditions = {
+  trump: {
+    sugFlags: {
+      useSufarr: false,
+      temperature: 0,
+      use_bos_suggs: false,
+      domain: 'tweeterinchief'
+    },
+    showPhrase: true,
+  },
   word: {
     sugFlags: ngramFlags,
     showPhrase: false
@@ -54,7 +63,7 @@ const namedConditions = {
   phrase: {
     //sugFlags: {...ngramFlags, continuation_length: 17},
     sugFlags: {
-      useSufarr: true,
+      useSufarr: false,
       rare_word_bonus: 0,
       null_logprob_weight: 0,
       use_bos_suggs: false,
@@ -81,6 +90,16 @@ const namedConditions = {
       continuation_length: 17,
     },
     showPhrase: true
+  },
+  wdiverse: {
+    sugFlags: {
+      useSufarr: false,
+      rare_word_bonus: 0.,
+      null_logprob_weight: 0.,
+      use_bos_suggs: true,
+      continuation_length: 17,
+    },
+    showPhrase: false
   },
   antidiverse: {
     sugFlags: {
@@ -154,6 +173,12 @@ const MASTER_CONFIGS = {
   },
   diversity: {
     baseConditions: ['diverse', 'continue'],
+    prewrite: false,
+    isStudy1: false,
+    instructions: 'review'
+  },
+  wdiversity: {
+    baseConditions: ['diverse', 'wdiverse'],
     prewrite: false,
     isStudy1: false,
     instructions: 'review'
@@ -249,6 +274,7 @@ export class MasterStateStore {
     this.swapPlaceOrder = rng() < .5;
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
+    let demoConditionName = clientId.slice(4);
 
     this.times = {prewriteTimer, finalTimer};
 
@@ -299,7 +325,6 @@ export class MasterStateStore {
       },
       get screens() {
         if (isDemo) {
-          let demoConditionName = clientId.slice(4);
           return [{
             preEvent: {type: 'setupExperiment', block: 0, condition: demoConditionName, name: 'demo'},
             screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
@@ -326,8 +351,8 @@ export class MasterStateStore {
       },
       get suggestionRequestParams() {
         return {
+          domain: 'yelp_train',
           ...this.condition.sugFlags,
-          domain: 'yelp_train'
         };
       },
       get curPlace() {
@@ -348,13 +373,14 @@ export class MasterStateStore {
           return null;
 
         let seqNum = experimentState.contextSequenceNum;
-        let {prefix, curWord, constraints} = experimentState.getSuggestionContext();
+        let {prefix, curWord, constraints, promise} = experimentState.getSuggestionContext();
         let response = {
           type: 'requestSuggestions',
           request_id: seqNum,
           sofar: prefix,
           cur_word: curWord,
           constraints,
+          promise,
           ...this.suggestionRequestParams
         };
         if (this.condition.usePrewriteText && this.prewriteLines.length) {
@@ -369,7 +395,9 @@ export class MasterStateStore {
 
     if (isDemo) {
       this.setMasterConfig('demo');
-      this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+      if (demoConditionName === 'withPrewrite') {
+        this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+      }
     }
   }
 

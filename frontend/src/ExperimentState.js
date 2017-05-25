@@ -75,15 +75,7 @@ export class ExperimentStateStore {
         }));
 
         if (this.activeSuggestion) {
-          // Reorder the suggestions to match the active suggestion.
-          // - find the corresponding next-word suggestion.
-          let activeSuggestionNextWord = this.activeSuggestionWords[0];
-          let nextWordIdx = _.map(suggestions, sugg => sugg.words[0]).indexOf(activeSuggestionNextWord);
-          if (nextWordIdx !== -1) {
-            // Remove the now-redundant suggestion.
-            suggestions.splice(nextWordIdx, 1);
-          }
-          suggestions.splice(this.activeSuggestion.slot, 0, {
+          suggestions.splice(this.activeSuggestion.slot, 1, {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
             words: this.activeSuggestionWords,
@@ -148,6 +140,8 @@ export class ExperimentStateStore {
               slot: slot,
               wordIdx: 1
             };
+          } else {
+            this.activeSuggestion = null;
           }
         } else {
           // Invalid suggestion, ignore it.
@@ -203,11 +197,18 @@ export class ExperimentStateStore {
       }
       curWord.push(chr);
     }
-    return {
+    let result = {
       prefix: sofar.slice(0, lastSpaceIdx + 1),
       curWord,
       constraints: this.curConstraint
     };
+    if (this.activeSuggestion) {
+      result.promise = {
+        slot: this.activeSuggestion.slot,
+        words: this.activeSuggestionWords
+      };
+    }
+    return result;
   }
 
   handleEvent = (event) => {
