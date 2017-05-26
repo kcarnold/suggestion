@@ -191,12 +191,12 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let [c1, c2] = conditions;
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
-    {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'trump', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+    {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
     {controllerScreen: 'IntroSurvey'},
   ];
   if (masterConfigName === 'infoSource') {
-    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'});
     conditions.forEach((conditionName, block) => {
       result = result.concat([
         {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'ListWords'},
@@ -207,9 +207,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
 
   } else {
     result = result.concat([
-      {preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
       ...experimentBlock(0, conditions[0], masterConfig.prewrite),
-      {preEvent: {type: 'setupExperiment', block: 1, condition: c2, name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer2'},
       ...experimentBlock(1, conditions[1], masterConfig.prewrite),
     ]);
   }
