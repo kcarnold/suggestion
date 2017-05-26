@@ -455,14 +455,13 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
 
     sents = nltk.sent_tokenize(sofar)
 
+    topic_seq = get_topic_seq(sents)
     if False:
         topics_to_suggest = try_to_match_topic_distribution(
             clizer=clizer,
             target_dist=clizer.target_dists['best'],
             sents=sents)
-
-    topic_seq = get_topic_seq(sents)
-    if bos_sugg_flag == 'continue':
+    elif bos_sugg_flag == 'continue':
         if len(topic_seq) == 0:
             return None, sug_state
         last_topic = topic_seq[-1]
