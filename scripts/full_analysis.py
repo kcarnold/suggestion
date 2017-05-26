@@ -249,6 +249,21 @@ if __name__ == '__main__':
 
 
     all_survey_data[all_survey_data.value.str.len() > 5].to_csv('data/survey_freetexts.csv')
+
+#%%
+text_lens = all_survey_data.groupby(['survey', 'name']).value.apply(lambda x: x.str.len().max())
+answers_to_summarize = text_lens[text_lens>20]
+for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_frame('mrl').reset_index(), left_on=['survey', 'name'], right_on=['survey', 'name']).groupby('participant_id'):
+    print(pid)
+    for (survey, idx), this_survey_data in data_to_summarize.groupby(['survey', 'idx']):
+        if survey == 'intro':
+            continue
+        print(survey, idx)
+        for row in this_survey_data.itertuples():
+            print(row.condition, row.name, '===', row.value)
+        print()
+    print()
+#        print(this_survey_data.info())
 #%%
 def tokenize(text):
     import nltk
