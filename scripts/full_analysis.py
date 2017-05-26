@@ -54,7 +54,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'diversity_0'
+batch_code = 'wdiversity_0'
 import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
 #%%
@@ -191,7 +191,11 @@ if __name__ == '__main__':
             continue
         for page, page_data in log_analyses['byExpPage'].items():
             datum = base_datum.copy()
-            kind, num = page.split('-')
+            if '-' in page:
+                kind, num = page.split('-')
+            else:
+                kind = page
+                num = '0'
             num = int(num)
             datum['kind'] = kind
             datum['block'] = num
