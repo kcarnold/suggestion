@@ -8,6 +8,7 @@ env.hosts = [
 ]
 
 def deploy():
+    local('git push')
     with cd('~/code/suggestion'):
         run('git pull')
     with lcd('frontend'):
