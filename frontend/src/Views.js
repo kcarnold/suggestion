@@ -291,16 +291,21 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
   }));
 
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let {isStudy1} = state.masterConfig;
     // <h1>Practice with Phrase Suggestions</h1>
     // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
     return <div>
-      {!isStudy1 && <p>There will be two writing sessions, Session A and Session B. We are now starting Session A.</p>}
-      <p>Your phone's web browser should now be showing a keyboard.</p>
-      {!isStudy1 && <p>This experiment uses a special mobile phone keyboard that gives <i>phrase</i> suggestions. Let's practice using them.</p>}
-      <p>{isStudy1 ? "In some conditions, the boxes above the keyboard will show a complete phrase, starting with the highlighted word." : "Notice the 3 boxes above the keyboard. Each one shows a phrase."} Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
+      <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
+      But it has a few special features that we want to show you!</p>
+
+      <p>First, let's practice the basic keyboard functionality.</p>
+
       {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
+
+      <p>Now, notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on a suggestion box to insert a word.</TutorialTodo>
+
+      <p>Sometimes the boxes above the keyboard will show a complete phrase, starting with the highlighted word.
+      Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
       {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
       <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>

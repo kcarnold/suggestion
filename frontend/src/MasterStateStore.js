@@ -151,45 +151,40 @@ const MASTER_CONFIGS = {
   study1: {
     baseConditions: ['word', 'phrase'],
     prewrite: false,
-    isStudy1: true,
   },
   study2: {
     baseConditions: ['rarePhrase', 'phrase'],
     prewrite: true,
-    isStudy1: false,
     instructions: 'detailed',
   },
   funny: {
     baseConditions: ['rarePhrase', 'phrase'],
     prewrite: true,
-    isStudy1: false,
     instructions: 'funny',
   },
   study4: {
     baseConditions: ['rarePhrase', 'phrase'],
     prewrite: false,
-    isStudy1: false,
     instructions: 'review',
   },
   diversity: {
     baseConditions: ['diverse', 'continue'],
     prewrite: false,
-    isStudy1: false,
     instructions: 'review'
   },
   wdiversity: {
     baseConditions: ['diverse', 'wdiverse'],
     prewrite: false,
-    isStudy1: false,
     instructions: 'review'
   },
   infoSource: {
     baseConditions: ['withPrewrite', 'phrase'],
     prewrite: false,
-    isStudy1: false,
     instructions: 'review'
   }
 };
+
+
 
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
@@ -200,15 +195,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
     {controllerScreen: 'IntroSurvey'},
   ];
-  if (masterConfig.isStudy1) {
-    result = result.concat([
-      {preEvent: {type: 'setupExperiment', block: null, condition: 'word', name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeWord'},
-      {preEvent: {type: 'setupExperiment', block: null, condition: 'phrase', name: 'practice-1'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-      ...experimentBlock(0, conditions[0], masterConfig.prewrite),
-      ...experimentBlock(1, conditions[1], masterConfig.prewrite),
-    ]);
-
-  } else if (masterConfigName === 'infoSource') {
+  if (masterConfigName === 'infoSource') {
     result.push({preEvent: {type: 'setupExperiment', block: 0, condition: c1, name: 'practice-0'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'});
     conditions.forEach((conditionName, block) => {
       result = result.concat([
@@ -232,6 +219,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   ]);
   return result;
 }
+
 
 
 export class MasterStateStore {
