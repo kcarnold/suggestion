@@ -74,18 +74,21 @@ export class ExperimentStateStore {
           ...sugg
         }));
 
+        // Ensure there are always at leaste 3 suggestions.
+        while (suggestions.length < 3) {
+          suggestions.push({
+            words: [''],
+            isValid: false
+          });
+        }
+
+        // Substitute the promised suggestion.
         if (this.activeSuggestion) {
           suggestions.splice(this.activeSuggestion.slot, 1, {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
             words: this.activeSuggestionWords,
             isValid: true,
-          });
-        }
-        while (suggestions.length < 3) {
-          suggestions.push({
-            words: [''],
-            isValid: false
           });
         }
         return suggestions.slice(0, 3);
