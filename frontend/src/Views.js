@@ -217,6 +217,7 @@ export const Instructions = inject('state')(observer(({state}) => {
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
 export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
+    <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you make your best writing, use it. If a suggestion doesn't help you, ignore it.</p>
