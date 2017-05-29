@@ -479,9 +479,9 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
             last_topic = topic_seq[-1]
             topic_likelihood[last_topic] = -np.inf
 
-            # # Penalize already-covered topics.
-            # for topic in topic_seq:
-            #     topic_likelihood[topic] -= 1.0
+            # Penalize already-covered topics.
+            for topic in topic_seq:
+                topic_likelihood[topic] -= 100.0
 
         topics_to_suggest = np.argsort(topic_likelihood)[-3:][::-1].tolist()
 
