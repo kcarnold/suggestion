@@ -1,0 +1,36 @@
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+<style>
+table {
+    background: rgb(127,127,127);
+}
+td.sent {
+    width: 50%
+}
+td.suggs {
+    white-space: pre-line;
+}
+</style>
+<script>
+var colors = d3.schemeSet3;
+
+d3.json('bos_sugg_replays.json', function(data) {
+   // console.log(data);
+   let contexts = d3.select('body').append('div').selectAll('.context').data(data);
+   contexts = contexts.enter().append('div').attr('class', 'context').merge(contexts);
+   contexts.each(function(p, j) {
+    console.log(p)
+    let context = d3.select(this);
+    context.append('h4').text(d => d.text);
+    let bySent = context.append('table').selectAll('tr').data(d=>d.suggs);
+    bySent = bySent.enter().append('tr').merge(bySent);
+    bySent.append('td').attr('class', 'sent').text((d,i)=>`[${d.meta.topic_seq[i-1]}] ${d.sent}`).style('color', (d,i)=>i>0?colors[d.meta.topic_seq[i-1]]:'black');
+    bySent.append('td').attr('class', 'suggs').html(d=>d.suggs.map((sugg, i) => `<span style="color: ${colors[d.meta.topics_to_suggest[i]]}">[${d.meta.topics_to_suggest[i]}] ${sugg}</span>`).join('\n'))
+    // debugger
+   });
+   // contexts.append('h4').text(d => d.text);
+   // contexts.selectAll('div').data(d=>d.suggs).enter().append('div').text(d=>d.sent);
+});
+</script>
+
