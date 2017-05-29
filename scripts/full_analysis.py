@@ -248,7 +248,7 @@ if __name__ == '__main__':
         print("Wrote", f'data/analysis_{batch_code}_{run_id}.pkl')
 
 
-    all_survey_data[all_survey_data.value.str.len() > 5].to_csv('data/survey_freetexts.csv')
+    all_survey_data[all_survey_data.value.str.len() > 5].to_csv(f'data/survey_freetexts_{batch_code}_{run_id}.csv')
 
 #%%
 text_lens = all_survey_data.groupby(['survey', 'name']).value.apply(lambda x: x.str.len().max())
