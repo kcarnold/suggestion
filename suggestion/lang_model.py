@@ -141,7 +141,7 @@ class Model:
 
     @classmethod
     def from_basename(cls, basename):
-        return cls(model_file=basename + '.kenlm', arpa_file=basename + '.arpa')
+        return cls(model_file=str(basename) + '.kenlm', arpa_file=str(basename) + '.arpa')
 
     @property
     def bos_state(self):

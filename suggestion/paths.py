@@ -1,16 +1,17 @@
-import os
+import pathlib
 
 
 class paths:
-    parent = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-    ui = os.path.join(parent, 'frontend/build')
-    logdir = os.path.join(parent, 'logs')
-    db = os.path.join(parent, 'database.db')
-    preproc = os.path.join(parent, 'yelp_preproc')
+    parent = pathlib.Path(__file__).resolve().parent.parent
+    ui = parent / 'frontend/build'
+    logdir = parent / 'logs'
+    db = parent / 'database.db'
+    preproc = parent / 'yelp_preproc'
+    data = parent / 'data'
 
-    cache = os.path.join(parent, 'cache')
-    models = os.path.join(parent, 'models')
+    cache = parent / 'cache'
+    models = parent / 'models'
 
     @classmethod
     def model_basename(cls, model_name):
-        return os.path.join(cls.models, model_name)
+        return cls.models / model_name
