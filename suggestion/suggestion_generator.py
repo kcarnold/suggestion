@@ -62,6 +62,9 @@ if enable_bos_suggs:
     likelihood_bias = logsumexp(clizer.scores_by_cluster, axis=1, keepdims=True)
     clizer.scores_by_cluster = clizer.scores_by_cluster - .85 * likelihood_bias
 
+    clizer.topic_continuation_scores = [np.argsort(clizer.topic_continuation_scores[:,topic])[::-1] for topic in range(clizer.n_clusters)]
+    clizer.scores_by_cluster_argsort = [np.argsort(clizer.scores_by_cluster[:,topic])[::-1] for topic in range(clizer.n_clusters)]
+
     del keep
     del likelihood_bias
 
@@ -445,13 +448,14 @@ def get_topic_seq(sents):
     return np.argmin(cluster_distances, axis=1).tolist()
 
 
-def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
+def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False):
     if sug_state is None:
         sug_state = {}
     if 'suggested_already' not in sug_state:
         sug_state['suggested_already'] = set()
     suggested_already = sug_state['suggested_already']
-    print("Already suggested", suggested_already)
+    if verbose:
+        print("Already suggested", suggested_already)
 
     sents = nltk.sent_tokenize(sofar)
 
@@ -481,19 +485,22 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints):
 
         topics_to_suggest = np.argsort(topic_likelihood)[-3:][::-1].tolist()
 
-    print(f"seq={topic_seq} flag={bos_sugg_flag} suggesting={topics_to_suggest}")
+    if verbose:
+        print(f"seq={topic_seq} flag={bos_sugg_flag} suggesting={topics_to_suggest}")
 
     if bos_sugg_flag == 'continue':
         scores_by_cluster = clizer.topic_continuation_scores
+        argsort_scores_for_topic = clizer.topic_continuation_scores_argsort
     else:
         scores_by_cluster = clizer.scores_by_cluster
+        argsort_scores_for_topic = clizer.scores_by_cluster_argsort
 
     avoid_letter = constraints.get('avoidLetter')
     phrases = []
     first_words = []
     for topic in topics_to_suggest:
         # Try to find a start for this topic that doesn't overlap an existing one in first word.
-        for suggest_idx in np.argsort(scores_by_cluster[:,topic])[::-1]:
+        for suggest_idx in argsort_scores_for_topic[topic]:
             phrase = clizer.unique_starts[suggest_idx]
             if phrase[0] in first_words:
                 continue
