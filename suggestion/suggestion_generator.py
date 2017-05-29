@@ -513,7 +513,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
             suggested_already.add(beginning)
             phrases.append((phrase, 'bos'))
             break
-    return phrases, sug_state
+    return phrases, sug_state, dict(topic_seq=topic_seq, topics_to_suggest=topics_to_suggest)
 
 
 def get_sentence_enders(model, start_words):
@@ -566,7 +566,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
         if promise is not None:
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
-        phrases, sug_state = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
+        phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
             return phrases, sug_state
 
