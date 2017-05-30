@@ -41,12 +41,6 @@ get_suggestions_async = tornado.gen.coroutine(suggestion_generator.get_suggestio
 if not os.path.isdir(paths.logdir):
     os.makedirs(paths.logdir)
 
-import sqlite3
-db_conn = sqlite3.connect(paths.db, isolation_level=None)
-db_conn.execute('PRAGMA journal_mode=WAL;')
-db_conn.execute('PRAGMA synchronous=NORMAL;')
-db_conn.execute('CREATE TABLE IF NOT EXISTS sessions (participant_id, log_file, state)')
-
 from concurrent.futures import ProcessPoolExecutor
 process_pool = ProcessPoolExecutor()
 
