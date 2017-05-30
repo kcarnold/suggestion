@@ -12,6 +12,7 @@ from suggestion import suggestion_generator
 #%%
 all_writing = pd.read_csv(paths.data / 'all_writing.csv')
 #%%
+bos_sugg_flag = 'continue'
 contexts = []
 for text in all_writing.finalText:
     sents = nltk.sent_tokenize(text)
@@ -19,7 +20,9 @@ for text in all_writing.finalText:
     suggs_out = []
     for i in range(len(sents)+1):
         sofar = ' '.join(sents[:i])
-        suggs, sug_state, meta = suggestion_generator.get_bos_suggs(sofar, sug_state, constraints={}, bos_sugg_flag='diverse')
+        suggs, sug_state, meta = suggestion_generator.get_bos_suggs(sofar, sug_state, constraints={}, bos_sugg_flag=bos_sugg_flag)
+        if suggs is None:
+            continue
         suggs = [' '.join(s) for s, _ in suggs]
         suggs_out.append(dict(sent=sents[i-1] if i else '', suggs=suggs, meta=meta))
     contexts.append(dict(text=text, suggs=suggs_out))
