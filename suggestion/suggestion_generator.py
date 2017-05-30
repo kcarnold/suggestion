@@ -62,7 +62,7 @@ if enable_bos_suggs:
     likelihood_bias = logsumexp(clizer.scores_by_cluster, axis=1, keepdims=True)
     clizer.scores_by_cluster = clizer.scores_by_cluster - .85 * likelihood_bias
 
-    clizer.topic_continuation_scores = [np.argsort(clizer.topic_continuation_scores[:,topic])[::-1] for topic in range(clizer.n_clusters)]
+    clizer.topic_continuation_scores_argsort = [np.argsort(clizer.topic_continuation_scores[:,topic])[::-1] for topic in range(clizer.n_clusters)]
     clizer.scores_by_cluster_argsort = [np.argsort(clizer.scores_by_cluster[:,topic])[::-1] for topic in range(clizer.n_clusters)]
 
     del keep
@@ -467,7 +467,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
             sents=sents)
     elif bos_sugg_flag == 'continue':
         if len(topic_seq) == 0:
-            return None, sug_state
+            return None, sug_state, None
         last_topic = topic_seq[-1]
         topics_to_suggest = [last_topic] * 3
     else:
