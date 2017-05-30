@@ -24,7 +24,7 @@ define("port", default=5000, help="run on the given port", type=int)
 
 settings = dict(
     template_path=paths.ui,
-    static_path=paths.ui + '/static',
+    static_path=paths.ui / 'static',
     debug=True,
     )
 
