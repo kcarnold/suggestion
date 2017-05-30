@@ -15,7 +15,11 @@ td.suggs {
 <script>
 var colors = d3.schemeSet3;
 
-d3.json('bos_sugg_replays.json', function(data) {
+function last(arr) {
+  return arr[arr.length - 1];
+}
+
+d3.json('/data/bos_sugg_replays_continue.json', function(data) {
    // console.log(data);
    let contexts = d3.select('body').append('div').selectAll('.context').data(data);
    contexts = contexts.enter().append('div').attr('class', 'context').merge(contexts);
@@ -25,7 +29,7 @@ d3.json('bos_sugg_replays.json', function(data) {
     context.append('h4').text(d => d.text);
     let bySent = context.append('table').selectAll('tr').data(d=>d.suggs);
     bySent = bySent.enter().append('tr').merge(bySent);
-    bySent.append('td').attr('class', 'sent').text((d,i)=>`[${d.meta.topic_seq[i-1]}] ${d.sent}`).style('color', (d,i)=>i>0?colors[d.meta.topic_seq[i-1]]:'black');
+    bySent.append('td').attr('class', 'sent').text((d,i)=>`[${last(d.meta.topic_seq)}] ${d.sent}`).style('color', (d,i)=>d.meta.topic_seq.length>0?colors[last(d.meta.topic_seq)]:'black');
     bySent.append('td').attr('class', 'suggs').html(d=>d.suggs.map((sugg, i) => `<span style="color: ${colors[d.meta.topics_to_suggest[i]]}">[${d.meta.topics_to_suggest[i]}] ${sugg}</span>`).join('\n'))
     // debugger
    });
