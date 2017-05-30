@@ -4,10 +4,11 @@ import numpy as np
 import tqdm
 from scipy.spatial.distance import pdist
 from .paths import paths
+import pandas as pd
 
 
 def load_reviews():
-    data = pickle.load(open(os.path.join(paths.preproc, 'all_data.pkl'), 'rb'))
+    data = pd.read_pickle(str(paths.preproc / 'all_data.pkl'))
     reviews = data['data'].reset_index(drop=True)
 
     # Reconstruct train/test split indices.
@@ -63,7 +64,7 @@ class WordFreqAnalyzer:
 
     @classmethod
     def build(cls):
-        data = pickle.load(open(os.path.join(paths.preproc, 'all_data.pkl'), 'rb'))
+        data = pd.read_pickle(str(paths.preproc / 'all_data.pkl'))
         vocab, counts = data['vocab']
         return cls(vocab, counts)
 
