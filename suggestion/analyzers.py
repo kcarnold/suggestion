@@ -95,7 +95,10 @@ class WordPairAnalyzer:
                 return np.zeros(cnnb.ndim)
         cnnb_vecs_for_sklearn_vocab = np.array([get_or_zero(cnnb, word) for word in sklearn_vocab])
         wordfreqs_for_sklearn_vocab = [wordfreq.word_frequency(word, 'en', 'large', minimum=1e-9) for word in sklearn_vocab]
-        projection_mat = -np.log(wordfreqs_for_sklearn_vocab)[:,None] * cnnb_vecs_for_sklearn_vocab
+        if False:
+            projection_mat = -np.log(wordfreqs_for_sklearn_vocab)[:,None] * cnnb_vecs_for_sklearn_vocab
+        else:
+            projection_mat = cnnb_vecs_for_sklearn_vocab
 
         len_chars = reviews.text.str.len()
         mean_len_chars = np.mean(len_chars)
