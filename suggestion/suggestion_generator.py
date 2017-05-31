@@ -313,13 +313,16 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
 
 def beam_search_phrases(model, start_words, *,
     beam_width, length_after_first, prefix_logprobs=None,
-    rare_word_bonus=0., constraints, contrast_models=[]):
+    rare_word_bonus=0., constraints, contrast_models=[],
+    disallowed_first_words=[]):
 
     beam = beam_search_phrases_init(model, start_words, contrast_models=contrast_models)
     for iteration_num in range(length_after_first):
         beam = beam_search_phrases_extend(model, beam, iteration_num=iteration_num, beam_width=beam_width, length_after_first=length_after_first,
             prefix_logprobs=prefix_logprobs, rare_word_bonus=rare_word_bonus, constraints=constraints,
             contrast_models=contrast_models)
+        if iteration_num == 0:
+            beam = [ent for ent in beam if ent[1][0] not in disallowed_first_words]
         prefix_logprobs = None
     return [BeamEntry(*ent) for ent in sorted(beam, reverse=True)]
 
@@ -631,13 +634,43 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     result.append(best)
                 phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
         else:
-            if polarity_split == '5a1':
-                phrases = (yield [
+            tokss = [toks] * 3
+            if promise is not None:
+                # Treat the promise as a prefix.
+                tokss[promise['slot']] = toks + promise['words']
+
+            if polarity_split == '5a1' and prefix_logprobs is None:
+                polarity_domains = [('-5star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-1star', ['-balanced'])]
+                beam_entries = (yield [
                     executor.submit(beam_search_phrases,
-                        domain+suffix, toks, beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
+                        domain+suffix, cur_toks, beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
                         contrast_models=[domain+contrast_suffix for contrast_suffix in contrast_suffixes])
-                    for suffix, contrast_suffixes in [('-5star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-1star', ['-balanced'])]])
-                phrases = [(phrase[0].words, None) for phrase in phrases]
+                    for (suffix, contrast_suffixes), cur_toks in zip(polarity_domains, tokss)])
+
+                if promise is not None:
+                    promise_entry = beam_entries[promise['slot']][0]
+                    promise_entry = promise_entry._replace(words=promise['words'] + promise_entry.words, score=np.inf)
+                    beam_entries[promise['slot']] = [promise_entry]
+
+                # Reallocate any duplicate first words.
+                if len({ents[0].words[0] for ents in beam_entries}) != 3:
+                    claimed_first_words = set()
+                    for score, slot, first_word in sorted([(ents[0].score, slot, ents[0].words[0]) for slot, ents in enumerate(beam_entries)], reverse=True):
+                        if first_word in claimed_first_words:
+                            # Reallocate this first word.
+                            print(f"Reallocating slot={slot} score={score} word={first_word}")
+                            suffix, contrast_suffixes = polarity_domains[slot]
+                            beam_entries[slot] = yield executor.submit(beam_search_phrases, domain+suffix, toks,
+                                beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
+                                contrast_models=[domain+contrast_suffix for contrast_suffix in contrast_suffixes],
+                                disallowed_first_words=claimed_first_words)
+                            first_word = beam_entries[slot][0].words[0]
+                            claimed_first_words.add(first_word)
+                            print(f"Picked {first_word} instead.")
+                        else:
+                            claimed_first_words.add(first_word)
+
+                phrases = [(phrase[0].words, None) for phrase in beam_entries]
                 # phrases = (yield [executor.submit(beam_search_phrases,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-5star', '', '-1star']])
@@ -654,7 +687,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         # Remove the duplicate word
                         next_words.remove(next_promised_word)
                     next_words.insert(promise['slot'], next_promised_word)
-                phrases = (yield [executor.submit(predict_forward, domain, toks, oneword_suggestion, beam_width=50, length_after_first=length_after_first, constraints=constraints) for oneword_suggestion in next_words])
+                phrases = (yield [executor.submit(predict_forward,
+                    domain, cur_toks, oneword_suggestion, beam_width=50,
+                    length_after_first=length_after_first, constraints=constraints)
+                    for oneword_suggestion, cur_toks in zip(next_words, tokss)])
+
+                if promise is not None:
+                    promise_slot_continuation = phrases[promise['slot']]
+                    phrases[promise['slot']] = promise['words'] + promise_slot_continuation[0], None
+
+
     else:
         # TODO: upgrade to use_sufarr flag
         phrases = generate_diverse_phrases(

@@ -83,7 +83,7 @@ export class ExperimentStateStore {
         }
 
         // Substitute the promised suggestion.
-        if (this.activeSuggestion) {
+        if (this.activeSuggestion && !suggestions[this.activeSuggestion.slot].isValid) {
           suggestions.splice(this.activeSuggestion.slot, 1, {
             orig: this.activeSuggestion.suggestion,
             contextSequenceNum: this.contextSequenceNum,
@@ -125,17 +125,7 @@ export class ExperimentStateStore {
       insertSuggestion: M.action(slot => {
         let wordToInsert = null;
         let tappedSuggestion = this.visibleSuggestions[slot];
-        if (this.activeSuggestion !== null && this.activeSuggestion.slot === slot) {
-          // Continuing a previous suggestion.
-          wordToInsert = this.activeSuggestionWords[0];
-          if (this.activeSuggestionWords.length > 1) {
-            // Words remain, advance the active suggestion.
-            this.activeSuggestion.wordIdx++;
-          } else {
-            // No more words in the active suggestion, go back to normal.
-            this.activeSuggestion = null;
-          }
-        } else if (tappedSuggestion.contextSequenceNum === this.contextSequenceNum) {
+        if (tappedSuggestion.contextSequenceNum === this.contextSequenceNum) {
           wordToInsert = tappedSuggestion.words[0];
           if (tappedSuggestion.words.length > 1) {
             this.activeSuggestion = {
