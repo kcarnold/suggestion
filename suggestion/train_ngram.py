@@ -41,8 +41,8 @@ if __name__ == '__main__':
                         default='yelp_preproc/train_data.pkl')
     parser.add_argument('--model-name', default="yelp_train",
                         help="model name")
-    parser.add_argument('--subsample-stars', default=10000,
-        help="If nonzero, breakout the model by review star ratings.")
+    parser.add_argument('--subsample-stars', action='store_true',
+        help="Breakout the model by review star ratings.")
     args = parser.parse_args()
 
     print("Loading...", flush=True)
@@ -53,15 +53,19 @@ if __name__ == '__main__':
         for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
     if args.subsample_stars:
-        for stars in [1, 5]:
-            all_indices = np.flatnonzero(reviews.stars_review == stars)
-            selected_indices = np.random.choice(all_indices, size=args.subsample_stars, replace=False)
-            dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(selected_indices, desc="Writing")))
+        positive_reviews = np.flatnonzero(reviews.stars_review > 3)
+        negative_reviews = np.flatnonzero(reviews.stars_review < 3)
+        sample_size = min(len(positive_reviews), len(negative_reviews))
+        positive_reviews_selected = np.random.choice(positive_reviews, size=sample_size, replace=False)
+        negative_reviews_selected = np.random.choice(negative_reviews, size=sample_size, replace=False)
+        dump_kenlm(f"{args.model_name}-5star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(positive_reviews_selected, desc="Writing pos")))
+        dump_kenlm(f"{args.model_name}-1star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(negative_reviews_selected, desc="Writing neg")))
+        by_star_rating_sample_size = min(reviews.stars_review.value_counts())
         balanced_indices = np.concatenate(
-            [np.random.choice(np.flatnonzero(reviews.stars_review == stars), size=args.subsample_stars, replace=False)
+            [np.random.choice(np.flatnonzero(reviews.stars_review == stars), size=by_star_rating_sample_size, replace=False)
             for stars in [1,2,3,4,5]], axis=0)
         np.random.shuffle(balanced_indices) # for good measure, even tho it shouldn't matter.
-        dump_kenlm(f"{args.model_name}-balanced", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(balanced_indices, desc="Writing")))
+        dump_kenlm(f"{args.model_name}-balanced", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(balanced_indices, desc="Writing balanced")))
     else:
         print("Saving reviews")
         with open('models/tokenized_reviews.pkl', 'wb') as f:
