@@ -226,83 +226,101 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases(model, start_words, beam_width, length, *, prefix_logprobs=None, rare_word_bonus=0., constraints, contrast_models=[]):
+def beam_search_phrases_init(model, start_words, *, contrast_models=[]):
     if isinstance(model, str):
         model = get_model(model)
     contrast_models = [get_model(c_model) if isinstance(c_model, str) else c_model for c_model in contrast_models]
-    avoid_letter = constraints.get('avoidLetter')
-    unigram_probs = model.unigram_probs_wordsonly
     start_state, start_score = model.get_state(start_words, bos=False)
     contrast_states = [c_model.get_state(start_words, bos=False)[0] for c_model in contrast_models]
-    beam = [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, contrast_states)]
-    for i in range(length):
-        bigrams = model.unfiltered_bigrams if i == 0 else model.filtered_bigrams
-        prefix_chars = 1 if i > 0 else 0
-        DONE = 2
-        new_beam = [ent for ent in beam if ent[DONE]]
-        for entry in beam:
-            score, words, done, penultimate_state, last_word_idx, num_chars, contrast_penultimate_states = entry
-            if done:
-                continue
+    return [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, contrast_states)]
+
+
+def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length_after_first, prefix_logprobs=None, rare_word_bonus=0., constraints, contrast_models=[]):
+    if isinstance(model, str):
+        model = get_model(model)
+    contrast_models = [get_model(c_model) if isinstance(c_model, str) else c_model for c_model in contrast_models]
+    unigram_probs = model.unigram_probs_wordsonly
+    avoid_letter = constraints.get('avoidLetter')
+
+    bigrams = model.unfiltered_bigrams if iteration_num == 0 else model.filtered_bigrams
+    prefix_chars = 1 if iteration_num > 0 else 0
+    DONE = 2
+    new_beam = [ent for ent in beam if ent[DONE]]
+    for entry in beam:
+        score, words, done, penultimate_state, last_word_idx, num_chars, contrast_penultimate_states = entry
+        if done:
+            continue
+        else:
+            if iteration_num > 0:
+                last_state = kenlm.State()
+                model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
+                last_contrast_states = []
+                for c_state, c_model in zip(contrast_penultimate_states, contrast_models):
+                    state = kenlm.State()
+                    c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(words[-1]), state)
+                    last_contrast_states.append(state)
             else:
-                if i > 0:
-                    last_state = kenlm.State()
-                    model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
-                    last_contrast_states = []
-                    for c_state, c_model in zip(contrast_penultimate_states, contrast_models):
-                        state = kenlm.State()
-                        c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(words[-1]), state)
-                        last_contrast_states.append(state)
-                else:
-                    last_state = penultimate_state
-                    last_contrast_states = contrast_penultimate_states
-                probs = None
-                if i == 0 and prefix_logprobs is not None:
-                    next_words = []
-                    probs = []
-                    for prob, prefix in prefix_logprobs:
-                        for word, word_idx in model.vocab_trie.items(prefix):
-                            next_words.append(word_idx)
-                            probs.append(prob)
-                else:
-                    # print(id2str[last_word])
-                    next_words = bigrams.get(last_word_idx, None)
-                    if next_words is None:
-                        if i == 0:
-                            next_words = model.most_common_words_by_idx
-                        else:
-                            next_words = []
-                new_state = kenlm.State()
-                for next_idx, word_idx in enumerate(next_words):
-                    if word_idx == model.eos_idx or word_idx == model.eop_idx:
-                        continue
-                    if probs is not None:
-                        prob = probs[next_idx]
+                last_state = penultimate_state
+                last_contrast_states = contrast_penultimate_states
+            probs = None
+            if iteration_num == 0 and prefix_logprobs is not None:
+                next_words = []
+                probs = []
+                for prob, prefix in prefix_logprobs:
+                    for word, word_idx in model.vocab_trie.items(prefix):
+                        next_words.append(word_idx)
+                        probs.append(prob)
+            else:
+                # print(id2str[last_word])
+                next_words = bigrams.get(last_word_idx, None)
+                if next_words is None:
+                    if iteration_num == 0:
+                        next_words = model.most_common_words_by_idx
                     else:
-                        prob = 0.
-                    word = model.id2str[word_idx]
-                    if avoid_letter is not None and avoid_letter in word:
-                        continue
-                    if word[0] in '.?!':
-                        continue
-                    unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if i > 0 and word not in words else 0.
-                    main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                    # ok to reuse new_state, since it's model-agnostic and we're gonna throw it away.
-                    contrast_scores = [LOG10 * c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(word), new_state)
-                        for c_state, c_model in zip(last_contrast_states, contrast_models)]
-                    new_score = score + prob + unigram_bonus + main_model_score# - np.sum(contrast_scores) * .5
-                    new_words = words + [word]
-                    new_num_chars = num_chars + prefix_chars + len(word)
-                    done = new_num_chars >= length
-                    new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, last_contrast_states)
+                        next_words = []
+            new_state = kenlm.State()
+            for next_idx, word_idx in enumerate(next_words):
+                if word_idx == model.eos_idx or word_idx == model.eop_idx:
+                    continue
+                if probs is not None:
+                    prob = probs[next_idx]
+                else:
+                    prob = 0.
+                word = model.id2str[word_idx]
+                if avoid_letter is not None and avoid_letter in word:
+                    continue
+                if word[0] in '.?!':
+                    continue
+                unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if iteration_num > 0 and word not in words else 0.
+                main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
+                # ok to reuse new_state, since it's model-agnostic and we're gonna throw it away.
+                contrast_scores = [LOG10 * c_model.model.base_score_from_idx(c_state, c_model.model.vocab_index(word), new_state)
+                    for c_state, c_model in zip(last_contrast_states, contrast_models)]
+                new_score = score + prob + unigram_bonus + main_model_score# - np.sum(contrast_scores) * .5
+                new_words = words + [word]
+                new_num_chars = num_chars + prefix_chars + len(word)
+                done = new_num_chars >= length_after_first
+                new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, last_contrast_states)
+                if len(new_beam) == beam_width:
+                    heapq.heapreplace(new_beam, new_entry)
+                else:
+                    new_beam.append(new_entry)
                     if len(new_beam) == beam_width:
-                        heapq.heapreplace(new_beam, new_entry)
-                    else:
-                        new_beam.append(new_entry)
-                        if len(new_beam) == beam_width:
-                            heapq.heapify(new_beam)
-                    assert len(new_beam) <= beam_width
-        beam = new_beam
+                        heapq.heapify(new_beam)
+                assert len(new_beam) <= beam_width
+    return new_beam
+
+
+def beam_search_phrases(model, start_words, *,
+    beam_width, length_after_first, prefix_logprobs=None,
+    rare_word_bonus=0., constraints, contrast_models=[]):
+
+    beam = beam_search_phrases_init(model, start_words, contrast_models=contrast_models)
+    for iteration_num in range(length_after_first):
+        beam = beam_search_phrases_extend(model, beam, iteration_num=iteration_num, beam_width=beam_width, length_after_first=length_after_first,
+            prefix_logprobs=prefix_logprobs, rare_word_bonus=rare_word_bonus, constraints=constraints,
+            contrast_models=contrast_models)
+        prefix_logprobs = None
     return [BeamEntry(*ent) for ent in sorted(beam, reverse=True)]
 
 
@@ -408,7 +426,7 @@ def predict_forward(domain, toks, first_word, beam_width, length_after_first, co
     if first_word in '.?!':
         return [first_word], None
     continuations = beam_search_phrases(model, toks + [first_word],
-        beam_width=beam_width, length=length_after_first, constraints=constraints, contrast_models=contrast_models)
+        beam_width=beam_width, length_after_first=length_after_first, constraints=constraints, contrast_models=contrast_models)
     if len(continuations) > 0:
         continuation = continuations[0].words
     else:
@@ -601,7 +619,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             ents = [BeamEntry(*ent) for ent in beam]
             if len(ents) == 0:
                 # Fall back on the full LM, but just for one word.
-                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
+                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length_after_first=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 phrases = [(ent.words, None) for ent in first_word_ents[:3]]
             else:
                 result = [ents.pop(0)]
@@ -616,7 +634,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if polarity_split == '5a1':
                 phrases = (yield [
                     executor.submit(beam_search_phrases,
-                        domain+suffix, toks, beam_width=50, length=1+length_after_first, constraints=constraints,
+                        domain+suffix, toks, beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
                         contrast_models=[domain+contrast_suffix for contrast_suffix in contrast_suffixes])
                     for suffix, contrast_suffixes in [('-5star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-1star', ['-balanced'])]])
                 phrases = [(phrase[0].words, None) for phrase in phrases]
@@ -628,7 +646,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     sentence_enders = yield executor.submit(get_sentence_enders, domain, toks)
                 else:
                     sentence_enders = []
-                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
+                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length_after_first=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 next_words = sentence_enders + [ent.words[0] for ent in first_word_ents[:3]]
                 if promise is not None:
                     next_promised_word = promise['words'][0]
