@@ -141,6 +141,15 @@ const namedConditions = {
     },
     showPhrase: true,
     usePrewriteText: true,
+  },
+  sentiment: {
+    sugFlags: {
+      useSufarr: false,
+      continuation_length: 17,
+      polarity_split: '5a1',
+      use_bos_suggs: false,
+    },
+    showPhrase: true,
   }
 };
 

@@ -191,6 +191,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         prewrite_info=request.get('prewrite_info'),
                         constraints=request.get('constraints'),
                         promise=request.get('promise'),
+                        polarity_split=request.get('polarity_split'),
                         word_bonuses=None)
                 except Exception:
                     traceback.print_exc()
