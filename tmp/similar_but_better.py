@@ -10,6 +10,10 @@ from suggestion import suggestion_generator
 from suggestion.paths import paths
 import pickle
 import numpy as np
+from scipy.spatial.distance import pdist
+import tqdm
+import pandas as pd
+
 #%%
 reviews = analyzers.load_reviews()
 #%%
@@ -34,9 +38,6 @@ wordfreq_analyzer = analyzers.WordFreqAnalyzer.build()
 #%%
 wordpair_analyzer = pickle.load(open(paths.models / 'wordpair_analyzer.pkl', 'rb'))
 #%%
-from scipy.spatial.distance import pdist
-
-import tqdm
 res = []
 for i, review in enumerate(tqdm.tqdm(reviews.tokenized)):
     datum_base = {k: reviews[k].iloc[i] for k in ['votes_funny', 'votes_useful', 'votes_cool']}
@@ -65,3 +66,49 @@ for i, review in enumerate(tqdm.tqdm(reviews.tokenized)):
             datum['wordpair_mean'] = np.mean(dists)
             datum['wordpair_std'] = np.std(dists)
         res.append(datum)
+#%%
+j = 0
+for i, review in enumerate(tqdm.tqdm(reviews.tokenized)):
+    meta = {k: reviews[k].iloc[i] for k in 'stars_review stars_biz age_months is_best'.split()}
+    for sent in review.split('\n'):
+        res[j]['sent'] = sent
+        res[j].update(meta)
+        j += 1
+#%%
+quals = pd.DataFrame(res)
+#quals.to_csv(str(paths.parent / 'data' / 'sentence_quality.csv'))
+#%%
+with open(paths.parent / 'data' / 'sentence_quality.pkl', 'wb') as f:
+    pickle.dump(res, f, -1)
+#%%
+with open(paths.parent / 'data' / 'sentence_quality.pkl', 'rb') as f:
+    res = pickle.load(f)
+
+#%%
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+results = smf.ols('np.log1p(votes_useful) ~ len_words + unifreq_mean + unifreq_std + wordpair_mean + wordpair_std + age_months', data=quals).fit()
+#%%
+print(results.summary())
+
+#%%
+quals_pred = pd.read_csv(str(paths.parent / 'data' / 'sentence_quality_with_predictions.dat'))
+#%%
+quals_pred.predicted_votes_useful
+#%%
+quals['pred'] = quals_pred.predicted_votes_useful
+#%%
+best_sents = quals[
+        #(quals.pred > np.nanpercentile(quals.pred, 90)) &
+        (quals.is_best)].sent.tolist()
+#%%
+sent_vecs = suggestion_generator.clizer.vectorize_sents(best_sents)
+#%%
+normed = suggestion_generator.clustering.normalize_vecs(sent_vecs)
+orig_mags = np.linalg.norm(sent_vecs, axis=1, keepdims=True)
+#%% ok try it out.
+query = 'wide selection'
+vec = suggestion_generator.clustering.normalize_vecs(suggestion_generator.clizer.vectorize_sents([query]))[0]
+dotp = normed @ vec
+#dotp[dotp>.75] = 0
+[best_sents[i] for i in np.argsort(dotp)[-10:][::-1]]
