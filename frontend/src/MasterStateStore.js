@@ -391,7 +391,7 @@ export class MasterStateStore {
     if (isDemo) {
       this.setMasterConfig('demo');
       if (demoConditionName === 'withPrewrite') {
-        this.prewriteText = "with friend\nsat outside\nwait for server\nwater ran out"
+        this.prewriteText = "tacos\nbest food\ncheap\nextra queso\ncarne asada\nweekly\ngood place for pick up not eat in\nwalls echo\nalways same order\nnew try horchata\n"
       }
     }
   }
