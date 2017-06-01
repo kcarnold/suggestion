@@ -3,7 +3,7 @@ import cytoolz
 import numpy as np
 import joblib
 import attr
-import pickle
+import pandas as pd
 from suggestion.util import dump_kenlm
 from suggestion.paths import paths
 from suggestion import lang_model
@@ -53,7 +53,7 @@ class ConceptNetNumberBatch:
 cnnb = None
 
 def get_all_sents():
-    data = pickle.load(open(os.path.join(paths.parent, 'yelp_preproc/all_data.pkl'), 'rb'))
+    data = pd.read_pickle(os.path.join(paths.parent, 'yelp_preproc/all_data.pkl'))
     reviews = data['data'].reset_index(drop=True)
     return list(cytoolz.concat(doc.lower().split('\n') for doc in reviews.tokenized))
 
