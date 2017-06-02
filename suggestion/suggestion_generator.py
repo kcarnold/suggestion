@@ -426,11 +426,12 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], meta=meta) for phrase, meta in phrases]
 
 
-def predict_forward(domain, toks, first_word, beam_width, length_after_first, constraints, contrast_models=[]):
+def predict_forward(domain, toks, beam_width, length_after_first, constraints, contrast_models=[]):
     model = get_model(domain)
+    first_word = toks[-1]
     if first_word in '.?!':
         return [first_word], None
-    continuations = beam_search_phrases(model, toks + [first_word],
+    continuations = beam_search_phrases(model, toks,
         beam_width=beam_width, length_after_first=length_after_first, constraints=constraints, contrast_models=contrast_models)
     if len(continuations) > 0:
         continuation = continuations[0].words
@@ -648,6 +649,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             if polarity_split == '5a1' and prefix_logprobs is None:
                 polarity_domains = [('-5star', ['-balanced']), ('-balanced', ['-1star', '-5star']), ('-1star', ['-balanced'])]
+                # FIXME: This searches forward from the promise words even if not needed.
                 beam_entries = (yield [
                     executor.submit(beam_search_phrases,
                         domain+suffix, cur_toks, beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
@@ -677,7 +679,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         else:
                             claimed_first_words.add(first_word)
 
-                phrases = [(phrase[0].words, None) for phrase in beam_entries]
+                # Hack around the FIXME above: truncate future words so the promise doesn't explode.
+                phrases = [(phrase[0].words[:10], None) for phrase in beam_entries]
                 # phrases = (yield [executor.submit(beam_search_phrases,
                 #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 #     for suffix in ['-5star', '', '-1star']])
@@ -693,16 +696,36 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     if next_promised_word in next_words:
                         # Remove the duplicate word
                         next_words.remove(next_promised_word)
+                    # FIXME: I think that it _so happens_ that next_words is always 3 long because of how we filter bigrams,
+                    # but this is really not robust.
                     next_words.insert(promise['slot'], next_promised_word)
-                phrases = (yield [executor.submit(predict_forward,
-                    domain, cur_toks, oneword_suggestion, beam_width=50,
-                    length_after_first=length_after_first, constraints=constraints)
-                    for oneword_suggestion, cur_toks in zip(next_words, tokss)])
-
-                if promise is not None:
-                    promise_slot_continuation = phrases[promise['slot']]
-                    phrases[promise['slot']] = promise['words'] + promise_slot_continuation[0], None
-
+                phrases = [([], None)] * 3
+                slots = []
+                jobs = []
+                for slot, next_word in enumerate(next_words[:3]):
+                    if promise is not None and slot == promise['slot']:
+                        assert next_word == promise['words'][0]
+                        if len(promise['words']) < 5:
+                            # Promise provided, but we need to extend it with some new words.
+                            slots.append(slot)
+                            jobs.append(executor.submit(predict_forward,
+                                domain, toks + promise['words'], beam_width=50,
+                                length_after_first=length_after_first, constraints=constraints))
+                        else:
+                            phrases[promise['slot']] = promise['words'], None
+                    else:
+                        slots.append(slot)
+                        jobs.append(executor.submit(predict_forward,
+                            domain, toks + [next_word], beam_width=50,
+                            length_after_first=length_after_first, constraints=constraints))
+                results = (yield jobs)
+                for slot, result in zip(slots, results):
+                    if promise is not None and slot == promise['slot']:
+                        # The new words need to get tacked on the end of the promised words.
+                        # The result included the last context token, which duplicated the last promise word, so skip it.
+                        phrases[slot] = promise['words'] + result[0][1:], None
+                    else:
+                        phrases[slot] = result
 
     else:
         # TODO: upgrade to use_sufarr flag
