@@ -36,6 +36,10 @@ export class PanoptStore {
       ws.send({type: 'get_logs', participantId: id});
     }
   });
+
+  addViewers = M.action((ids) => {
+    ids.forEach(id => this.addViewer(id))
+  })
 }
 
 var store = new PanoptStore();
@@ -54,7 +58,11 @@ function replay(log, state) {
     delete toLog.kind;
     delete toLog.jsTimestamp;
     // console.log(toLog);
-    state.handleEvent(event);
+    try {
+      state.handleEvent(event);
+    } catch (e) {
+      console.error("Exception while handling event", event, e.message);
+    }
     if (event.type === 'receivedSuggestions') {
       let rtt = event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id];
       // if (_.isNaN(rtt)) debugger;
@@ -88,7 +96,7 @@ function trackRtts(participantId) {
       if (suggestionRequest.request_id === 0) {
         times = requestTimes[participantId] = {};
       }
-      if (suggestionRequest.request_id in times) debugger;
+      // if (suggestionRequest.request_id in times) debugger;
       times[suggestionRequest.request_id] = state.lastEventTimestamp;
     });
 
@@ -114,6 +122,27 @@ ws.onmessage = function(msg) {
 
 const nullDispatch = () => {};
 
+const ScreenTimesTable = ({state}) => {
+  let lastTime = null;
+  let durs = [];
+  state.screenTimes.forEach(({timestamp}) => {
+    let curTime = moment(timestamp);
+    if (lastTime !== null) {
+      durs.push(curTime.diff(lastTime, 'minutes', true));
+    }
+    lastTime = curTime;
+  });
+  return <table>
+    <tbody>
+      {state.screenTimes.map(({num, timestamp}, i) => {
+        let curTime = moment(timestamp);
+        let dur = i < durs.length ? `${Math.round(10 * durs[i]) / 10} min` : null;
+        return <tr key={num}><td>{state.screens[num].controllerScreen || state.screens[num].screen}</td><td>{curTime.format('LTS')}</td><td>{dur}</td></tr>;
+      })}
+    </tbody>
+  </table>;
+}
+
 const Panopticon = observer(class Panopticon extends Component {
   render() {
     return <div>{store.showingIds.map(participantId => {
@@ -133,11 +162,7 @@ const Panopticon = observer(class Panopticon extends Component {
             </Provider>
           </div>
           <div style={{flex: '0 0 auto'}}>
-            <table>
-              <tbody>
-                {state.screenTimes.map(({num, timestamp}) => <tr key={num}><td>{state.screens[num].controllerScreen || state.screens[num].screen}</td><td>{moment(timestamp).format('LTS')}</td></tr>)}
-              </tbody>
-            </table>
+            <ScreenTimesTable state={state} />
           </div>
           <div style={{flex: '1 1 auto'}}>
             {state.experiments.entries().map(([name, expState]) => <div key={name}>
