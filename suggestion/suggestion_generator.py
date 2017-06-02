@@ -29,9 +29,10 @@ def get_model(name):
     return models[name]
 
 
+enable_sufarr = False
 enable_bos_suggs = True
 
-if True:
+if enable_sufarr:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
     docs = pickle.load(open(os.path.join(paths.models, 'tokenized_reviews.pkl'), 'rb'))
     print(', suffix array...', end='', file=sys.stderr, flush=True)
@@ -585,12 +586,17 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     # Beginning of sentence suggestions
     if use_bos_suggs and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
-    if enable_bos_suggs and use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
+        use_bos_suggs = False
+    if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
         if promise is not None:
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
         phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
             return phrases, sug_state
+
+    if use_sufarr and not enable_sufarr:
+        print("Warning: requested sufarr but not enabled.")
+        use_sufarr = False
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
