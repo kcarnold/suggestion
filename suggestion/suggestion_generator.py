@@ -549,7 +549,7 @@ def get_sentence_enders(model, start_words):
     scores = np.exp(model.eval_logprobs_for_words(start_state, end_indices))
     cum_score = np.sum(scores)
     if cum_score > 2/3:
-        return [toks[i] for i in np.argsort(scores)[-1][:2]]
+        return [toks[i] for i in np.argsort(scores)[::-1][:2]]
     elif cum_score > 1/3:
         return [toks[np.argmax(scores)]]
     return []
