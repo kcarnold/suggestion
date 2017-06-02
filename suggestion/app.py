@@ -195,6 +195,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         word_bonuses=None)
                 except Exception:
                     traceback.print_exc()
+                    print("Failing request:", json.dumps(request))
                     phrases = []
                 next_word = suggestion_generator.phrases_to_suggs(phrases)
                 result['next_word'] = next_word
