@@ -206,7 +206,7 @@ export const Instructions = inject('state')(observer(({state}) => {
       {state.prewrite
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
         : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
-      <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you make your best writing, use it. If a suggestion doesn't help you, ignore it.</p>
+      <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you write your best, use it; if not, ignore it.</p>
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to complete this step.</p>
@@ -220,7 +220,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
-    <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you make your best writing, use it. If a suggestion doesn't help you, ignore it.</p>
+    <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you write your best, use it; if not, ignore it.</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
