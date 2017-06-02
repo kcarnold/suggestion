@@ -45,7 +45,7 @@ export default class TutorialTasks {
       }
       break;
     case 'tapKey':
-      if (event.key === ' ') {
+      if (event.key.match(/[a-z]/)) {
         this.tasks.typeKeyboard = true;
       } else if (event.key.match(/[-.,!'\?]/)) {
         this.tasks.specialChars = true;
