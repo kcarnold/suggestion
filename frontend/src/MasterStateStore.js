@@ -56,6 +56,15 @@ const namedConditions = {
     },
     showPhrase: true,
   },
+  sotu: {
+    sugFlags: {
+      useSufarr: false,
+      temperature: 0,
+      use_bos_suggs: false,
+      domain: 'sotu'
+    },
+    showPhrase: true,
+  },
   word: {
     sugFlags: ngramFlags,
     showPhrase: false
@@ -201,7 +210,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'trump', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
     {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
     {controllerScreen: 'IntroSurvey'},
   ];

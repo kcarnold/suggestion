@@ -22,7 +22,8 @@ yelp_train-1star
 yelp_train-balanced
 yelp_train-5star
 yelp_topic_seqs
-tweeterinchief'''.split()
+tweeterinchief
+sotu'''.split()
 models = {name: Model.from_basename(paths.model_basename(name)) for name in PRELOAD_MODELS}
 def get_model(name):
     return models[name]

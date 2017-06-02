@@ -34,6 +34,22 @@ def typeable_chars(text):
     text = re.sub(r'\s+', ' ', text)
     return cant_type.sub('', sub_numbers(text.lower()))
 
+def tokenize(text):
+    # NOTE: Yelp preprocessing runs this same fn (almost) in preprocess_yelp_v2, copy-pasted.
+    import nltk
+    text = text.replace("Mr.", "Mr").replace("Mrs.", "Mrs").replace("Ms.", "Ms")
+    text = tokenization.URL_RE.sub(" ", text)
+    sents = nltk.sent_tokenize(text)
+    token_spaced_sents = (' '.join(sent[a:b] for a, b in tokenization.token_spans(sent)) for sent in sents)
+    return '\n'.join(token_spaced_sents)
+
+
+def preprocess_csv(input_filename, model_name):
+    import pandas as pd
+    data = pd.read_csv(input_filename)
+    dump_kenlm(model_name, (' '.join(convert_tokenization(tokenize(text))) for text in tqdm.tqdm(data.Text)))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input',

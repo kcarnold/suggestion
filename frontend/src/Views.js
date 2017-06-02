@@ -298,21 +298,25 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p>First, let's practice the basic keyboard functionality.</p>
+      <p>In this <b>practice round</b>, we'll pretend to write the opening sentences to a US <b>State of the Union address</b> in an imaginary world where a <b>united Africa has become a superpower</b>.</p>
 
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
-
-      <p>Now, notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on a suggestion box to insert a word.</TutorialTodo>
+      <p>Let's start off with a standard greeting: "fellow citizens of the united states of america" (we're going to not worry about capitalization). Notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
+      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on the "fellow" box to insert that word.</TutorialTodo>
 
       <p>Sometimes the boxes above the keyboard will show a complete phrase, starting with the highlighted word.
       Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
       <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
+
+      <p>Inevitably you'll want to write something different from the words or phrases provided. In that case, just tap the letters on the keyboard.</p>
+
+      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
+
+
       {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
       <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) && <p>
-        Now that you know how it works, <b>try writing a few sentences to get some more practice. Use both the keys and the suggestions.</b><br/>
+        Now that you know how it works, <b>try writing another sentence, just for practice (have fun with it!). Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p>}
     </div>;
   }));
