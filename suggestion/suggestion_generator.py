@@ -691,13 +691,13 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     sentence_enders = []
                 first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length_after_first=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
                 next_words = sentence_enders + [ent.words[0] for ent in first_word_ents[:3]]
+                while len(next_words) < 3:
+                    next_words.append(None)
                 if promise is not None:
                     next_promised_word = promise['words'][0]
                     if next_promised_word in next_words:
                         # Remove the duplicate word
                         next_words.remove(next_promised_word)
-                    # FIXME: I think that it _so happens_ that next_words is always 3 long because of how we filter bigrams,
-                    # but this is really not robust.
                     next_words.insert(promise['slot'], next_promised_word)
                 phrases = [([], None)] * 3
                 slots = []
@@ -713,7 +713,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                                 length_after_first=length_after_first, constraints=constraints))
                         else:
                             phrases[promise['slot']] = promise['words'], None
-                    else:
+                    elif next_word is not None:
                         slots.append(slot)
                         jobs.append(executor.submit(predict_forward,
                             domain, toks + [next_word], beam_width=50,
