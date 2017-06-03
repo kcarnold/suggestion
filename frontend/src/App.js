@@ -192,7 +192,7 @@ ws.onmessage = function(msg) {
   }
 };
 
-// The handler for the first backlog call 'init'.
+// The handler for the first backlog message calls 'init'.
 function init() {
   if (clientKind === 'p') {
     startRequestingSuggestions();
@@ -209,10 +209,11 @@ function setSize() {
   let width = Math.min(document.documentElement.clientWidth, screen.availWidth);
   let height = Math.min(document.documentElement.clientHeight, screen.availHeight);
   if (height < 450) {
-    if (width > height)
-      alert('Please rotate your phone to be in the portrait orientation.');
-    else
+    if (width > height) {
+      // alert('Please rotate your phone to be in the portrait orientation.');
+    } else {
       alert("Your screen is small; things might not work well.");
+    }
   }
   dispatch({type: 'resized', width, height});
 }
@@ -229,6 +230,9 @@ const App = observer(class App extends Component {
         return <div>Please wait while we test your phone's communication with our server.</div>;
       } else if (state.pingTime > MAX_PING_TIME) {
         return <div>Sorry, your phone's connection to our server is too slow (your ping is {Math.round(state.pingTime)} ms). Check your WiFi connection and reload the page.</div>;
+      }
+      if (state.phoneSize.width > state.phoneSize.height) {
+        return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
       }
     }
     return (

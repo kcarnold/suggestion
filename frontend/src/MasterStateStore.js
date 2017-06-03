@@ -206,7 +206,6 @@ const MASTER_CONFIGS = {
 
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
-  let [c1, c2] = conditions;
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
@@ -402,6 +401,7 @@ export class MasterStateStore {
       if (demoConditionName === 'withPrewrite') {
         this.prewriteText = "tacos\nbest food\ncheap\nextra queso\ncarne asada\nweekly\ngood place for pick up not eat in\nwalls echo\nalways same order\nnew try horchata\n"
       }
+      this.pingTime = 0;
     }
   }
 
