@@ -36,7 +36,7 @@ const texts = {
     instructionsQuiz: null,
   },
   review: {
-    overallInstructions: <span>Write a review of your experience that you'd be proud to post on a review site. Use at least {wordCountTarget} words.</span>,
+    overallInstructions: <span>Write a review of your experience that you'd be proud to post on a review website. Use at least {wordCountTarget} words.</span>,
     brainstormingInstructions: <span />,
     revisionInstructions: <span/>,
     instructionsQuiz: null,
@@ -206,7 +206,7 @@ export const Instructions = inject('state')(observer(({state}) => {
       {state.prewrite
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
         : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
-      <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you write your best, use it; if not, ignore it.</p>
+      <p>Pay attention to the suggestions. If a suggestion helps you write your best, use it; if not, please ignore it.</p>
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to complete this step.</p>
@@ -220,7 +220,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
-    <p>Pay attention to the suggestions, especially at the beginning of a sentence. If a suggestion helps you write your best, use it; if not, ignore it.</p>
+    <p>Pay attention to the suggestions. If a suggestion helps you write your best, use it; if not, please ignore it.</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
@@ -287,7 +287,7 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
 
       <p>Notice the 3 boxes above the keyboard. Each one shows a word, tap a word to insert it.</p>
       {['tapSuggestion'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
-      {allTasksDone && <p>When you're ready, click here to move on: <NextBtn />.</p>}
+      {allTasksDone ? <p>When you're ready, click here to move on: <NextBtn />.</p> : <p>Complete all of the tutorial steps to move on.</p>}
     </div>;
   }));
 
@@ -315,9 +315,9 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
       <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) && <p>
+      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
         Now that you know how it works, <b>try writing another sentence, just for practice (have fun with it!). Use both the keys and the suggestions.</b><br/>
-        When you're ready to move on, click here: <NextBtn />.</p>}
+        When you're ready to move on, click here: <NextBtn />.</p> : <p>Complete all of the tutorial steps to move on.</p>}
     </div>;
   }));
 
