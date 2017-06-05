@@ -199,6 +199,11 @@ const MASTER_CONFIGS = {
     baseConditions: ['withPrewrite', 'phrase'],
     prewrite: false,
     instructions: 'review'
+  },
+  sentiment: {
+    baseConditions: ['phrase', 'sentiment'],
+    prewrite: false,
+    instructions: 'review'
   }
 };
 
