@@ -210,7 +210,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
     {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
-    {controllerScreen: 'SelectRestaurants', screen: 'ProbablyWrongCode'},
+    {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
   ];
   if (masterConfigName === 'infoSource') {
