@@ -36,7 +36,7 @@ const texts = {
     instructionsQuiz: null,
   },
   review: {
-    overallInstructions: <span>Write a review of your experience that you'd be proud to post on a review website. Use at least {wordCountTarget} words.</span>,
+    overallInstructions: <span>Write a review of your experience that you'd be proud to post on a review website. Use at least {wordCountTarget} words. We'll bonus our favorite reviews!</span>,
     brainstormingInstructions: <span />,
     revisionInstructions: <span/>,
     instructionsQuiz: null,
