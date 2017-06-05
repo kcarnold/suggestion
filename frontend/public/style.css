@@ -53,7 +53,8 @@ html, body {
     overflow: scroll;
     background-color: #ccc;
     color: black;
-    flex: 0 4 auto;
+    flex: 0 0 auto;
+    max-height: 100px;
 }
 
 /*** TEXT ***/
