@@ -245,7 +245,6 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
     avoid_letter = constraints.get('avoidLetter')
 
     bigrams = model.unfiltered_bigrams if iteration_num == 0 else model.filtered_bigrams
-    prefix_chars = 1 if iteration_num > 0 else 0
     DONE = 2
     new_beam = [ent for ent in beam if ent[DONE]]
     for entry in beam:
@@ -274,12 +273,16 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                         probs.append(prob)
             else:
                 # print(id2str[last_word])
-                next_words = bigrams.get(last_word_idx, None)
-                if next_words is None:
+                next_words = bigrams.get(last_word_idx, [])
+                if len(next_words) < 10:
                     if iteration_num == 0:
+                        # Fall back to all common words.
                         next_words = model.most_common_words_by_idx
                     else:
-                        next_words = []
+                        # Use the larger set of possible next words
+                        next_words = model.unfiltered_bigrams.get(last_word_idx, [])
+                        if len(next_words) < 10:
+                            next_words = model.most_common_words_by_idx
             new_state = kenlm.State()
             for next_idx, word_idx in enumerate(next_words):
                 if word_idx == model.eos_idx or word_idx == model.eop_idx:
@@ -300,7 +303,7 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                     for c_state, c_model in zip(last_contrast_states, contrast_models)]
                 new_score = score + prob + unigram_bonus + main_model_score# - np.sum(contrast_scores) * .5
                 new_words = words + [word]
-                new_num_chars = num_chars + prefix_chars + len(word)
+                new_num_chars = num_chars + 1 + len(word) if iteration_num else 0
                 done = new_num_chars >= length_after_first
                 new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, last_contrast_states)
                 if len(new_beam) == beam_width:
