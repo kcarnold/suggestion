@@ -268,19 +268,22 @@ for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_
 def tokenize(text):
     import nltk
     return '\n'.join(' '.join(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text))
-participant_level_data['tokenized'] = participant_level_data.finalText.apply(tokenize)
-#%%
-from suggestion import analyzers
-wordfreq_analyzer = analyzers.WordFreqAnalyzer.build()
-#%%
 
-#%%
-pld = pd.concat([
-        participant_level_data,
-        participant_level_data.tokenized.apply(lambda doc: pd.Series(wordfreq_analyzer(doc))),
-        participant_level_data.finalText.apply(lambda doc: wp_analyzer(doc)).to_frame('dist_from_best'),
-        ], axis=1)
-pld[pld.kind != 'practice'].to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}_analyzed.csv', index=False)
+def analyze_texts():
+    participant_level_data['tokenized'] = participant_level_data.finalText.apply(tokenize)
+    #%%
+    from suggestion import analyzers
+    wordfreq_analyzer = analyzers.WordFreqAnalyzer.build()
+    #%%
+
+    #%%
+    pld = pd.concat([
+            participant_level_data,
+            participant_level_data.tokenized.apply(lambda doc: pd.Series(wordfreq_analyzer(doc))),
+            participant_level_data.finalText.apply(lambda doc: wp_analyzer(doc)).to_frame('dist_from_best'),
+            ], axis=1)
+    pld[pld.kind != 'practice'].to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}_analyzed.csv', index=False)
+
 #%%
 def extract_weighted_survey_results(all_survey_data, survey, items):
     return (all_survey_data[all_survey_data.survey == survey]
@@ -325,54 +328,56 @@ if False:
         (1, 'final-I was able to express myself fluently.'),
         (-1, 'final-I had trouble expressing myself fluently.')]).to_frame('expression').to_csv('data/expression.csv')
 
-#%%
-post_task = all_survey_data[all_survey_data.survey == 'postTask']
-results = []
-for participant in non_excluded_participants:
-    stars_post = post_task.set_index(['participant_id', 'condition', 'idx', 'name']).value.unstack(level=-1).loc[participant, "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;"].to_frame('stars_post')
-    log = all_log_analyses[participant]
-    places = pd.DataFrame([block['place'] for block in log['blocks']])
-    places.index.name = 'idx'
-#    places['condition'] = log['conditions']
-    results.append(
-            pd.merge(stars_post.reset_index(level=0), places.rename(columns={'stars': 'stars_pre'}), left_index=True, right_index=True, how='outer')
-            .assign(participant_id=participant).reset_index())
-pd.concat(results, ignore_index=True).to_csv('data/sentiment_change.csv')
+
+def analyze_sentiment_change():
+    post_task = all_survey_data[all_survey_data.survey == 'postTask']
+    results = []
+    for participant in non_excluded_participants:
+        stars_post = post_task.set_index(['participant_id', 'condition', 'idx', 'name']).value.unstack(level=-1).loc[participant, "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;"].to_frame('stars_post')
+        log = all_log_analyses[participant]
+        places = pd.DataFrame([block['place'] for block in log['blocks']])
+        places.index.name = 'idx'
+    #    places['condition'] = log['conditions']
+        results.append(
+                pd.merge(stars_post.reset_index(level=0), places.rename(columns={'stars': 'stars_pre'}), left_index=True, right_index=True, how='outer')
+                .assign(participant_id=participant).reset_index())
+    pd.concat(results, ignore_index=True).to_csv('data/sentiment_change.csv')
 
 #%%
-personality_weights = dict(
-extraversion=[(1, 'pers-I am the life of the party.'),
-    (1, 'pers-I talk to a lot of different people at parties.'),
-    (-1, "pers-I don't talk a lot."),
-    (-1, 'pers-I keep in the background.')],
-agreeableness=[
-(1, "pers-I sympathize with others' feelings."),
-(1, "pers-I feel others' emotions."),
-(-1, 'pers-I am not really interested in others.'),
-(-1, "pers-I am not interested in other people's problems."),],
+def analyze_personality():
+    personality_weights = dict(
+    extraversion=[(1, 'pers-I am the life of the party.'),
+        (1, 'pers-I talk to a lot of different people at parties.'),
+        (-1, "pers-I don't talk a lot."),
+        (-1, 'pers-I keep in the background.')],
+    agreeableness=[
+    (1, "pers-I sympathize with others' feelings."),
+    (1, "pers-I feel others' emotions."),
+    (-1, 'pers-I am not really interested in others.'),
+    (-1, "pers-I am not interested in other people's problems."),],
 
-conscientiousness=[
-(1, 'pers-I get chores done right away.'),
-(1, 'pers-I like order.'),
-(-1, 'pers-I often forget to put things back in their proper place.'),
-(-1, 'pers-I make a mess of things.'),],
+    conscientiousness=[
+    (1, 'pers-I get chores done right away.'),
+    (1, 'pers-I like order.'),
+    (-1, 'pers-I often forget to put things back in their proper place.'),
+    (-1, 'pers-I make a mess of things.'),],
 
-neuroticism=[
-(1, 'pers-I have frequent mood swings.'),
-(1, 'pers-I get upset easily.'),
-(-1, 'pers-I am relaxed most of the time.'),
-(-1, 'pers-I seldom feel blue.'),],
+    neuroticism=[
+    (1, 'pers-I have frequent mood swings.'),
+    (1, 'pers-I get upset easily.'),
+    (-1, 'pers-I am relaxed most of the time.'),
+    (-1, 'pers-I seldom feel blue.'),],
 
-imagination=[
-(1, 'pers-I have a vivid imagination.'),
-(-1, 'pers-I have difficulty understanding abstract ideas.'),
-(-1, 'pers-I am not interested in abstract ideas.'),
-(-1, 'pers-I do not have a good imagination. ')],
+    imagination=[
+    (1, 'pers-I have a vivid imagination.'),
+    (-1, 'pers-I have difficulty understanding abstract ideas.'),
+    (-1, 'pers-I am not interested in abstract ideas.'),
+    (-1, 'pers-I do not have a good imagination. ')],
 
-NFC=[
-(1, 'pers-I would prefer complex to simple problems.'),
-(1, 'pers-I like to have the responsibility of handling a situation that requires a lot of thinking.'),
-(-1, 'pers-Thinking is not my idea of fun.'),
-(-1, 'pers-I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.'),])
+    NFC=[
+    (1, 'pers-I would prefer complex to simple problems.'),
+    (1, 'pers-I like to have the responsibility of handling a situation that requires a lot of thinking.'),
+    (-1, 'pers-Thinking is not my idea of fun.'),
+    (-1, 'pers-I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.'),])
 
-pd.DataFrame({k: extract_weighted_survey_results(all_survey_data, 'postExp', v) for k, v in personality_weights.items()}).to_csv('personality.csv')
+    pd.DataFrame({k: extract_weighted_survey_results(all_survey_data, 'postExp', v) for k, v in personality_weights.items()}).to_csv('personality.csv')
