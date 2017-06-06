@@ -40,7 +40,14 @@ const texts = {
     brainstormingInstructions: <span />,
     revisionInstructions: <span/>,
     instructionsQuiz: null,
+  },
+  sentiment: {
+    overallInstructions: <span>Write a review of your experience. Include <b>both positive and negative aspects</b>. Use at least {wordCountTarget} words. We'll bonus our favorite reviews!</span>,
+    brainstormingInstructions: <span />,
+    revisionInstructions: <span/>,
+    instructionsQuiz: null,
   }
+
 };
 
 const tutorialTaskDescs = {

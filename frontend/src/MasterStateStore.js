@@ -203,7 +203,7 @@ const MASTER_CONFIGS = {
   sentiment: {
     baseConditions: ['phrase', 'sentiment'],
     prewrite: false,
-    instructions: 'review'
+    instructions: 'sentiment'
   }
 };
 
