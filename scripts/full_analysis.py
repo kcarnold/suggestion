@@ -54,7 +54,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'wdiversity_0'
+batch_code = 'sentiment_0'
 import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
 #%%
