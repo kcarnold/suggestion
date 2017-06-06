@@ -6,6 +6,7 @@ import string
 import datrie
 import nltk
 import itertools
+from scipy.special import expit
 LOG10 = np.log(10)
 
 import kenlm
@@ -179,6 +180,10 @@ class Model:
             state = new_state
         return scores
 
+    def advance_state(self, state, tok):
+        new_state = kenlm.State()
+        return new_state, LOG10 * self.model.base_score_from_idx(state, self.model.vocab_index(tok), new_state)
+
     def next_word_logprobs_raw(self, state, prev_word, prefix_logprobs=None):
         bigrams = self.unfiltered_bigrams
         if prefix_logprobs is not None:
@@ -207,3 +212,27 @@ class Model:
             logprobs[next_idx] = self.model.base_score_from_idx(state, word_idx, new_state)
         logprobs *= LOG10
         return logprobs
+
+class LMClassifier:
+    def __init__(self, models, weights):
+        self.models = models
+        self.weights = np.array(weights, dtype=float)
+
+    def get_state(self, toks, bos=False):
+        models = self.models
+        return [model.get_state(toks, bos=bos)[0] for model in models], np.zeros(len(models))
+
+    def advance_state(self, state, tok):
+        lm_states, scores = state
+        new_lm_states = []
+        score_deltas = np.empty(len(lm_states))
+        for i, (lm_state, model) in enumerate(zip(lm_states, self.models)):
+            new_lm_state, score_delta = model.advance_state(lm_state, tok)
+            new_lm_states.append(new_lm_state)
+            score_deltas[i] = score_delta
+        new_state = new_lm_states, scores + score_deltas
+        return new_state#, score_deltas
+
+    def eval_posterior(self, state):
+        lm_states, scores = state
+        return expit(self.weights @ scores)

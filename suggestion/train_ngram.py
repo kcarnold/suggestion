@@ -57,8 +57,10 @@ if __name__ == '__main__':
                         default='yelp_preproc/train_data.pkl')
     parser.add_argument('--model-name', default="yelp_train",
                         help="model name")
-    parser.add_argument('--subsample-stars', action='store_true',
-        help="Breakout the model by review star ratings.")
+    parser.add_argument('--split-stars', action='store_true',
+        help="Also train models for each review star rating.")
+    parser.add_argument('--sufarr', action='store_true',
+        help="Build a suffix array of all documents.")
     args = parser.parse_args()
 
     print("Loading...", flush=True)
@@ -68,29 +70,21 @@ if __name__ == '__main__':
     tokenized_reviews = [convert_tokenization(tokenized)
         for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
-    if args.subsample_stars:
-        positive_reviews = np.flatnonzero(reviews.stars_review > 3)
-        negative_reviews = np.flatnonzero(reviews.stars_review < 3)
-        sample_size = min(len(positive_reviews), len(negative_reviews))
-        positive_reviews_selected = np.random.choice(positive_reviews, size=sample_size, replace=False)
-        negative_reviews_selected = np.random.choice(negative_reviews, size=sample_size, replace=False)
-        dump_kenlm(f"{args.model_name}-5star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(positive_reviews_selected, desc="Writing pos")))
-        dump_kenlm(f"{args.model_name}-1star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(negative_reviews_selected, desc="Writing neg")))
-        by_star_rating_sample_size = min(reviews.stars_review.value_counts())
-        balanced_indices = np.concatenate(
-            [np.random.choice(np.flatnonzero(reviews.stars_review == stars), size=by_star_rating_sample_size, replace=False)
-            for stars in [1,2,3,4,5]], axis=0)
-        np.random.shuffle(balanced_indices) # for good measure, even tho it shouldn't matter.
-        dump_kenlm(f"{args.model_name}-balanced", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(balanced_indices, desc="Writing balanced")))
-    else:
-        print("Saving reviews")
-        with open('models/tokenized_reviews.pkl', 'wb') as f:
-            pickle.dump(tokenized_reviews, f, -1)
+    if args.split_stars:
+        for stars in [1, 2, 3, 4, 5]:
+            star_indices = np.flatnonzero(reviews.stars_review == stars)
+            # star_indices = np.random.choice(star_indices, size=args.subsample_stars, replace=False)
+            dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(star_indices, desc=f"Writing {stars}-star")))
 
-        dump_kenlm(args.model_name, (' '.join(doc) for doc in tqdm.tqdm(tokenized_reviews, desc="Writing")))
+    print("Saving reviews")
+    with open('models/tokenized_reviews.pkl', 'wb') as f:
+        pickle.dump(tokenized_reviews, f, -1)
 
+    dump_kenlm(args.model_name, (' '.join(doc) for doc in tqdm.tqdm(tokenized_reviews, desc="Writing")))
+
+    if args.sufarr:
         sufarr = DocSuffixArray.construct(tokenized_reviews)
         joblib.dump(dict(suffix_array=sufarr.suffix_array, doc_idx=sufarr.doc_idx, tok_idx=sufarr.tok_idx, lcp=sufarr.lcp), 'models/{}_sufarr.joblib'.format(args.model_name))
 
-        # print("Training char model")
-        # dump_kenlm(args.model_name+"_char", (' '.join(typeable_chars(text).replace(' ', '_')) for text in reviews.text), script='./scripts/make_char_model.sh')
+    # print("Training char model")
+    # dump_kenlm(args.model_name+"_char", (' '.join(typeable_chars(text).replace(' ', '_')) for text in reviews.text), script='./scripts/make_char_model.sh')
