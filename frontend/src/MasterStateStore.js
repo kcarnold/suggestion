@@ -188,12 +188,12 @@ const MASTER_CONFIGS = {
   diversity: {
     baseConditions: ['diverse', 'continue'],
     prewrite: false,
-    instructions: 'review'
+    instructions: 'tabooTopic'
   },
   wdiversity: {
     baseConditions: ['diverse', 'wdiverse'],
     prewrite: false,
-    instructions: 'review'
+    instructions: 'tabooTopic'
   },
   infoSource: {
     baseConditions: ['withPrewrite', 'phrase'],

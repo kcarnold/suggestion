@@ -41,6 +41,12 @@ const texts = {
     revisionInstructions: <span/>,
     instructionsQuiz: null,
   },
+  tabooTopic: {
+    overallInstructions: <span>Write a review of your experience <b>that tells us something new</b>, something that other reviews probably don't tell us. Specifically, other reviews already talk a lot about the <em>food</em>, <em>service</em>, and <em>atmosphere</em>, so try to <b>focus on other topics</b>. <br/><br/>Use at least {wordCountTarget} words. We'll bonus our favorite reviews!</span>,
+    brainstormingInstructions: <span />,
+    revisionInstructions: <span/>,
+    instructionsQuiz: null,
+  },
   sentiment: {
     overallInstructions: <span>Write a review of your experience. Include <b>both positive and negative aspects</b>. Use at least {wordCountTarget} words. We'll bonus our favorite reviews!</span>,
     brainstormingInstructions: <span />,
