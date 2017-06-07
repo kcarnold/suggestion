@@ -140,6 +140,13 @@ const namedConditions = {
     },
     showPhrase: true
   },
+  handcluster: {
+    sugFlags: {
+      use_bos_suggs: 'manual',
+      continuation_length: 17
+    },
+    showPhrase: true,
+  },
   withPrewrite: {
     sugFlags: {
       useSufarr: true,

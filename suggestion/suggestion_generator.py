@@ -12,7 +12,7 @@ from scipy.misc import logsumexp
 from .paths import paths
 from .tokenization import tokenize_mid_document
 from .lang_model import Model, LMClassifier
-from . import suffix_array, clustering
+from . import suffix_array, clustering, manual_bos
 
 LOG10 = np.log(10)
 
@@ -593,13 +593,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
         print(f"Not bonusing {len(unknown_words)} unknown words: {' '.join(sorted(unknown_words))}")
 
     # Beginning of sentence suggestions
-    if use_bos_suggs and not enable_bos_suggs:
+    if use_bos_suggs and use_bos_suggs != 'manual' and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
         use_bos_suggs = False
     if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
         if promise is not None:
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
-        phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
+        if use_bos_suggs == 'manual':
+            phrases, sug_state = manual_bos.get_manual_bos(sofar, sug_state or {})
+        else:
+            phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
             return phrases, sug_state
 
