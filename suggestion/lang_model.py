@@ -213,6 +213,7 @@ class Model:
         logprobs *= LOG10
         return logprobs
 
+
 class LMClassifier:
     def __init__(self, models, weights):
         self.models = models
@@ -235,4 +236,6 @@ class LMClassifier:
 
     def eval_posterior(self, state):
         lm_states, scores = state
-        return expit(self.weights @ scores)
+        res = self.weights @ scores
+        return res
+        # return expit(res)
