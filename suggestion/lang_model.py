@@ -232,10 +232,11 @@ class LMClassifier:
             new_lm_states.append(new_lm_state)
             score_deltas[i] = score_delta
         new_state = new_lm_states, scores + score_deltas
-        return new_state#, score_deltas
+        return new_state, self.weights @ score_deltas
 
-    def eval_posterior(self, state):
-        lm_states, scores = state
-        res = self.weights @ scores
-        return res
-        # return expit(res)
+    def classify_seq(self, state, toks):
+        posterior = 0.
+        for tok in toks:
+            state, score_delta = self.advance_state(state, tok)
+            posterior += score_delta
+        return expit(posterior)

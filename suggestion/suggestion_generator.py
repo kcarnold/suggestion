@@ -303,9 +303,9 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                 new_classifier_states = []
                 classifier_score = 0.
                 for (clf, weight), clf_state in zip(classifiers, classifier_states):
-                    clf_state = clf.advance_state(clf_state, word)
+                    clf_state, score_delta = clf.advance_state(clf_state, word)
                     new_classifier_states.append(clf_state)
-                    classifier_score += weight * clf.eval_posterior(clf_state)
+                    classifier_score += weight * score_delta
                 new_score = score + prob + unigram_bonus + main_model_score + classifier_score
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num else 0
