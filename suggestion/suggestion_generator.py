@@ -29,9 +29,8 @@ yelp_train-1star
 yelp_train-5star
 yelp_topic_seqs
 sotu'''.split()
-models = {name: Model.from_basename(paths.model_basename(name)) for name in PRELOAD_MODELS}
-def get_model(name):
-    return models[name]
+[Model.preload_model(name, paths.model_basename(name)) for name in PRELOAD_MODELS]
+get_model = Model.get_model
 
 CLASSIFIERS = {'positive': LMClassifier([
     get_model(f'yelp_train-{star}star') for star in [1, 5]], [-1, 1.])}
@@ -51,7 +50,7 @@ if enable_sufarr:
         docs_by_id = pickle.load(open(docs_by_id_fname, 'rb'))
     else:
         print(', mapping ids...', end='', file=sys.stderr, flush=True)
-        _str2id = {word: idx for idx, word in enumerate(models['yelp_train'].id2str)}
+        _str2id = {word: idx for idx, word in enumerate(get_model('yelp_train').id2str)}
         docs_by_id = [[_str2id.get(word, 0) for word in doc] for doc in docs]
         pickle.dump(docs_by_id, open(docs_by_id_fname, 'wb'), -1)
     print(" Done.", file=sys.stderr)

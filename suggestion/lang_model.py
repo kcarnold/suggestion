@@ -61,17 +61,31 @@ def encode_bigrams(bigrams, model):
 
 
 class Model:
-    def __init__(self, model_file, arpa_file):
+    preloaded = {}
+    @classmethod
+    def preload_model(cls, name, basename):
+        cls.preloaded[name] = cls.from_basename(name, basename)
+
+    @classmethod
+    def get_model(cls, name):
+        try:
+            return cls.preloaded[name]
+        except IndexError:
+            raise Exception(f"The requested model `{name}` was not preloaded.")
+
+    @classmethod
+    def from_basename(cls, name, basename):
+        return cls(name=name, model_file=str(basename) + '.kenlm', arpa_file=str(basename) + '.arpa')
+
+
+    def __init__(self, name, model_file, arpa_file):
+        self.name = name
         self.model_file = model_file
         self.arpa_file = arpa_file
         self._load()
 
-    def __getstate__(self):
-        return dict(model_file=self.model_file, arpa_file=self.arpa_file)
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._load()
+    def __reduce__(self):
+        return Model.get_model, (self.name,)
 
     def _load(self):
         print("Loading model", file=sys.stderr)
@@ -138,11 +152,6 @@ class Model:
         if not hasattr(self, '_word_lengths'):
             self._word_lengths = np.array([len(w) if w is not None else 0 for w in self.id2str])
         return self._word_lengths
-
-
-    @classmethod
-    def from_basename(cls, basename):
-        return cls(model_file=str(basename) + '.kenlm', arpa_file=str(basename) + '.arpa')
 
     @property
     def bos_state(self):
