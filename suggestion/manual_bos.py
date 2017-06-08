@@ -46,7 +46,7 @@ def get_manual_bos(context, state):
         else:
             print("Max tries reached")
             break
-        sugs.append((np.random.choice(group).split(), 'bos'))
+        sugs.append((np.random.choice(group).split(), {'bos': True}))
     # positivity = clf.classify_seq(clf.get_state([]), sent.split())
     # print(f'{positivity:.2f} {sent}')
     return sugs, state
