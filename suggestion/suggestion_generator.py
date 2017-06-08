@@ -315,7 +315,7 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                 done = new_num_chars >= length_after_first
                 new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, classifier_states)
                 if len(new_beam) == beam_width:
-                    heapq.heapreplace(new_beam, new_entry)
+                    heapq.heappushpop(new_beam, new_entry)
                 else:
                     new_beam.append(new_entry)
                     if len(new_beam) == beam_width:
