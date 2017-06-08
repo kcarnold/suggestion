@@ -12,20 +12,21 @@ from scipy.misc import logsumexp
 from .paths import paths
 from .tokenization import tokenize_mid_document
 from .lang_model import Model, LMClassifier
+from .diversity import scalar_diversity
 from . import suffix_array, clustering, manual_bos
 
 LOG10 = np.log(10)
 
 '''
-yelp_train-2star
 yelp_train-3star
-yelp_train-4star
 tweeterinchief
 '''
 
 PRELOAD_MODELS = '''
 yelp_train
 yelp_train-1star
+yelp_train-2star
+yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
 sotu'''.split()
@@ -33,7 +34,7 @@ sotu'''.split()
 get_model = Model.get_model
 
 CLASSIFIERS = {'positive': LMClassifier([
-    get_model(f'yelp_train-{star}star') for star in [1, 5]], [-1, 1.])}
+    get_model(f'yelp_train-{star}star') for star in [1, 2, 4, 5]], [-.5, -.5, .5, .5])}
 
 
 enable_sufarr = False
@@ -734,6 +735,10 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             active_entities.sort(reverse=True)
 
+            # Pad the active entities with null suggestions.
+            for i in range(3):
+                active_entities.append((-9999, .5, [''], {'type': 'null'}))
+
             entity_idx = 0
             promise_entity_idx = 0
             if promise is not None:
@@ -756,7 +761,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     if first_word in first_words_used:
                         entity_idx += 1
                         continue
-                    first_words_used[first_word] = slot_idx
+                    if first_word != '':
+                        first_words_used[first_word] = slot_idx
                     assignments[slot_idx] = entity_idx
                     entity_idx += 1
                     break
@@ -827,6 +833,10 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
                 if promise is not None:
                     assert assignments[promise_slot] == promise_entity_idx
+                    assignments.pop(promise_slot)
+                assignments.sort(key=lambda entity_idx: -active_entities[entity_idx][1])
+                if promise is not None:
+                    assignments.insert(promise_slot, promise_entity_idx)
 
             # Now we should have assignments of phrases to slots.
             phrases = []
