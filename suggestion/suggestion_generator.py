@@ -671,6 +671,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
             num_first_words = 3 - len(sentence_enders) if polarity_split is None else 10
             num_intermediates = 5
+            max_logprob_penalty = -1.
 
             # Launch a job to get first words.
             if num_first_words:
@@ -733,7 +734,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             active_entities.sort(reverse=True)
 
-            # Take 3 suggestions
             entity_idx = 0
             promise_entity_idx = 0
             if promise is not None:
@@ -742,11 +742,13 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 # Start open-assignment at the first entity.
                 entity_idx += 1
 
+            # Take 3 suggestions
             assignments = [None] * 3
             first_words_used = {}
             for slot_idx in range(3):
                 if slot_idx == promise_slot:
                     assignments[slot_idx] = promise_entity_idx
+                    first_words_used[promise['words'][0]] = slot_idx
                     continue
                 while True:
                     llk, pos, words, meta = active_entities[entity_idx]
@@ -758,6 +760,73 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     assignments[slot_idx] = entity_idx
                     entity_idx += 1
                     break
+
+            if polarity_split:
+                print("First words:", ' '.join(ent[1][0] for ent in first_word_ents))
+
+                # Diversify the suggestions by sentiment.
+                cur_sentiments = np.array([active_entities[entity_idx][1] for entity_idx in assignments])
+                cur_sentiment_diversity = scalar_diversity(cur_sentiments)
+                min_logprob_allowed = min(active_entities[entity_idx][0] for entity_idx in assignments) + max_logprob_penalty
+
+                # Greedily replace suggestions so as to increase sentiment diversity.
+                while True:
+                    for entity_idx in assignments:
+                        llk, pos, words, meta = active_entities[entity_idx]
+                        print(f"{pos:3.2f} {llk:6.2f} {' '.join(words)}")
+                    print()
+                    print()
+
+                    candidates = []
+                    for entity_idx, (llk, pos, words, meta) in enumerate(active_entities):
+                        if llk < min_logprob_allowed:
+                            continue
+                        # Would this increase the sentiment diversity if we added it?
+                        # Case 1: it replaces an existing word
+                        replaces_slot = first_words_used.get(words[0])
+                        if replaces_slot is not None:
+                            prev_llk = active_entities[assignments[replaces_slot]][0]
+                            if prev_llk >= 0:
+                                # Sorry, this was a special one, can't kick it out.
+                                # TODO: maybe we have a more diverse continuation for the promise?? check if it was a promise, and if so, what this starts with.
+                                continue
+                            candidate_sentiments = cur_sentiments.copy()
+                            candidate_sentiments[replaces_slot] = pos
+                            new_diversity = scalar_diversity(candidate_sentiments)
+                        else:
+                            # Case 2: it replaces the currently least-diverse word.
+                            new_diversities = np.zeros(3)
+                            for replaces_slot in range(3):
+                                prev_llk = active_entities[assignments[replaces_slot]][0]
+                                if prev_llk >= 0:
+                                    # Sorry, this was a special one, can't kick it out.
+                                    continue
+                                candidate_sentiments = cur_sentiments.copy()
+                                candidate_sentiments[replaces_slot] = pos
+                                new_diversities[replaces_slot] = scalar_diversity(candidate_sentiments)
+                            replaces_slot = np.argmax(new_diversities)
+                            new_diversity = new_diversities[replaces_slot]
+                        if new_diversity > cur_sentiment_diversity:
+                            candidates.append((new_diversity, replaces_slot, entity_idx))
+                    print(f"Found {len(candidates)} candidates that increase diversity")
+                    if len(candidates) == 0:
+                        break
+                    prev_sentiment_diversity = cur_sentiment_diversity
+                    cur_sentiment_diversity, replaces_slot, entity_idx = max(candidates)
+                    llk, pos, words, meta = active_entities[entity_idx]
+                    print(f"Replacing slot {replaces_slot} with llk={llk:.2f} pos={pos:.2f} \"{' '.join(words)}\" to gain {cur_sentiment_diversity - prev_sentiment_diversity:.2f} diversity")
+
+                    # Actually replace the suggestion.
+                    kicked_out_entity_idx = assignments[replaces_slot]
+
+                    cur_sentiments[replaces_slot] = pos
+                    existing_first_word = active_entities[kicked_out_entity_idx][2][0]
+                    del first_words_used[existing_first_word]
+                    first_words_used[words[0]] = replaces_slot
+                    assignments[replaces_slot] = entity_idx
+
+                if promise is not None:
+                    assert assignments[promise_slot] == promise_entity_idx
 
             # Now we should have assignments of phrases to slots.
             phrases = []
