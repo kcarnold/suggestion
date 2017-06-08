@@ -235,7 +235,7 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases_init(model, start_words, *, classifiers=[]):
+def beam_search_phrases_init(model, start_words, *, classifiers=[], **kw):
     if isinstance(model, str):
         model = get_model(model)
     classifiers = [(CLASSIFIERS[clf], weight) if isinstance(clf, str) else (clf, weight) for clf, weight in classifiers]
@@ -323,20 +323,19 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
     return new_beam
 
 
-def beam_search_phrases(model, start_words, *,
-    beam_width, length_after_first, prefix_logprobs=None,
-    rare_word_bonus=0., constraints, classifiers=[],
-    disallowed_first_words=[]):
-
-    beam = beam_search_phrases_init(model, start_words, classifiers=classifiers)
-    for iteration_num in range(length_after_first):
-        beam = beam_search_phrases_extend(model, beam, iteration_num=iteration_num, beam_width=beam_width, length_after_first=length_after_first,
-            prefix_logprobs=prefix_logprobs, rare_word_bonus=rare_word_bonus, constraints=constraints,
-            classifiers=classifiers)
-        if iteration_num == 0:
-            beam = [ent for ent in beam if ent[1][0] not in disallowed_first_words]
+def beam_search_phrases_loop(model, beam, *, length_after_first, prefix_logprobs=None, start_idx=0, **kw):
+    for iteration_num in range(start_idx, length_after_first):
+        beam = beam_search_phrases_extend(model, beam, iteration_num=iteration_num, length_after_first=length_after_first,
+            prefix_logprobs=prefix_logprobs, **kw)
         prefix_logprobs = None
     return [BeamEntry(*ent) for ent in sorted(beam, reverse=True)]
+
+
+def beam_search_phrases(model, start_words, **kw):
+    beam = beam_search_phrases_init(model, start_words, **kw)
+    beam = beam_search_phrases_loop(model, beam, **kw)
+    beam.sort(reverse=True)
+    return [BeamEntry(*ent) for ent in beam]
 
 
 def beam_search_sufarr_init(model, start_words):
@@ -654,91 +653,117 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     first_words.add(best.words[0])
                     result.append(best)
                 phrases = [([word for word in ent.words if word[0] != '<'], None) for ent in result]
-        else:
-            tokss = [toks] * 3
-            if promise is not None:
-                # Treat the promise as a prefix.
-                tokss[promise['slot']] = toks + promise['words']
 
-            if polarity_split == '5a1' and prefix_logprobs is None:
-                polarity_domains = [[('positive', 1.)], [], [('positive', -1.)]]
-                # FIXME: This searches forward from the promise words even if not needed.
-                beam_entries = (yield [
-                    executor.submit(beam_search_phrases,
-                        domain, cur_toks, beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
-                        classifiers=classifiers)
-                    for classifiers, cur_toks in zip(polarity_domains, tokss)])
+        else: # sufarr
 
-                if promise is not None:
-                    promise_entry = beam_entries[promise['slot']][0]
-                    promise_entry = promise_entry._replace(words=promise['words'] + promise_entry.words, score=np.inf)
-                    beam_entries[promise['slot']] = [promise_entry]
-
-                # Reallocate any duplicate first words.
-                if len({ents[0].words[0] for ents in beam_entries}) != 3:
-                    claimed_first_words = set()
-                    for score, slot, first_word in sorted([(ents[0].score, slot, ents[0].words[0]) for slot, ents in enumerate(beam_entries)], reverse=True):
-                        if first_word in claimed_first_words:
-                            # Reallocate this first word.
-                            print(f"Reallocating slot={slot} score={score} word={first_word}")
-                            classifiers = polarity_domains[slot]
-                            beam_entries[slot] = yield executor.submit(beam_search_phrases, domain, toks,
-                                beam_width=50, length_after_first=1+length_after_first, constraints=constraints,
-                                classifiers=classifiers,
-                                disallowed_first_words=claimed_first_words)
-                            first_word = beam_entries[slot][0].words[0]
-                            claimed_first_words.add(first_word)
-                            print(f"Picked {first_word} instead.")
-                        else:
-                            claimed_first_words.add(first_word)
-
-                # Hack around the FIXME above: truncate future words so the promise doesn't explode.
-                phrases = [(phrase[0].words[:10], None) for phrase in beam_entries]
-                # phrases = (yield [executor.submit(beam_search_phrases,
-                #     domain+suffix, toks, beam_width=100, length=length_after_first, prefix_logprobs=prefix_logprobs, constraints=constraints)
-                #     for suffix in ['-5star', '', '-1star']])
+            # Use beam search on LM.
+            if prefix_logprobs is None:
+                sentence_enders = yield executor.submit(get_sentence_enders, domain, toks)
             else:
-                if prefix_logprobs is None:
-                    sentence_enders = yield executor.submit(get_sentence_enders, domain, toks)
-                else:
-                    sentence_enders = []
-                first_word_ents = yield executor.submit(beam_search_phrases, domain, toks, beam_width=100, length_after_first=1, prefix_logprobs=prefix_logprobs, constraints=constraints)
-                next_words = sentence_enders + [ent.words[0] for ent in first_word_ents[:3]]
-                while len(next_words) < 3:
-                    next_words.append(None)
-                if promise is not None:
-                    next_promised_word = promise['words'][0]
-                    if next_promised_word in next_words:
-                        # Remove the duplicate word
-                        next_words.remove(next_promised_word)
-                    next_words.insert(promise['slot'], next_promised_word)
-                phrases = [([], None)] * 3
-                slots = []
-                jobs = []
-                for slot, next_word in enumerate(next_words[:3]):
-                    if promise is not None and slot == promise['slot']:
-                        assert next_word == promise['words'][0]
-                        if len(promise['words']) < 5:
-                            # Promise provided, but we need to extend it with some new words.
-                            slots.append(slot)
-                            jobs.append(executor.submit(predict_forward,
-                                domain, toks + promise['words'], beam_width=50,
-                                length_after_first=length_after_first, constraints=constraints))
-                        else:
-                            phrases[promise['slot']] = promise['words'], None
-                    elif next_word is not None:
-                        slots.append(slot)
-                        jobs.append(executor.submit(predict_forward,
-                            domain, toks + [next_word], beam_width=50,
-                            length_after_first=length_after_first, constraints=constraints))
-                results = (yield jobs)
-                for slot, result in zip(slots, results):
-                    if promise is not None and slot == promise['slot']:
-                        # The new words need to get tacked on the end of the promised words.
-                        # The result included the last context token, which duplicated the last promise word, so skip it.
-                        phrases[slot] = promise['words'] + result[0][1:], None
-                    else:
-                        phrases[slot] = result
+                sentence_enders = []
+
+            beam_search_kwargs = dict(constraints=constraints)
+
+            if polarity_split:
+                clf = CLASSIFIERS['positive']
+                clf_startstate = clf.get_state(toks)
+
+            # Include a broader range of first words if we may need to diversify by sentiment after the fact.
+            num_first_words = 3 - len(sentence_enders) if polarity_split is None else 10
+            num_intermediates = 5
+
+            # Launch a job to get first words.
+            if num_first_words:
+                first_word_ents = yield executor.submit(beam_search_phrases,
+                    domain, toks, beam_width=num_first_words, length_after_first=1, prefix_logprobs=prefix_logprobs, **beam_search_kwargs)
+            else:
+                first_word_ents = []
+
+            first_words = {ent[1][0]: fwent_idx for fwent_idx, ent in enumerate(first_word_ents)}
+
+            if promise is not None:
+                promise_slot = promise['slot']
+                # Remove the first word of the promise from the pool, we'll get to it later.
+                promise_first_word = promise['words'][0]
+                if promise_first_word in first_words:
+                    first_word_ents.pop(first_words[promise_first_word])
+            else:
+                promise_slot = None
+
+            jobs = [executor.submit(beam_search_phrases_loop, model, [ent],
+                        start_idx=1,
+                        beam_width=num_intermediates,
+                        length_after_first=length_after_first, **beam_search_kwargs)
+                    for ent in first_word_ents]
+            if promise is not None and len(promise['words']) < 5:
+                # Sneak an extra job into the queue...
+                promise_extension = True
+                # Promise provided, but we need to extend it with some new words.
+                remaining_length = max(1, length_after_first - len(' '.join(promise['words'])))
+                jobs.append(executor.submit(beam_search_phrases,
+                    model, toks + promise['words'], beam_width=num_intermediates,
+                    length_after_first=remaining_length, **beam_search_kwargs))
+            else:
+                promise_extension = False
+            results = (yield jobs)
+            if promise_extension:
+                # Deal with the results of our extra job.
+                extra_promise_words = results.pop()[0][1]
+                promise = {'slot': promise_slot, 'words': promise['words'] + extra_promise_words}
+
+            # Now build final suggestions.
+            active_entities = []
+            for beam in results:
+                for ent in beam:
+                    llk = ent[0]
+                    words = ent[1]
+                    pos = clf.classify_seq(clf_startstate, words) if polarity_split else None
+                    active_entities.append((llk, pos, words, {}))
+
+            # Add sentence-enders in the mix, but flagged special.
+            for ender in sentence_enders[:2]:
+                active_entities.append((995, .5, [ender], {'type': 'eos'}))
+
+            # Add the promise continuation also, also flagged special.
+            if promise is not None:
+                llk = 999
+                words = promise['words']
+                pos = clf.classify_seq(clf_startstate, words) if polarity_split else None
+                active_entities.append((llk, pos, words, {'type': 'promise'}))
+
+            active_entities.sort(reverse=True)
+
+            # Take 3 suggestions
+            entity_idx = 0
+            promise_entity_idx = 0
+            if promise is not None:
+                # The zeroth entity should be the promise.
+                assert active_entities[promise_entity_idx][3]['type'] == 'promise'
+                # Start open-assignment at the first entity.
+                entity_idx += 1
+
+            assignments = [None] * 3
+            first_words_used = {}
+            for slot_idx in range(3):
+                if slot_idx == promise_slot:
+                    assignments[slot_idx] = promise_entity_idx
+                    continue
+                while True:
+                    llk, pos, words, meta = active_entities[entity_idx]
+                    first_word = words[0]
+                    if first_word in first_words_used:
+                        entity_idx += 1
+                        continue
+                    first_words_used[first_word] = slot_idx
+                    assignments[slot_idx] = entity_idx
+                    entity_idx += 1
+                    break
+
+            # Now we should have assignments of phrases to slots.
+            phrases = []
+            for entity_idx in assignments:
+                llk, pos, words, meta = active_entities[entity_idx]
+                phrases.append((words, dict(meta, llk=llk, pos=pos)))
 
     else:
         # TODO: upgrade to use_sufarr flag
