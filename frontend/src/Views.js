@@ -67,7 +67,7 @@ class Suggestion extends Component {
   render() {
     let {onTap, word, preview, isValid, meta} = this.props;
     return <div
-      className={classNames("Suggestion", {invalid: !isValid, bos: isValid && meta === 'bos'})}
+      className={classNames("Suggestion", {invalid: !isValid, bos: isValid && (meta || {}).bos})}
       onTouchStart={isValid ? onTap : null}
       onTouchEnd={evt => {evt.preventDefault();}}>
       <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>

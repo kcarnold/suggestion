@@ -46,6 +46,11 @@ const ngramFlags = {
   use_bos_suggs: false,
 };
 
+const CONDITION_DEFAULTS = {
+  showPhrase: true,
+  showSuggsAtBos: true,
+}
+
 const namedConditions = {
   trump: {
     sugFlags: {
@@ -166,6 +171,7 @@ const namedConditions = {
       use_bos_suggs: false,
     },
     showPhrase: true,
+    showSuggsAtBos: false,
   }
 };
 
@@ -380,7 +386,7 @@ export class MasterStateStore {
       },
       get condition() {
         console.assert(!!this.conditionName);
-        return namedConditions[this.conditionName];
+        return {...CONDITION_DEFAULTS, ...namedConditions[this.conditionName]};
       },
       get suggestionRequest() {
         let {experimentState} = this;
@@ -435,6 +441,7 @@ export class MasterStateStore {
         if (this.masterConfig.useConstraints) {
           this.experimentState.useConstraints = this.masterConfig.useConstraints;
         }
+        this.experimentState.showSuggsAtBos = this.condition.showSuggsAtBos;
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);

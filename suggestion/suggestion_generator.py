@@ -545,7 +545,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
                 continue
             first_words.append(phrase[0])
             suggested_already.add(beginning)
-            phrases.append((phrase, 'bos'))
+            phrases.append((phrase, {'bos': True}))
             break
     return phrases, sug_state, dict(topic_seq=topic_seq, topics_to_suggest=topics_to_suggest)
 
@@ -598,7 +598,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if use_bos_suggs and use_bos_suggs != 'manual' and not enable_bos_suggs:
         print("Warning: requested BOS suggs but they're not enabled.")
         use_bos_suggs = False
-    if use_bos_suggs and len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']:
+    is_bos = len(cur_word) == 0 and toks[-1] in ['<D>', '<S>']
+    if use_bos_suggs and is_bos:
         if promise is not None:
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
         if use_bos_suggs == 'manual':
@@ -843,6 +844,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             for entity_idx in assignments:
                 llk, pos, words, meta = active_entities[entity_idx]
                 phrases.append((words, dict(meta, llk=llk, pos=pos)))
+
+        if is_bos:
+            phrases = [(words, dict(meta, bos=True)) for words, meta in phrases]
 
     else:
         # TODO: upgrade to use_sufarr flag

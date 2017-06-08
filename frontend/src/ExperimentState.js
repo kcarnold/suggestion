@@ -42,6 +42,7 @@ export class ExperimentStateStore {
     this.condition = condition;
     M.extendObservable(this, {
       curText: '',
+      showSuggsAtBos: true,
       useConstraints: {},
       constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
       get curSentenceNum() {
@@ -73,6 +74,10 @@ export class ExperimentStateStore {
           isValid: sugg.contextSequenceNum === this.contextSequenceNum,
           ...sugg
         }));
+
+        if (!this.showSuggsAtBos) {
+          suggestions = suggestions.filter(sug => !((sug.meta || {}).bos));
+        }
 
         // Ensure there are always at leaste 3 suggestions.
         while (suggestions.length < 3) {
