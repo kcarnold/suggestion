@@ -16,15 +16,18 @@ from . import suffix_array, clustering, manual_bos
 
 LOG10 = np.log(10)
 
-PRELOAD_MODELS = '''
-yelp_train
-yelp_train-1star
+'''
 yelp_train-2star
 yelp_train-3star
 yelp_train-4star
+tweeterinchief
+'''
+
+PRELOAD_MODELS = '''
+yelp_train
+yelp_train-1star
 yelp_train-5star
 yelp_topic_seqs
-tweeterinchief
 sotu'''.split()
 models = {name: Model.from_basename(paths.model_basename(name)) for name in PRELOAD_MODELS}
 def get_model(name):
