@@ -1,5 +1,6 @@
 import argparse
 import pickle
+import json
 from sys import intern
 import tqdm
 import joblib
@@ -71,10 +72,13 @@ if __name__ == '__main__':
         for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
     if args.split_stars:
+        counts = []
         for stars in [1, 2, 3, 4, 5]:
             star_indices = np.flatnonzero(reviews.stars_review == stars)
+            counts.append(len(star_indices))
             # star_indices = np.random.choice(star_indices, size=args.subsample_stars, replace=False)
             dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(star_indices, desc=f"Writing {stars}-star")))
+        json.dump(counts, open('models/star_counts.json', 'w'))
 
     print("Saving reviews")
     with open('models/tokenized_reviews.pkl', 'wb') as f:

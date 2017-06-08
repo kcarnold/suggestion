@@ -26,6 +26,7 @@ PRELOAD_MODELS = '''
 yelp_train
 yelp_train-1star
 yelp_train-2star
+yelp_train-3star
 yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
@@ -33,8 +34,10 @@ sotu'''.split()
 [Model.preload_model(name, paths.model_basename(name)) for name in PRELOAD_MODELS]
 get_model = Model.get_model
 
-CLASSIFIERS = {'positive': LMClassifier([
-    get_model(f'yelp_train-{star}star') for star in [1, 2, 4, 5]], [-.5, -.5, .5, .5])}
+import json
+star_prior_counts = np.array(json.load(open(paths.models / 'star_counts.json')))
+
+sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for star in range(1, 6)], star_prior_counts)
 
 
 enable_sufarr = False
@@ -667,8 +670,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             beam_search_kwargs = dict(constraints=constraints)
 
             if polarity_split:
-                clf = CLASSIFIERS['positive']
-                clf_startstate = clf.get_state(toks)
+                clf_startstate = sentiment_classifier.get_state(toks)
 
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
             num_first_words = 3 - len(sentence_enders) if polarity_split is None else 10
@@ -720,7 +722,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 for ent in beam:
                     llk = ent[0]
                     words = ent[1]
-                    pos = clf.classify_seq(clf_startstate, words) if polarity_split else None
+                    pos = sentiment_classifier.sentiment(clf_startstate, words) if polarity_split else None
                     active_entities.append((llk, pos, words, {}))
 
             # Add sentence-enders in the mix, but flagged special.
@@ -731,7 +733,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if promise is not None:
                 llk = 999
                 words = promise['words']
-                pos = clf.classify_seq(clf_startstate, words) if polarity_split else None
+                pos = sentiment_classifier.sentiment(clf_startstate, words) if polarity_split else None
                 active_entities.append((llk, pos, words, {'type': 'promise'}))
 
             active_entities.sort(reverse=True)

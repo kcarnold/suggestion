@@ -7,6 +7,7 @@ import datrie
 import nltk
 import itertools
 from scipy.special import expit
+from scipy.misc import logsumexp
 LOG10 = np.log(10)
 
 import kenlm
@@ -224,9 +225,9 @@ class Model:
 
 
 class LMClassifier:
-    def __init__(self, models, weights):
+    def __init__(self, models, prior_counts):
         self.models = models
-        self.weights = np.array(weights, dtype=float)
+        self.prior_logprobs = np.log(prior_counts / prior_counts.sum())
 
     def get_state(self, toks, bos=False):
         models = self.models
@@ -241,11 +242,17 @@ class LMClassifier:
             new_lm_states.append(new_lm_state)
             score_deltas[i] = score_delta
         new_state = new_lm_states, scores + score_deltas
-        return new_state, self.weights @ score_deltas
+        return new_state, score_deltas
 
     def classify_seq(self, state, toks):
-        posterior = 0.
+        logprobs = self.prior_logprobs.copy()
         for tok in toks:
-            state, score_delta = self.advance_state(state, tok)
-            posterior += score_delta
-        return expit(posterior)
+            state, score_deltas = self.advance_state(state, tok)
+            logprobs += score_deltas
+        logprobs -= logsumexp(logprobs)
+        return np.exp(logprobs)
+
+    def sentiment(self, state, toks):
+        probs = self.classify_seq(state, toks)
+        score = sum(probs[-2:]) - sum(probs[:2])
+        return (score + 1) / 2
