@@ -176,23 +176,13 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
             if request['type'] == 'requestSuggestions':
                 start = time.time()
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
+                suggestion_kwargs = suggestion_generator.request_to_kwargs(request)
                 try:
                     phrases, self.sug_state = yield get_suggestions_async(
                         process_pool,
                         sofar=request['sofar'], cur_word=request['cur_word'],
-                        domain=request.get('domain', 'yelp_train'),
-                        rare_word_bonus=request.get('rare_word_bonus', 0.0),
-                        use_sufarr=request.get('useSufarr', False),
-                        temperature=request.get('temperature', 0.),
                         sug_state=self.sug_state,
-                        use_bos_suggs=request['use_bos_suggs'],
-                        length_after_first=request.get('continuation_length', 17),
-                        null_logprob_weight=request.get('null_logprob_weight', 0.),
-                        prewrite_info=request.get('prewrite_info'),
-                        constraints=request.get('constraints'),
-                        promise=request.get('promise'),
-                        polarity_split=request.get('polarity_split'),
-                        word_bonuses=None)
+                        **suggestion_kwargs)
                 except Exception:
                     traceback.print_exc()
                     print("Failing request:", json.dumps(request))

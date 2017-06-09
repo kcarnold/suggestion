@@ -879,3 +879,19 @@ def get_suggestions(*a, **kw):
                 return result
         except StopIteration as stop:
             return stop.value
+
+
+def request_to_kwargs(request):
+    return dict(
+        domain=request.get('domain', 'yelp_train'),
+        rare_word_bonus=request.get('rare_word_bonus', 0.0),
+        use_sufarr=request.get('useSufarr', False),
+        temperature=request.get('temperature', 0.),
+        use_bos_suggs=request['use_bos_suggs'],
+        length_after_first=request.get('continuation_length', 17),
+        null_logprob_weight=request.get('null_logprob_weight', 0.),
+        prewrite_info=request.get('prewrite_info'),
+        constraints=request.get('constraints'),
+        promise=request.get('promise'),
+        polarity_split=request.get('polarity_split'),
+        word_bonuses=None)

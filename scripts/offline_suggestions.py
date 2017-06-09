@@ -10,14 +10,10 @@ import numpy as np
 def do_request_raw(request):
     return suggestion_generator.get_suggestions(
         sofar=request['sofar'], cur_word=request['cur_word'],
-        domain=request.get('domain', 'yelp_train'),
-        rare_word_bonus=request.get('rare_word_bonus', 0.0),
-        use_sufarr=request.get('useSufarr', False),
-        temperature=request.get('temperature', 0.))
+        **suggestion_generator.request_to_kwargs(request))
 
 def do_request(request):
     start = time.time()
-    # copy-and-paste from app.py, somewhat yuk but whatever.
     try:
         phrases = do_request_raw(request)
     except Exception:
