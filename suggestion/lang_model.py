@@ -224,10 +224,17 @@ class Model:
         return logprobs
 
 
+DEFAULT_SENTIMENT_WEIGHTS = [-1, -1, 0, 1, 1.]
+
+
 class LMClassifier:
-    def __init__(self, models, prior_counts):
+    def __init__(self, models, prior_counts, sentiment_weights=DEFAULT_SENTIMENT_WEIGHTS):
         self.models = models
         self.prior_logprobs = np.log(prior_counts / prior_counts.sum())
+        sentiment_weights = np.array(sentiment_weights)
+        sentiment_weights -= np.min(sentiment_weights)
+        sentiment_weights /= np.max(sentiment_weights)
+        self.sentiment_weights = sentiment_weights
 
     def get_state(self, toks, bos=False):
         models = self.models
@@ -252,7 +259,20 @@ class LMClassifier:
         logprobs -= logsumexp(logprobs)
         return np.exp(logprobs)
 
+    def classify_seq_by_tok(self, state, toks):
+        logprobs = self.prior_logprobs.copy()
+        all_logprobs = []
+        for tok in toks:
+            state, score_deltas = self.advance_state(state, tok)
+            logprobs = logprobs + score_deltas
+            all_logprobs.append(logprobs)
+        all_logprobs = np.array(all_logprobs)
+        all_logprobs -= logsumexp(all_logprobs, axis=1, keepdims=True)
+        return np.exp(all_logprobs)
+
     def sentiment(self, state, toks):
         probs = self.classify_seq(state, toks)
-        score = sum(probs[-2:]) - sum(probs[:2])
-        return (score + 1) / 2
+        return probs @ self.sentiment_weights
+
+    def tok_weighted_sentiment(self, state, toks):
+        return np.mean(self.classify_seq_by_tok(state, toks) @ self.sentiment_weights)
