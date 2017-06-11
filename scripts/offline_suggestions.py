@@ -4,7 +4,6 @@ import time
 import traceback
 from suggestion import suggestion_generator
 import pandas as pd
-import seaborn as sns
 import numpy as np
 
 def do_request_raw(request):
@@ -21,15 +20,42 @@ def do_request(request):
         phrases = None
     dur = time.time() - start
     return dur, phrases
-#%%
-def offline_requests_from_raw_logfile():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('source')
-    args = parser.parse_args()
 
-    entries = (json.loads(line) for line in open(args.source) if line)
-    requests = [entry['request'] for entry in entries if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions']
+def get_existing_requests(logfile):
+    requests = []
+    responses = []
+    for line in open(logfile):
+        if not line:
+            continue
+        entry = json.loads(line)
+        if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions':
+            requests.append(entry['request'].copy())
+        if entry['type'] == 'receivedSuggestions':
+            responses.append(entry['msg'].copy())
+    assert len(requests) == len(responses)
+    suggestions = []
+    for request, response in zip(requests, responses):
+        phrases = response['next_word']
+        phrases = [' '.join(phrase['one_word']['words'] + phrase['continuation'][0]['words']) for phrase in phrases]
+        assert len(phrases) == 3
+        p1, p2, p3 = phrases
+        request_ts = request.pop('timestamp')
+        response_ts = response.pop('timestamp')
+        latency = response_ts - request_ts
+        ctx = request['sofar'] + ''.join(ent['letter'] for ent in request['cur_word'])
+        entry = dict(
+            **request,
+            ctx=ctx,
+            p1=p1, p2=p2, p3=p3,
+            server_dur=response['dur'],
+            latency=latency)
+        suggestions.append(entry)
+    return suggestions
 
+
+
+
+def redo_requests(requests, flags={}):
     results = []
     for request in requests:
         dur, phrases = do_request(request)
@@ -37,46 +63,3 @@ def offline_requests_from_raw_logfile():
         print('{prefix}\t{curWord}\t{dur:.2f}\t{phrases}'.format(
             prefix=request['sofar'], curWord=request['cur_word'],
             dur=dur, phrases=json.dumps(phrases)))
-
-#%%
-import itertools
-import tqdm
-#%%
-def analyze_requests_from_parsed_logfile(requests):
-#%%
-#%lprun -f suggestion_generator.beam_search_phrases -f suggestion_generator.get_suggestions
-    responses = [(request,) + do_request(request) for request in requests[:10]]
-    #%%
-    import pickle
-    pickle.dump(responses, open('responses_2017-03-14-15-12.pkl','wb'), -1)
-    #%%
-    # Find the longest queries.
-    durs = [dur for req, dur, resp in responses]
-    [requests[i] for i in np.argsort(durs)[-10:]]
-    #%%
-    model = suggestion_generator.get_model('yelp_train')
-    unigram_probs = suggestion_generator.get_unigram_probs(model)
-    #%%
-    #responses_by_page = [(page, list(responses)) for page, responses in itertools.groupby(responses, lambda response: response[0]['page'])]
-    df = []
-    for request, dur, phrases in responses:
-        if phrases is None or phrases == []: continue
-        start_at = 1 if request['cur_word'] else 0
-        page, block = request['page'].split('-', 1)
-        block = int(block)
-        ent = dict(page=page, block=block, dur=dur)
-        indices = [[model.model.vocab_index(word) for word in phrase] for phrase, probs in phrases]
-        indices_flat = np.array([idx for phrase_indices in indices for idx in phrase_indices[start_at:] if idx])
-        ent['mlf'] = np.mean(unigram_probs[indices_flat])
-        df.append(ent)
-    df = pd.DataFrame(df)
-
-    #sns.distplot(df.dur, groupby=df.block)#.groupby('block').dur.plot(legend='best')
-    sns.violinplot(x='mlf', y='page', hue='block', data=df.query('mlf > -10'), split=True)
-    #responses_by_page = [(page, [do_request(request) for request in requests]) for page, requests in tqdm.tqdm(requests_by_page)]
-
-#%%
-if False:
-#%%
-    analyzed = dict(json.load(open('frontend/analyzed.json')))
-    requests = [r for r in analyzed['cf35a8']['requests'] if True]#not r['cur_word']]
