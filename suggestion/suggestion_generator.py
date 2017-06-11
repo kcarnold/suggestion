@@ -881,8 +881,10 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             phrases = []
             for entity_idx in assignments:
                 llk, words, meta = active_entities[entity_idx]
-                sentiment_summary = sentiment_data[entity_idx]
-                phrases.append((words, dict(meta, llk=llk, sentiment_summary=sentiment_summary)))
+                meta = dict(meta, llk=llk)
+                if sentiment is not None:
+                    meta['sentiment_summary'] = sentiment_data[entity_idx]
+                phrases.append((words, meta))
                 suggested_already.add(' '.join(words[:3]))
 
         if is_bos:
