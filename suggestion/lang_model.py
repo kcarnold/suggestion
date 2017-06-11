@@ -89,11 +89,10 @@ class Model:
         return Model.get_model, (self.name,)
 
     def _load(self):
-        print("Loading model", file=sys.stderr)
+        print("Loading model", self.name, '...', file=sys.stderr, end='')
         self.model = kenlm.LanguageModel(self.model_file)
-        print("...done.", file=sys.stderr)
 
-        print("Reading raw ARPA data", file=sys.stderr)
+        print(" reading raw ARPA data ... ", file=sys.stderr, end='')
         self.id2str, self.unigram_probs, bigrams = get_arpa_data(self.arpa_file)
         self.is_special = np.zeros(len(self.id2str), dtype=bool)
         for i, word in enumerate(self.id2str):
@@ -107,7 +106,7 @@ class Model:
         unigram_probs_wordsonly_2 = self.unigram_probs.copy()
         unigram_probs_wordsonly_2[self.is_special] = -np.inf
         self.most_common_words_by_idx = np.argsort(unigram_probs_wordsonly_2)[-500:]
-        print("Encoding bigrams to indices", file=sys.stderr)
+        print(" Encoding bigrams to indices... ", file=sys.stderr, end='')
         self.unfiltered_bigrams, self.filtered_bigrams = encode_bigrams(bigrams, self.model)
 
         # Vocab trie
@@ -117,6 +116,7 @@ class Model:
 
         self.eos_idx = self.model.vocab_index('</S>')
         self.eop_idx = self.model.vocab_index('</s>')
+        print("Loaded.", file=sys.stderr)
 
     def prune_bigrams(self):
         # Filter bigrams to only include words that actually follow
