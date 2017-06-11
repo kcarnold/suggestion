@@ -80,6 +80,12 @@ if __name__ == '__main__':
             dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(star_indices, desc=f"Writing {stars}-star")))
         json.dump(counts, open('models/star_counts.json', 'w'))
 
+        bucket_size = min(counts)
+        dump_kenlm(f"{args.model_name}-balanced", (
+            ' '.join(tokenized_reviews[idx])
+            for stars in tqdm.trange(1, 6, desc="Writing balanced")
+            for idx in np.random.choice(np.flatnonzero(reviews.stars_review == stars), bucket_size, replace=False)))
+
     print("Saving reviews")
     with open('models/tokenized_reviews.pkl', 'wb') as f:
         pickle.dump(tokenized_reviews, f, -1)

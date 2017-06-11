@@ -372,7 +372,7 @@ export class MasterStateStore {
       },
       get suggestionRequestParams() {
         return {
-          domain: 'yelp_train',
+          domain: 'yelp_train-balanced',
           ...this.condition.sugFlags,
         };
       },

@@ -22,7 +22,7 @@ tweeterinchief
 '''
 
 PRELOAD_MODELS = '''
-yelp_train
+yelp_train-balanced
 yelp_train-1star
 yelp_train-2star
 yelp_train-3star
