@@ -572,7 +572,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
     constraints={},
     promise=None,
-    polarity_split=None,
+    sentiment=None,
     **kw):
 
     model = get_model(domain)
@@ -623,7 +623,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
     if temperature == 0:
         if use_sufarr and len(cur_word) == 0:
-            assert polarity_split is None, "sufarr doesn't support polarity_split yet"
+            assert sentiment is None, "sufarr doesn't support sentiment yet"
             assert promise is None, "sufarr doesn't support promises yet"
             beam_width = 100
             beam = beam_search_sufarr_init(model, toks)
@@ -674,11 +674,11 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             beam_search_kwargs = dict(constraints=constraints)
 
-            if polarity_split:
+            if sentiment:
                 clf_startstate = sentiment_classifier.get_state(toks)
 
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
-            num_first_words = 3 - len(sentence_enders) if polarity_split is None else 10
+            num_first_words = 3 - len(sentence_enders) if sentiment is None else 10
             num_intermediates = 10
             max_logprob_penalty = -1.
 
@@ -731,7 +731,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     # Penalize a suggestion that has already been made exactly like this before.
                     if is_new_word and ' '.join(words[:3]) in suggested_already:
                         llk -= 9999.
-                    pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if polarity_split else None
+                    pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if sentiment else None
                     active_entities.append((llk, pos, words, {}))
 
             # Add sentence-enders in the mix, but flagged special.
@@ -742,7 +742,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if promise is not None:
                 llk = 999
                 words = promise['words']
-                pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if polarity_split else None
+                pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if sentiment else None
                 active_entities.append((llk, pos, words, {'type': 'promise'}))
 
             active_entities.sort(reverse=True)
@@ -779,7 +779,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     entity_idx += 1
                     break
 
-            if polarity_split:
+            if sentiment:
                 print("First words:", ' '.join(ent[1][0] for ent in first_word_ents))
 
                 # Diversify the suggestions by sentiment.
@@ -903,5 +903,5 @@ def request_to_kwargs(request):
         prewrite_info=request.get('prewrite_info'),
         constraints=request.get('constraints'),
         promise=request.get('promise'),
-        polarity_split=request.get('polarity_split'),
+        sentiment=request.get('sentiment'),
         word_bonuses=None)

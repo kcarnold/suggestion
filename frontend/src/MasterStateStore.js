@@ -167,7 +167,7 @@ const namedConditions = {
     sugFlags: {
       useSufarr: false,
       continuation_length: 17,
-      polarity_split: '5a1',
+      sentiment: 'diverse',
       use_bos_suggs: false,
     },
     showPhrase: true,
