@@ -678,8 +678,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 clf_startstate = sentiment_classifier.get_state(toks)
 
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
-            num_first_words = 3 - len(sentence_enders) if sentiment is None else 10
-            num_intermediates = 10
+            num_first_words = 3 - len(sentence_enders) if sentiment is None else 20
+            num_intermediates = 20
             max_logprob_penalty = -1.
 
             # Launch a job to get first words.
