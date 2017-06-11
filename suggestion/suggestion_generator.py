@@ -18,7 +18,6 @@ from . import suffix_array, clustering, manual_bos
 LOG10 = np.log(10)
 
 '''
-yelp_train-3star
 tweeterinchief
 '''
 
@@ -582,6 +581,12 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     prefix = ''.join(item['letter'] for item in cur_word)
     # prefix_probs = tap_decoder(sofar[-12:].replace(' ', '_'), cur_word, key_rects)
 
+    if sug_state is None:
+        sug_state = {}
+    if 'suggested_already' not in sug_state:
+        sug_state['suggested_already'] = set()
+    suggested_already = sug_state['suggested_already']
+
     if word_bonuses is None and prewrite_info is not None:
         known_words = set()
         unknown_words = set()
@@ -606,7 +611,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
         if promise is not None:
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
         if use_bos_suggs == 'manual':
-            phrases, sug_state = manual_bos.get_manual_bos(sofar, sug_state or {})
+            phrases, sug_state = manual_bos.get_manual_bos(sofar, sug_state)
         else:
             phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
         if phrases is not None:
@@ -674,7 +679,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
             num_first_words = 3 - len(sentence_enders) if polarity_split is None else 10
-            num_intermediates = 5
+            num_intermediates = 10
             max_logprob_penalty = -1.
 
             # Launch a job to get first words.
@@ -717,12 +722,16 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 promise = {'slot': promise_slot, 'words': promise['words'] + extra_promise_words}
 
             # Now build final suggestions.
+            is_new_word = len(cur_word) == 0
             active_entities = []
             for beam in results:
                 for ent in beam:
                     llk = ent[0]
                     words = ent[1]
-                    pos = sentiment_classifier.sentiment(clf_startstate, words) if polarity_split else None
+                    # Penalize a suggestion that has already been made exactly like this before.
+                    if is_new_word and ' '.join(words[:3]) in suggested_already:
+                        llk -= 9999.
+                    pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if polarity_split else None
                     active_entities.append((llk, pos, words, {}))
 
             # Add sentence-enders in the mix, but flagged special.
@@ -733,7 +742,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if promise is not None:
                 llk = 999
                 words = promise['words']
-                pos = sentiment_classifier.sentiment(clf_startstate, words) if polarity_split else None
+                pos = sentiment_classifier.tok_weighted_sentiment(clf_startstate, words) if polarity_split else None
                 active_entities.append((llk, pos, words, {'type': 'promise'}))
 
             active_entities.sort(reverse=True)
@@ -846,6 +855,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             for entity_idx in assignments:
                 llk, pos, words, meta = active_entities[entity_idx]
                 phrases.append((words, dict(meta, llk=llk, pos=pos)))
+                suggested_already.add(' '.join(words[:3]))
 
         if is_bos:
             phrases = [(words, dict(meta, bos=True)) for words, meta in phrases]

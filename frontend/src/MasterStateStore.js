@@ -171,7 +171,7 @@ const namedConditions = {
       use_bos_suggs: false,
     },
     showPhrase: true,
-    showSuggsAtBos: false,
+    showSuggsAtBos: true,
   }
 };
 

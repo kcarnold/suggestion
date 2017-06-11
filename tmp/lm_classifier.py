@@ -56,25 +56,31 @@ class LMClassifier:
         logprobs -= logsumexp(logprobs)
         return np.exp(logprobs)
 
+    def classify_seq_by_tok(self, state, toks):
+        logprobs = self.prior_logprobs.copy()
+        all_logprobs = [logprobs]
+        for tok in toks:
+            state, score_deltas = self.advance_state(state, tok)
+            logprobs = logprobs + score_deltas
+            all_logprobs.append(logprobs)
+        all_logprobs = np.array(all_logprobs)
+        all_logprobs -= logsumexp(all_logprobs, axis=1, keepdims=True)
+        return np.exp(all_logprobs)
+
     def sentiment(self, state, toks):
         probs = self.classify_seq(state, toks)
         return probs @ self.sentiment_weights
 
 
 
-lmc = LMClassifier([models[f'yelp_train-{star}star'] for star in range(1,6)], prior_counts)
+lmc = LMClassifier([models[f'yelp_train-{star}star'] for star in range(1,6)], np.ones_like(prior_counts))
 for phr in ['this place was terrible', 'this place was amazing', 'this place was reasonably', 'my favorite', 'the only redeeming', 'i wanted to', 'we came here', 'service was slow', 'the service was very friendly']:
     state = lmc.get_state(['<D>'], bos=True)
     hist = []
     seq = phr.split()
-    for i in range(len(seq) + 1):
-        hist.append(lmc.classify_seq(state, seq[:i]))
-    final = hist[-1]
-    score = sum(final[-2:]) - sum(final[:2])
-    score = (score / 2) + .5
-    print(f'{score:.2f} {phr}')
-    print(np.round(np.array(hist).T, 2))
-    print(f'{lmc.sentiment(state, seq):.2}')
+    sentiments = lmc.classify_seq_by_tok(state, seq)
+    print(f'{lmc.sentiment(state, seq):.2} {phr}')
+    print(np.mean(sentiments[1:]oar @ lmc.sentiment_weights))
     print()
 #    for tok in seq.split():
 #        state = lmc.advance_state(state, tok)
