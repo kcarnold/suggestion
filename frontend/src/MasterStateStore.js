@@ -245,10 +245,9 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     });
 
   } else {
-    result = result.concat([
-      ...experimentBlock(0, conditions[0], masterConfig.prewrite),
-      ...experimentBlock(1, conditions[1], masterConfig.prewrite),
-    ]);
+    conditions.forEach((condition, idx) => {
+      result = result.concat(experimentBlock(idx, condition, masterConfig.prewrite));
+    });
   }
   result = result.concat([
     {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
@@ -258,14 +257,39 @@ function getScreens(masterConfigName: string, conditions: string[]) {
 }
 
 
+function shuffle(rng, array) {
+  // Fisher-Yates shuffle, with a provided RNG function.
+  // Basically: build up a shuffled part at the end of the array
+  // by swapping the last unshuffled element with a random earlier one.
+  // See https://bost.ocks.org/mike/shuffle/ for a nice description
+
+  // First, copy the array (bostock's impl forgets this).
+  array = Array.prototype.slice.call(array);
+
+  let m = array.length;
+  while(m) {
+    // Pick an element from the part of the list that's not yet shuffled.
+    let prevElement = Math.floor(rng() * m--);
+
+    // Swap it with the current element.
+    let tmp = array[prevElement];
+    array[prevElement] = array[m];
+    array[m] = tmp;
+  }
+  return array;
+}
+
+function seededShuffle(seed, array) {
+  let result = shuffle(seedrandom(seed), array);
+  console.log('seededShuffle', seed, array, result);
+  return result;
+}
 
 export class MasterStateStore {
   masterConfig: Object;
   masterConfigName: string;
   prewrite: boolean;
   clientId: string;
-  swapConditionOrder: boolean;
-  swapPlaceOrder: boolean;
   conditions: Array<string>;
   lastEventTimestamp: number;
   replaying: boolean;
@@ -282,21 +306,12 @@ export class MasterStateStore {
   setMasterConfig(configName:string) {
     this.masterConfigName = configName;
     this.masterConfig = MASTER_CONFIGS[configName];
-    let conditions = this.masterConfig.baseConditions.slice();
-    if (this.swapConditionOrder) {
-      conditions.unshift(conditions.pop());
-    }
-    this.conditions = conditions;
+    this.conditions = seededShuffle(`${this.clientId}-conditions`, this.masterConfig.baseConditions);
     this.initScreen();
   }
 
   constructor(clientId:string) {
     this.clientId = clientId;
-
-    let rng = seedrandom(clientId);
-    // Don't disturb the calling sequence of the rng, or state will become invalid.
-    this.swapConditionOrder = rng() < .5;
-    this.swapPlaceOrder = rng() < .5;
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
     let demoConditionName = clientId.slice(4);
@@ -371,14 +386,13 @@ export class MasterStateStore {
       },
       get places() {
         let {controlledInputs} = this;
-        let res = [
-          {name: controlledInputs.get('restaurant1'), visit: controlledInputs.get('visit1'), stars: controlledInputs.get('star1'), knowWhatToWrite: controlledInputs.get('knowWhat1')},
-          {name: controlledInputs.get('restaurant2'), visit: controlledInputs.get('visit2'), stars: controlledInputs.get('star2'), knowWhatToWrite: controlledInputs.get('knowWhat2')}
-        ]
-        if (this.swapPlaceOrder) {
-          res.unshift(res.pop());
-        }
-        return res;
+        let res = this.conditions.map((condition, idx) => ({
+          name: controlledInputs.get(`restaurant${idx+1}`),
+          visit: controlledInputs.get(`visit${idx+1}`),
+          stars: controlledInputs.get(`star${idx+1}`),
+          knowWhatToWrite: controlledInputs.get(`knowWhat${idx+1}`)
+        }));
+        return seededShuffle(`${this.clientId}-places`, res);
       },
       get suggestionRequestParams() {
         let sentiment = this.condition.sentiment;

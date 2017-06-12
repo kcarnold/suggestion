@@ -189,20 +189,31 @@ export const  ProbablyWrongCode = () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
   </div>;
 
-export const SelectRestaurants = inject('state')(observer(({state}) => <div>
-    <p>Think of 2 <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
-    <div className="Restaurant">1. Name: <ControlledInput name="restaurant1"/><br />When were you last there? <ControlledInput name="visit1"/>
-      <br />How would you rate that visit? <ControlledStarRating name="star1" />
-      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/><ControlledInput name="knowWhat1" />
-    </div>
-    <br/>
-    <div className="Restaurant">2. Name: <ControlledInput name="restaurant2"/><br /> When were you last there? <ControlledInput name="visit2"/>
-      <br />How would you rate that visit? <ControlledStarRating name="star2" />
-      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/><ControlledInput name="knowWhat2" />
-    </div>
+export const SelectRestaurants = inject('state')(observer(({state}) => {
+  let numPlaces = state.conditions.length;
+  let indices = state.conditions.map((condition, idx) => idx + 1)
+  let allFields = [];
+  indices.forEach(idx => {
+    ['restaurant', 'visit', 'star', 'knowWhat'].forEach(kind => {
+      allFields.push(`${kind}${idx}`);
+    });
+  });
+  let complete = _.every(allFields, x => state.controlledInputs.get(x))
+
+  return <div>
+    <p>Think of {numPlaces} <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
+    {indices.map(idx => <div key={idx} className="Restaurant">{idx}.
+      Name: <ControlledInput name={`restaurant${idx}`} /><br />
+      When were you last there? <ControlledInput name={`visit${idx}`}/>
+      <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} />
+      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
+      <ControlledInput name={`knowWhat${idx}`} />
+    </div>)}
     <p>(The Next button will be enabled once all fields are filled out.)</p>
-    <NextBtn disabled={!_.every('restaurant1 visit1 star1 restaurant2 visit2 star2 knowWhat1 knowWhat2'.split(' '), x => state.controlledInputs.get(x))} />
-  </div>));
+    <NextBtn disabled={!complete} />
+  </div>;
+}));
+
 
 export const Instructions = inject('state')(observer(({state}) => {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
