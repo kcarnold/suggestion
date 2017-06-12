@@ -383,7 +383,14 @@ export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
 export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
 export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
 export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
-export const Done = inject('clientId')(({clientId}) => <div>Thanks! Your code is <tt>{clientId}</tt>.</div>);
+export const Done = inject('clientId', 'state')(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
+  <p>In case you want them, here's what you wrote.</p>
+      {state.places.map(({name}, idx) => <div key={idx}>
+      <h1>{idx+1}: {name}</h1>
+      <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get(`final-${idx}`).curText}</div>
+    </div>)}
+
+  </div>);
 export const LookAtPhone = inject('clientId')(({clientId}) => <div><p>Complete this step on your phone.</p> If you need it, your phone code is <tt>{clientId}-p</tt>.</div>);
 export const LookAtComputer = inject('clientId')(({clientId}) => <div><p>Complete this step on your computer.</p> If you need it, your computer code is <tt>{clientId}-c</tt>.</div>);
 
