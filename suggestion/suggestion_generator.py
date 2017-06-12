@@ -542,6 +542,7 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
                 continue
             beginning = ' '.join(phrase[:3])
             if beginning in suggested_already:
+                print("Taboo:", beginning)
                 continue
             if avoid_letter is not None and (avoid_letter in beginning or avoid_letter in ''.join(phrase)):
                 continue
@@ -730,6 +731,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     words = ent[1]
                     # Penalize a suggestion that has already been made exactly like this before.
                     if is_new_word and ' '.join(words[:3]) in suggested_already:
+                        print("Taboo:", ' '.join(words))
                         llk -= 9999.
                     active_entities.append((llk, words, {}))
 
