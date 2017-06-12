@@ -221,7 +221,11 @@ const MASTER_CONFIGS = {
     baseConditions: ['sentdiverse', 'nosugg'],
     prewrite: false,
     instructions: 'sentiment'
-  }
+  },
+  sent3: {
+    baseConditions: ['sentdiverse', 'sentmatch', 'nosugg'],
+    instructions: 'sentiment'
+  },
 };
 
 
