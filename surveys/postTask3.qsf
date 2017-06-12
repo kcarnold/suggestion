@@ -1,0 +1,721 @@
+{
+  "id": "SV_7OPqWyf4iipivwp",
+  "name": "Writing Study - Post-Task Survey - 2017-06-12",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-06-12T15:33:14Z",
+  "lastModifiedDate": "2017-06-12T15:37:11Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q1",
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID2": {
+      "questionType": {
+        "type": "Timing",
+        "selector": "PageTimer",
+        "subSelector": null
+      },
+      "questionText": "Timing",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q2",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "First Click",
+          "choiceText": "First Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Last Click",
+          "choiceText": "Last Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Page Submit",
+          "choiceText": "Page Submit",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Click Count",
+          "choiceText": "Click Count",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID4": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAHR",
+        "subSelector": "TX"
+      },
+      "questionText": "How accurately does what you just wrote reflect your experience? (it's perfectly fine if it doesn't)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q4",
+      "choices": {
+        "32": {
+          "recode": "32",
+          "description": "Extremely accurately",
+          "choiceText": "Extremely accurately",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "33": {
+          "recode": "33",
+          "description": "Very accurately",
+          "choiceText": "Very accurately",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "34": {
+          "recode": "34",
+          "description": "Moderately accurately",
+          "choiceText": "Moderately accurately",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "35": {
+          "recode": "35",
+          "description": "Slightly accurately",
+          "choiceText": "Slightly accurately",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "36": {
+          "recode": "36",
+          "description": "Not accurately at all",
+          "choiceText": "Not accurately at all",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID6": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAHR",
+        "subSelector": "TX"
+      },
+      "questionText": "How detailed is the review you just wrote? (it's perfectly fine if it wasn't)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q6",
+      "choices": {
+        "25": {
+          "recode": "25",
+          "description": "Extremely detailed",
+          "choiceText": "Extremely detailed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "26": {
+          "recode": "26",
+          "description": "Very detailed",
+          "choiceText": "Very detailed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "27": {
+          "recode": "27",
+          "description": "Moderately detailed",
+          "choiceText": "Moderately detailed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "28": {
+          "recode": "28",
+          "description": "Slightly detailed",
+          "choiceText": "Slightly detailed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "29": {
+          "recode": "29",
+          "description": "Not detailed at all",
+          "choiceText": "Not detailed at all",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID14": {
+      "questionType": {
+        "type": "Slider",
+        "selector": "STAR",
+        "subSelector": null
+      },
+      "questionText": "Now that you've had a chance to write about it, how many stars would you give your experience at this restaurant? (It's OK if this isn't the same as what you said at first.)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q14",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "&nbsp;",
+          "choiceText": "&nbsp;",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID8": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with the following statements?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q8",
+      "subQuestions": {
+        "2": {
+          "recode": "2",
+          "description": "I knew <strong>what</strong> I wanted to say.",
+          "choiceText": "I knew <strong>what</strong> I wanted to say.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "I knew <strong>how to say</strong> what I wanted to say.",
+          "choiceText": "I knew <strong>how to say</strong> what I wanted to say.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "7": {
+          "recode": "7",
+          "description": "I often paused to think of <strong>what</strong> to say.",
+          "choiceText": "I often paused to think of <strong>what</strong> to say.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "I often paused to think of <strong>how to say</strong> what I wanted to say.",
+          "choiceText": "I often paused to think of <strong>how to say</strong> what I wanted to say.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "I was able to express myself fluently.",
+          "choiceText": "I was able to express myself fluently.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "5": {
+          "recode": "5",
+          "description": "I had trouble expressing myself fluently.",
+          "choiceText": "I had trouble expressing myself fluently.",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "15": {
+          "recode": "15",
+          "description": "Strongly agree",
+          "choiceText": "Strongly agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "16": {
+          "recode": "16",
+          "description": "Agree",
+          "choiceText": "Agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "17": {
+          "recode": "17",
+          "description": "Somewhat agree",
+          "choiceText": "Somewhat agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "18": {
+          "recode": "18",
+          "description": "Neither agree nor disagree",
+          "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "19": {
+          "recode": "19",
+          "description": "Somewhat disagree",
+          "choiceText": "Somewhat disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "20": {
+          "recode": "20",
+          "description": "Disagree",
+          "choiceText": "Disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "21": {
+          "recode": "21",
+          "description": "Strongly disagree",
+          "choiceText": "Strongly disagree",
+          "imageDescription": null,
+          "analyze": true
+        }
+      },
+      "randomization": {
+        "type": "all"
+      }
+    },
+    "QID10": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe the process you used when writing?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q10"
+    },
+    "QID22": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "Now think about the brainstorming you did before the final writing. How much do you agree with the following statements?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q22",
+      "subQuestions": {
+        "10": {
+          "recode": "10",
+          "description": "The brainstorming gave me ideas.",
+          "choiceText": "The brainstorming gave me ideas.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "11": {
+          "recode": "11",
+          "description": "The brainstorming step was a waste of time.",
+          "choiceText": "The brainstorming step was a waste of time.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "14": {
+          "recode": "14",
+          "description": "I used <strong>topics</strong> from my brainstorm in the final writing.",
+          "choiceText": "I used <strong>topics</strong> from my brainstorm in the final writing.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "15": {
+          "recode": "15",
+          "description": "I used <strong>words or phrases</strong> from my brainstorm in the final writing.",
+          "choiceText": "I used <strong>words or phrases</strong> from my brainstorm in the final writing.",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "15": {
+          "recode": "15",
+          "description": "Strongly agree",
+          "choiceText": "Strongly agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "16": {
+          "recode": "16",
+          "description": "Agree",
+          "choiceText": "Agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "17": {
+          "recode": "17",
+          "description": "Somewhat agree",
+          "choiceText": "Somewhat agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "18": {
+          "recode": "18",
+          "description": "Neither agree nor disagree",
+          "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "19": {
+          "recode": "19",
+          "description": "Somewhat disagree",
+          "choiceText": "Somewhat disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "20": {
+          "recode": "20",
+          "description": "Disagree",
+          "choiceText": "Disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "21": {
+          "recode": "21",
+          "description": "Strongly disagree",
+          "choiceText": "Strongly disagree",
+          "imageDescription": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID24": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe the process you used in the brainstorming?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q24"
+    },
+    "QID12": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Did you experience any technical difficulties that you haven't reported already?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q12"
+    },
+    "QID13": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Any other comments? (There will be more surveys before the end of the experiment.)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q13"
+    }
+  },
+  "exportColumnMap": {
+    "Q1_1_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.1"
+    },
+    "Q1_2_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.2"
+    },
+    "Q1_3_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.3"
+    },
+    "Q1_4_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.4"
+    },
+    "Q1_5_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.5"
+    },
+    "Q1_6_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.6"
+    },
+    "Q1_7_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.7"
+    },
+    "Q2_1": {
+      "question": "QID2",
+      "choice": "QID2.choices.1"
+    },
+    "Q2_2": {
+      "question": "QID2",
+      "choice": "QID2.choices.2"
+    },
+    "Q2_3": {
+      "question": "QID2",
+      "choice": "QID2.choices.3"
+    },
+    "Q2_4": {
+      "question": "QID2",
+      "choice": "QID2.choices.4"
+    },
+    "Q4": {
+      "question": "QID4"
+    },
+    "Q6": {
+      "question": "QID6"
+    },
+    "Q14_1": {
+      "question": "QID14",
+      "choice": "QID14.choices.1"
+    },
+    "Q8_2": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.2"
+    },
+    "Q8_3": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.3"
+    },
+    "Q8_7": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.7"
+    },
+    "Q8_8": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.8"
+    },
+    "Q8_4": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.4"
+    },
+    "Q8_5": {
+      "question": "QID8",
+      "subQuestion": "QID8.subQuestions.5"
+    },
+    "Q10": {
+      "question": "QID10"
+    },
+    "Q22_10": {
+      "question": "QID22",
+      "subQuestion": "QID22.subQuestions.10"
+    },
+    "Q22_11": {
+      "question": "QID22",
+      "subQuestion": "QID22.subQuestions.11"
+    },
+    "Q22_14": {
+      "question": "QID22",
+      "subQuestion": "QID22.subQuestions.14"
+    },
+    "Q22_15": {
+      "question": "QID22",
+      "subQuestion": "QID22.subQuestions.15"
+    },
+    "Q24": {
+      "question": "QID24"
+    },
+    "Q12": {
+      "question": "QID12"
+    },
+    "Q13": {
+      "question": "QID13"
+    }
+  },
+  "blocks": {
+    "BL_abc9q0W8PfK9IP3": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID2"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID4"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID6"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID14"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID8"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID10"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID22"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID24"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID13"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "type": "Branch",
+      "flow": [
+        {
+          "type": "EmbeddedData"
+        }
+      ]
+    },
+    {
+      "id": "BL_abc9q0W8PfK9IP3",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "prewrite"
+    },
+    {
+      "name": "revisionDesc",
+      "defaultValue": "writing"
+    },
+    {
+      "name": "Q_URL"
+    },
+    {
+      "name": "nextURL"
+    },
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_TotalDuration"
+    }
+  ],
+  "comments": {},
+  "loopAndMerge": {}
+}

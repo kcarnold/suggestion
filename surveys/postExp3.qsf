@@ -1,0 +1,684 @@
+{
+  "id": "SV_eQbXXnoiDBWeww5",
+  "name": "Writing Study - Closing Survey - 2017-06-12",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-06-12T15:38:46Z",
+  "lastModifiedDate": "2017-06-12T16:09:03Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q1",
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID10": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<span style=\"font-size:16px;\"><strong>Closing Survey</strong></span><br>\n<br>\nYour phone's screen should be showing what you wrote for reference.",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q10"
+    },
+    "QID2": {
+      "questionType": {
+        "type": "Timing",
+        "selector": "PageTimer",
+        "subSelector": null
+      },
+      "questionText": "Timing",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q2",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "First Click",
+          "choiceText": "First Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Last Click",
+          "choiceText": "Last Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Page Submit",
+          "choiceText": "Page Submit",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Click Count",
+          "choiceText": "Click Count",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID18": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "TE",
+        "subSelector": "Short"
+      },
+      "questionText": "How much did you say about each topic in each review?<br />\nblank or 0 = not covered, 1 = a brief mention,  7 = extensive details",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q18",
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "food",
+          "choiceText": "food",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "drinks",
+          "choiceText": "drinks",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "9": {
+          "recode": "9",
+          "description": "selection",
+          "choiceText": "selection",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "service",
+          "choiceText": "service",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "ambiance",
+          "choiceText": "ambiance",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "5": {
+          "recode": "5",
+          "description": "value",
+          "choiceText": "value",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "6": {
+          "recode": "6",
+          "description": "occasion for visit",
+          "choiceText": "occasion for visit",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "10": {
+          "recode": "10",
+          "description": "location",
+          "choiceText": "location",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "other",
+          "choiceText": "other",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Review 1",
+          "choiceText": "Review 1",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Review 2",
+          "choiceText": "Review 2",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Review 3",
+          "choiceText": "Review 3",
+          "imageDescription": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID19": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "TE",
+        "subSelector": "Short"
+      },
+      "questionText": "Roughly how many lines of each review were...",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q19",
+      "subQuestions": {
+        "1": {
+          "recode": "1",
+          "description": "positive?",
+          "choiceText": "positive?",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "2": {
+          "recode": "2",
+          "description": "negative?",
+          "choiceText": "negative?",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Review 1",
+          "choiceText": "Review 1",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Review 2",
+          "choiceText": "Review 2",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Review 3",
+          "choiceText": "Review 3",
+          "imageDescription": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID20": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Overall, what are some differences between your 3 writings?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q20"
+    },
+    "QID21": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Think about the words or phrases that the keyboard offered. What differences (if any) did you notice between the three writing sessions?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q21"
+    },
+    "QID16": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "While you were writing, did you speak or whisper what you were writing?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q16",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Yes",
+          "choiceText": "Yes",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "No",
+          "choiceText": "No",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID7": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Did you encounter any technical difficulties during this study that you haven't already reported?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q7"
+    },
+    "QID4": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Thanks for participating in this study!<br><br>Any closing thoughts you'd like to tell us?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q4"
+    }
+  },
+  "exportColumnMap": {
+    "Q1_1_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.1"
+    },
+    "Q1_2_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.2"
+    },
+    "Q1_3_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.3"
+    },
+    "Q1_4_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.4"
+    },
+    "Q1_5_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.5"
+    },
+    "Q1_6_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.6"
+    },
+    "Q1_7_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.7"
+    },
+    "Q10": {
+      "question": "QID10"
+    },
+    "Q2_1": {
+      "question": "QID2",
+      "choice": "QID2.choices.1"
+    },
+    "Q2_2": {
+      "question": "QID2",
+      "choice": "QID2.choices.2"
+    },
+    "Q2_3": {
+      "question": "QID2",
+      "choice": "QID2.choices.3"
+    },
+    "Q2_4": {
+      "question": "QID2",
+      "choice": "QID2.choices.4"
+    },
+    "Q18_1_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.1",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_1_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.1",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_1_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.1",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_2_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.2",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_2_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.2",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_2_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.2",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_9_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.9",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_9_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.9",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_9_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.9",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_3_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.3",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_3_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.3",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_3_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.3",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_4_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.4",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_4_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.4",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_4_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.4",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_5_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.5",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_5_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.5",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_5_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.5",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_6_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.6",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_6_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.6",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_6_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.6",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_10_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.10",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_10_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.10",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_10_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.10",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_8_1_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.8",
+      "choice": "QID18.choices.1"
+    },
+    "Q18_8_2_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.8",
+      "choice": "QID18.choices.2"
+    },
+    "Q18_8_3_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.8",
+      "choice": "QID18.choices.3"
+    },
+    "Q18_8_TEXT": {
+      "question": "QID18",
+      "subQuestion": "QID18.subQuestions.8"
+    },
+    "Q19_1_1_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.1",
+      "choice": "QID19.choices.1"
+    },
+    "Q19_1_2_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.1",
+      "choice": "QID19.choices.2"
+    },
+    "Q19_1_3_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.1",
+      "choice": "QID19.choices.3"
+    },
+    "Q19_2_1_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.2",
+      "choice": "QID19.choices.1"
+    },
+    "Q19_2_2_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.2",
+      "choice": "QID19.choices.2"
+    },
+    "Q19_2_3_TEXT": {
+      "question": "QID19",
+      "subQuestion": "QID19.subQuestions.2",
+      "choice": "QID19.choices.3"
+    },
+    "Q20": {
+      "question": "QID20"
+    },
+    "Q21": {
+      "question": "QID21"
+    },
+    "Q16": {
+      "question": "QID16"
+    },
+    "Q7": {
+      "question": "QID7"
+    },
+    "Q4": {
+      "question": "QID4"
+    }
+  },
+  "blocks": {
+    "BL_3eZrxVvImvprGLz": {
+      "description": "Block 1",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID10"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID2"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID18"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID19"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID20"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID21"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID16"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID7"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID4"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "id": "BL_3eZrxVvImvprGLz",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "Q_URL"
+    },
+    {
+      "name": "nextURL"
+    },
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_TotalDuration"
+    }
+  ],
+  "comments": {},
+  "loopAndMerge": {}
+}
