@@ -927,7 +927,7 @@ def request_to_kwargs(request):
         rare_word_bonus=request.get('rare_word_bonus', 0.0),
         use_sufarr=request.get('useSufarr', False),
         temperature=request.get('temperature', 0.),
-        use_bos_suggs=request['use_bos_suggs'],
+        use_bos_suggs=request.get('use_bos_suggs', False),
         length_after_first=request.get('continuation_length', 17),
         null_logprob_weight=request.get('null_logprob_weight', 0.),
         prewrite_info=request.get('prewrite_info'),

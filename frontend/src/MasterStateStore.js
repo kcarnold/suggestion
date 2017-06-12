@@ -70,6 +70,15 @@ const namedConditions = {
     },
     showPhrase: true,
   },
+  nosugg: {
+    sugFlags: {
+      useSufarr: false,
+      temperature: 0,
+      continuation_length: 0,
+    },
+    showPhrase: false,
+    hideSuggUnlessPartialWord: true,
+  },
   word: {
     sugFlags: ngramFlags,
     showPhrase: false
@@ -463,6 +472,7 @@ export class MasterStateStore {
           this.experimentState.useConstraints = this.masterConfig.useConstraints;
         }
         this.experimentState.showSuggsAtBos = this.condition.showSuggsAtBos;
+        this.experimentState.hideSuggUnlessPartialWord = this.condition.hideSuggUnlessPartialWord;
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);

@@ -43,6 +43,7 @@ export class ExperimentStateStore {
     M.extendObservable(this, {
       curText: '',
       showSuggsAtBos: true,
+      hideSuggUnlessPartialWord: false,
       useConstraints: {},
       constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
       get curSentenceNum() {
@@ -74,6 +75,10 @@ export class ExperimentStateStore {
           isValid: sugg.contextSequenceNum === this.contextSequenceNum,
           ...sugg
         }));
+
+        if (this.hideSuggUnlessPartialWord && !this.getSuggestionContext().curWord.length) {
+          suggestions = [];
+        }
 
         if (!this.showSuggsAtBos) {
           suggestions = suggestions.filter(sug => !((sug.meta || {}).bos));
