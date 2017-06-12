@@ -163,15 +163,25 @@ const namedConditions = {
     showPhrase: true,
     usePrewriteText: true,
   },
-  sentiment: {
+  sentdiverse: {
     sugFlags: {
       useSufarr: false,
       continuation_length: 17,
-      sentiment: 'diverse',
       use_bos_suggs: false,
     },
     showPhrase: true,
     showSuggsAtBos: true,
+    sentiment: 'diverse',
+  },
+  sentmatch: {
+    sugFlags: {
+      useSufarr: false,
+      continuation_length: 17,
+      use_bos_suggs: false,
+    },
+    showPhrase: true,
+    showSuggsAtBos: true,
+    sentiment: 'match',
   }
 };
 
@@ -296,6 +306,11 @@ export class MasterStateStore {
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
     let demoConditionName = clientId.slice(4);
+    let sentiment = null;
+    if (demoConditionName.slice(0,9) === 'sentmatch') {
+      sentiment = +demoConditionName[9];
+      demoConditionName = 'sentmatch';
+    }
 
     this.times = {prewriteTimer, finalTimer};
 
@@ -310,6 +325,7 @@ export class MasterStateStore {
         if (text === '') return [];
         return text.split('\n');
       },
+      sentiment,
       lastEventTimestamp: null,
       replaying: true,
       screenNum: 0,
@@ -371,9 +387,14 @@ export class MasterStateStore {
         return res;
       },
       get suggestionRequestParams() {
+        let sentiment = this.condition.sentiment;
+        if (sentiment === 'match') {
+          sentiment = this.sentiment || this.curPlace.stars;
+        }
         return {
           domain: 'yelp_train-balanced',
           ...this.condition.sugFlags,
+          sentiment
         };
       },
       get curPlace() {
