@@ -175,7 +175,11 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
             request = json.loads(message)
             if request['type'] == 'requestSuggestions':
                 start = time.time()
-                result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request.get('request_id'))
+                request_id = request.get('request_id')
+                # Clear the suggestion state when starting a new experiment.
+                if request_id == 0:
+                    self.sug_state = None
+                result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request_id)
                 suggestion_kwargs = suggestion_generator.request_to_kwargs(request)
                 try:
                     phrases, self.sug_state = yield get_suggestions_async(
