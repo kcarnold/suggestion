@@ -233,7 +233,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
-    <p>Pay attention to the suggestions. If a suggestion helps you write your best, use it; if not, please ignore it.</p>
+    <p><b>Note</b>: We've changed how the keyboard picks words or phrases to show.</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
@@ -313,8 +313,8 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
 
       <p>In this <b>practice round</b>, we'll pretend to write the opening sentences to a US <b>State of the Union address</b> in an imaginary world where a <b>united Africa has become a superpower</b>.</p>
 
-      <p>Let's start off with a standard greeting: "fellow citizens of the united states of america" (we're going to not worry about capitalization). Notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on the "fellow" box to insert that word.</TutorialTodo>
+      <p>Let's start off with a standard opening: "members of congress, my fellow americans" (we're going to not worry about capitalization). Notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
+      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on the "members" box to insert that word.</TutorialTodo>
 
       <p>Sometimes the boxes above the keyboard will show a complete phrase, starting with the highlighted word.
       Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
