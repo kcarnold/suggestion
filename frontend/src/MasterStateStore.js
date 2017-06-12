@@ -104,7 +104,7 @@ const namedConditions = {
     },
     showPhrase: true
   },
-  diverse: {
+  topicdiverse: {
     sugFlags: {
       useSufarr: false,
       rare_word_bonus: 0.,
@@ -124,16 +124,6 @@ const namedConditions = {
     },
     showPhrase: false
   },
-  antidiverse: {
-    sugFlags: {
-      useSufarr: false,
-      rare_word_bonus: 0.,
-      null_logprob_weight: 0.,
-      use_bos_suggs: 'antidiverse',
-      continuation_length: 17,
-    },
-    showPhrase: true
-  },
   nondiverse: {
     sugFlags: {
       useSufarr: false,
@@ -144,7 +134,7 @@ const namedConditions = {
     },
     showPhrase: true
   },
-  continue: {
+  topiccontinue: {
     sugFlags: {
       useSufarr: false,
       rare_word_bonus: 0.,
@@ -217,13 +207,8 @@ const MASTER_CONFIGS = {
     prewrite: false,
     instructions: 'review',
   },
-  diversity: {
-    baseConditions: ['diverse', 'continue'],
-    prewrite: false,
-    instructions: 'tabooTopic'
-  },
-  wdiversity: {
-    baseConditions: ['diverse', 'wdiverse'],
+  topicdiversity: {
+    baseConditions: ['topicdiverse', 'topiccontinue'],
     prewrite: false,
     instructions: 'tabooTopic'
   },
@@ -233,7 +218,7 @@ const MASTER_CONFIGS = {
     instructions: 'review'
   },
   sentiment: {
-    baseConditions: ['phrase', 'sentiment'],
+    baseConditions: ['sentdiverse', 'nosugg'],
     prewrite: false,
     instructions: 'sentiment'
   }
