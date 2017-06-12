@@ -284,9 +284,7 @@ function shuffle(rng, array) {
 }
 
 function seededShuffle(seed, array) {
-  let result = shuffle(seedrandom(seed), array);
-  console.log('seededShuffle', seed, array, result);
-  return result;
+  return shuffle(seedrandom(seed), array);
 }
 
 export class MasterStateStore {
