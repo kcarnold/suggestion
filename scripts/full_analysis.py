@@ -12,19 +12,18 @@ import itertools
 #%%
 root_path = pathlib.Path(__file__).resolve().parent.parent
 #%%
-survey_names =  ['intro', 'postFreewrite', 'postTask', 'postExp']
-#'instructionsQuiz',
 
-survey_seq = '''
-intro 0
-postFreewrite 0
-postTask 0
-postFreewrite 1
-postTask 1
-postExp 0
-'''.strip().split('\n')
-survey_seq = (x.split(' ') for x in survey_seq)
-survey_seq = [(name, int(idx)) for name, idx in survey_seq]
+def get_survey_seq(batch_code):
+    seq = [('intro', 0)]
+    if batch_code.startswith('sent3'):
+        for i in range(3):
+            seq.append(('postTask3', i))
+        seq.append(('postExp3', 0))
+    else:
+        for i in range(2):
+            seq.append(('postTask', i))
+        seq.append(('postExp', 0))
+    return seq
 
 skip_col_re = dict(
     any=r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order',
@@ -54,7 +53,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'sentiment_1'
+batch_code = 'sent3_0'
 import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
 #%%
@@ -78,7 +77,7 @@ def get_analyzer(git_rev):
         print("Installing npm packages")
         subprocess.check_call(['yarn'], cwd=os.path.join(rev_root, 'frontend'))
         subprocess.check_call(['yarn', 'add', 'babel-cli'], cwd=os.path.join(rev_root, 'frontend'))
-        shutil.copy(os.path.join(root_path, 'frontend', 'analyze.js'), os.path.join(rev_root, 'frontend', 'analyze.js'))
+    shutil.copy(os.path.join(root_path, 'frontend', 'analyze.js'), os.path.join(rev_root, 'frontend', 'analyze.js'))
     return os.path.join(rev_root, 'frontend', 'analysis')
 #%%
 def run_log_analysis(participant):
@@ -154,6 +153,8 @@ def flatten_dict(x, prefix=''):
 if __name__ == '__main__':
     run_id = datetime.datetime.now().isoformat()
 
+    survey_seq = get_survey_seq(batch_code)
+    survey_names = {name for name, idx in survey_seq}
     surveys = {name: pd.read_csv(
         os.path.join(root_path, 'surveys', name+'_responses.csv'),
         header=1, parse_dates=['StartDate', 'EndDate'])
@@ -164,7 +165,7 @@ if __name__ == '__main__':
     assert len(participants) == len(set(participants))
 
     all_survey_data = []
-    participant_level_data = []
+    participant_level_data_raw = []
     excluded = []
     non_excluded_participants = []
     for participant in participants:
@@ -176,10 +177,40 @@ if __name__ == '__main__':
         with open(os.path.join(root_path, 'logs', participant+'-analyzed.json'), 'w') as f:
             json.dump(dict(log_analyses=log_analyses, survey_data=survey_data), f)
 
-        if len(survey_data['postExp']) == 0:
+
+        print('\n'*10)
+        print(participant)
+        print('='*80)
+        skipped_cols = set()
+        complete = True
+        for survey, idx in get_survey_seq(batch_code):
+            print(f"\n\n{survey} {idx}")
+            try:
+                data = survey_data[survey][idx]
+            except IndexError:
+                print("MISSING!?!?!")
+                complete = False
+                break
+            base_data = {}
+            if survey in ['postFreewrite', 'postTask', 'postTask3']:
+                base_data['condition'] = conditions[idx]
+            elif survey in ['postExp', 'postExp3']:
+                base_data['condition'] = ','.join(conditions)
+            else:
+                assert survey == 'intro', survey
+            print('-'*20)
+            for k, v in extract_survey_data(survey, data):
+                print(k, ':', v)
+                print()
+                all_survey_data.append(dict(base_data,
+                        participant_id=participant, survey=survey, idx=idx, name=k, value=v))
+
+        if not complete:
             # Skip incomplete experiments.
             excluded.append((participant, 'incomplete'))
             continue
+
+        non_excluded_participants.append(participant)
 
         base_datum = dict(participant_id=participant,
                      conditions=','.join(conditions),
@@ -207,36 +238,13 @@ if __name__ == '__main__':
             for typ, count in Counter(classified_events).items():
                 if typ is not None:
                     datum[f'num_{typ}'] = count
-            participant_level_data.append(datum)
+            participant_level_data_raw.append(datum)
 
 
-        print('\n'*10)
-        print(participant)
-        print('='*80)
-        skipped_cols = set()
-        for survey, idx in survey_seq:
-            print(f"\n\n{survey} {idx}")
-            try:
-                data = survey_data[survey][idx]
-            except IndexError:
-                print("MISSING!?!?!")
-                continue
-            base_data = {}
-            if survey in ['postFreewrite', 'postTask']:
-                base_data['condition'] = conditions[idx]
-            elif survey == 'postExp':
-                base_data['condition'] = ','.join(conditions)
-            print('-'*20)
-            for k, v in extract_survey_data(survey, data):
-                print(k, ':', v)
-                print()
-                all_survey_data.append(dict(base_data,
-                        participant_id=participant, survey=survey, idx=idx, name=k, value=v))
-        non_excluded_participants.append(participant)
     all_survey_data = pd.DataFrame(all_survey_data)
 
     all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
-    participant_level_data = pd.DataFrame(participant_level_data).fillna(0)
+    participant_level_data = pd.DataFrame(participant_level_data_raw).fillna(0)
     if 'prewriteText' in participant_level_data.columns:
         participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
     participant_level_data['finalLen'] = participant_level_data.finalText.str.len()

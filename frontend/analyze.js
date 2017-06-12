@@ -68,8 +68,8 @@ readStdin(function(err, res) {
     byExpPage,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
-    blocks: [0, 1].map(block => ({
-      condition: state.conditions[block],
+    blocks: state.conditions.map((condition, block) => ({
+      condition: condition,
       prewriteText: (state.experiments.get(`pre-${block}`) || {}).curText,
       finalText: (state.experiments.get(`final-${block}`) || {}).curText,
       place: state.places[block],
