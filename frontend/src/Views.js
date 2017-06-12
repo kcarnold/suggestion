@@ -402,11 +402,9 @@ export const SetupPairingComputer = inject('clientId')(({clientId}) => {
 export const SetupPairingPhone = () => <div>Successfully paired! <NextBtn /></div>;
 
 export const ShowReviews = inject('state')(observer(({state}) => <div>
-    <p>Here are the stories you wrote:</p>
-    <h1>Session A ({state.places[0].name})</h1>
-    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-0').curText}</div>
-
-    <h1>Session B ({state.places[1].name})</h1>
-    <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get('final-1').curText}</div>
-
+    <p>Here's what you wrote:</p>
+    {state.places.map(({name}, idx) => <div>
+      <h1>{idx+1}: {name}</h1>
+      <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get(`final-${idx}`).curText}</div>
+    </div>)}
   </div>));
