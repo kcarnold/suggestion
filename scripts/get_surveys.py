@@ -14,8 +14,11 @@ surveys = dict(
   intro='SV_9GiIgGOn3Snoxwh',
   instructionsQuiz='SV_42ziiSrsZzOdBul',
   postFreewrite='SV_0OCqAQl6o7BiidT',
-  postTask='SV_5yztOdf3SX8EtOl',
-  postExp='SV_8HVnUso1f0DZExv')
+  # postTask='SV_5yztOdf3SX8EtOl',
+  postTask="SV_7OPqWyf4iipivwp"
+  # postExp='SV_8HVnUso1f0DZExv'
+  postExp='SV_eQbXXnoiDBWeww5',
+  )
 
 surveyId = "SV_0OCqAQl6o7BiidT"
 

@@ -11,8 +11,10 @@ const hostname = window.location.host;
 const surveyURLs = {
   intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
   postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
-  postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
-  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
+  // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
+  postTask: 'https://harvard.az1.qualtrics.com/jfe/form/SV_7OPqWyf4iipivwp',
+  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
+  postExp: 'https://harvard.az1.qualtrics.com/jfe/form/SV_eQbXXnoiDBWeww5',
 }
 
 const wordCountTarget = 100;
