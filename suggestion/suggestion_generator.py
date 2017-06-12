@@ -770,6 +770,11 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     if meta.get('type') != 'eos' else .5
                     for llk, words, meta in active_entities]
 
+                if False:
+                    for i in np.argsort(sentiment_data):
+                        llk, words, meta = active_entities[i]
+                        print(f'{sentiment_data[i]:.2f}', ' '.join(words))
+
 
             entity_idx = 0
             promise_entity_idx = 0
