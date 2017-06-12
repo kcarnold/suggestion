@@ -403,7 +403,7 @@ export const SetupPairingPhone = () => <div>Successfully paired! <NextBtn /></di
 
 export const ShowReviews = inject('state')(observer(({state}) => <div>
     <p>Here's what you wrote:</p>
-    {state.places.map(({name}, idx) => <div>
+    {state.places.map(({name}, idx) => <div key={idx}>
       <h1>{idx+1}: {name}</h1>
       <div style={{border: '1px solid black', margin: '5px'}}>{state.experiments.get(`final-${idx}`).curText}</div>
     </div>)}
