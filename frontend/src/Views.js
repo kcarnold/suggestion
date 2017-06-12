@@ -232,7 +232,6 @@ export const Instructions = inject('state')(observer(({state}) => {
       {state.prewrite
         ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
         : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
-      <p>Pay attention to the suggestions. If a suggestion helps you write your best, use it; if not, please ignore it.</p>
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to complete this step.</p>
