@@ -732,7 +732,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     # Penalize a suggestion that has already been made exactly like this before.
                     if is_new_word and ' '.join(words[:3]) in suggested_already:
                         print("Taboo:", ' '.join(words))
-                        llk -= 9999.
+                        llk -= 5000.
                     active_entities.append((llk, words, {}))
 
             # Add sentence-enders in the mix, but flagged special.
