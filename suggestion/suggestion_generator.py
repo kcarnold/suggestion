@@ -238,19 +238,16 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases_init(model, start_words, *, classifiers=[], **kw):
+def beam_search_phrases_init(model, start_words, **kw):
     if isinstance(model, str):
         model = get_model(model)
-    classifiers = [(CLASSIFIERS[clf], weight) if isinstance(clf, str) else (clf, weight) for clf, weight in classifiers]
     start_state, start_score = model.get_state(start_words, bos=False)
-    classifier_states = [clf.get_state(start_words, bos=False) for clf, weight in classifiers]
-    return [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, classifier_states)]
+    return [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
 
 
-def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length_after_first, prefix_logprobs=None, rare_word_bonus=0., constraints, classifiers=[]):
+def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length_after_first, prefix_logprobs=None, rare_word_bonus=0., constraints):
     if isinstance(model, str):
         model = get_model(model)
-    classifiers = [(CLASSIFIERS[clf], weight) if isinstance(clf, str) else (clf, weight) for clf, weight in classifiers]
     unigram_probs = model.unigram_probs_wordsonly
     avoid_letter = constraints.get('avoidLetter')
 
@@ -258,18 +255,15 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
     DONE = 2
     new_beam = [ent for ent in beam if ent[DONE]]
     for entry in beam:
-        score, words, done, penultimate_state, last_word_idx, num_chars, classifier_states = entry
+        score, words, done, penultimate_state, last_word_idx, num_chars, _ = entry
         if done:
             continue
         else:
             if iteration_num > 0:
                 last_state = kenlm.State()
                 model.model.base_score_from_idx(penultimate_state, last_word_idx, last_state)
-                # penultimate_classifier_states = [clf.advance_state(clf_state, words[-1])
-                #     for (clf, weight), clf_state in zip(classifiers, classifier_states)]
             else:
                 last_state = penultimate_state
-                # penultimate_classifier_states = classifier_states
             probs = None
             if iteration_num == 0 and prefix_logprobs is not None:
                 next_words = []
@@ -305,17 +299,11 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                     continue
                 unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if iteration_num > 0 and word not in words else 0.
                 main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
-                new_classifier_states = []
-                classifier_score = 0.
-                for (clf, weight), clf_state in zip(classifiers, classifier_states):
-                    clf_state, score_delta = clf.advance_state(clf_state, word)
-                    new_classifier_states.append(clf_state)
-                    classifier_score += weight * score_delta
-                new_score = score + prob + unigram_bonus + main_model_score + classifier_score
+                new_score = score + prob + unigram_bonus + main_model_score
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num else 0
                 done = new_num_chars >= length_after_first
-                new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, classifier_states)
+                new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, None)
                 if len(new_beam) == beam_width:
                     heapq.heappushpop(new_beam, new_entry)
                 else:
@@ -438,13 +426,13 @@ def phrases_to_suggs(phrases):
     return [dict(one_word=dict(words=phrase[:1]), continuation=[dict(words=phrase[1:])], meta=meta) for phrase, meta in phrases]
 
 
-def predict_forward(domain, toks, beam_width, length_after_first, constraints, classifiers=[]):
+def predict_forward(domain, toks, beam_width, length_after_first, constraints):
     model = get_model(domain)
     first_word = toks[-1]
     if first_word in '.?!':
         return [first_word], None
     continuations = beam_search_phrases(model, toks,
-        beam_width=beam_width, length_after_first=length_after_first, constraints=constraints, classifiers=classifiers)
+        beam_width=beam_width, length_after_first=length_after_first, constraints=constraints)
     if len(continuations) > 0:
         continuation = continuations[0].words
     else:
