@@ -298,7 +298,7 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                     continue
                 if word[0] in '.?!':
                     continue
-                unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if iteration_num > 0 and word not in words else 0.
+                unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if iteration_num > 0 and rare_word_bonus and word not in words else 0.
                 main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                 new_score = score + prob + unigram_bonus + main_model_score
                 new_words = words + [word]
