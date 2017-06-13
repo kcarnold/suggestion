@@ -8,6 +8,8 @@ import nltk
 import cytoolz
 import joblib
 from scipy.misc import logsumexp
+import itertools
+from functools import partial
 
 from .paths import paths
 from .tokenization import tokenize_mid_document
@@ -38,6 +40,8 @@ star_prior_counts = np.array(json.load(open(paths.models / 'star_counts.json')))
 
 sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for star in range(1, 6)], star_prior_counts)
 
+
+# def print(*a, **kw): pass
 
 enable_sufarr = False
 enable_bos_suggs = False
@@ -559,6 +563,32 @@ def get_sentence_enders(model, start_words):
     return []
 
 
+# Based on https://github.com/python/cpython/blob/3.6/Lib/concurrent/futures/process.py
+def _get_chunks(*iterables, chunksize):
+    """ Iterates over zip()ed iterables in chunks. """
+    it = zip(*iterables)
+    while True:
+        chunk = tuple(itertools.islice(it, chunksize))
+        if not chunk:
+            return
+        yield chunk
+
+def _process_chunk(fn, chunk):
+    """ Processes a chunk of an iterable passed to map.
+    Runs the function passed to map() on a chunk of the
+    iterable passed to map.
+    This function is run in a separate process.
+    """
+    return [fn(*args) for args in chunk]
+
+
+def map_as_jobs(executor, fn, arr, chunksize=8):
+    """Launches jobs that run a chunk of chunksize elements of arr through fn.
+    Each job will yield an array; you can use itertools.chain.from_iterable(results).
+    """
+    return [executor.submit(partial(_process_chunk, fn), chunk) for chunk in _get_chunks(arr, chunksize=chunksize)]
+
+
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,
@@ -758,10 +788,17 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     def objective(slots):
                         return np.sum(slots)
 
-                sentiment_data = [
-                    summarize_posterior(sentiment_classifier.classify_seq_by_tok(clf_startstate, words))
-                    if meta.get('type') != 'eos' else .5
-                    for llk, words, meta in active_entities]
+                classify_jobs = []
+                classify_jobs_meta = []
+                for entity_idx, (llk, words, meta) in enumerate(active_entities):
+                    if meta.get('type') == 'eos':
+                        continue
+                    classify_jobs.append(words)
+                    classify_jobs_meta.append(entity_idx)
+                classify_jobs_results = (yield map_as_jobs(executor, partial(sentiment_classifier.classify_seq_by_tok, clf_startstate), classify_jobs, chunksize=32))
+                sentiment_data = [.5] * len(active_entities)
+                for entity_idx, posterior in zip(classify_jobs_meta, itertools.chain.from_iterable(classify_jobs_results)):
+                    sentiment_data[entity_idx] = summarize_posterior(posterior)
 
                 if False:
                     for i in np.argsort(sentiment_data):
