@@ -254,6 +254,7 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
     bigrams = model.unfiltered_bigrams if iteration_num == 0 else model.filtered_bigrams
     DONE = 2
     new_beam = [ent for ent in beam if ent[DONE]]
+    new_beam_size = len(new_beam)
     for entry in beam:
         score, words, done, penultimate_state, last_word_idx, num_chars, _ = entry
         if done:
@@ -304,13 +305,15 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                 new_num_chars = num_chars + 1 + len(word) if iteration_num else 0
                 done = new_num_chars >= length_after_first
                 new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, None)
-                if len(new_beam) == beam_width:
+                if new_beam_size == beam_width:
                     heapq.heappushpop(new_beam, new_entry)
+                    # Beam size unchanged.
                 else:
                     new_beam.append(new_entry)
-                    if len(new_beam) == beam_width:
+                    new_beam_size += 1
+                    if new_beam_size == beam_width:
                         heapq.heapify(new_beam)
-                assert len(new_beam) <= beam_width
+                # assert len(new_beam) <= beam_width
     return new_beam
 
 
