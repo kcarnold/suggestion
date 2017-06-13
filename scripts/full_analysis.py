@@ -9,8 +9,14 @@ import json
 import numpy as np
 import datetime
 import itertools
+
+batch_code = 'sent3_01'
+
 #%%
-root_path = pathlib.Path(__file__).resolve().parent.parent
+if '__file__' in globals():
+    root_path = pathlib.Path(__file__).resolve().parent.parent
+else:
+    root_path = pathlib.Path('~/code/suggestion').expanduser()
 #%%
 
 def get_survey_seq(batch_code):
@@ -53,9 +59,56 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-batch_code = 'sent3_0'
 import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
+assert len(participants) == len(set(participants)), "Duplicate participants"
+#%%
+def get_existing_requests(logfile):
+    requests = []
+    responses = []
+    for line in open(logfile):
+        if not line:
+            continue
+        entry = json.loads(line)
+        if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions':
+            requests.append(entry['request'].copy())
+        if entry['type'] == 'receivedSuggestions':
+            responses.append(dict(entry['msg'].copy(), responseTimestamp=entry['jsTimestamp']))
+    assert len(requests) == len(responses)
+    suggestions = []
+    for request, response in zip(requests, responses):
+        phrases = response['next_word']
+        phrases = [' '.join(phrase['one_word']['words'] + phrase['continuation'][0]['words']) for phrase in phrases]
+        while len(phrases) < 3:
+            phrases.append([''])
+        assert len(phrases) == 3
+        p1, p2, p3 = phrases
+        request_ts = request.pop('timestamp')
+        assert request_ts == response.pop('timestamp') # the server sends the client request timestamp back to the client...
+        response_ts = response.pop('responseTimestamp')
+        latency = response_ts - request_ts
+        ctx = request['sofar'] + ''.join(ent['letter'] for ent in request['cur_word'])
+        sentiment = request.get('sentiment', 'none')
+        if sentiment in [1,2,3,4,5]:
+            sentiment = 'match'
+        entry = dict(
+            **request,
+            ctx=ctx,
+            p1=p1, p2=p2, p3=p3,
+            server_dur=response['dur'],
+            latency=latency,
+            sentiment_method=sentiment,
+            timestamp=request_ts)
+        suggestions.append(entry)
+    return suggestions
+suggestion_data_raw = {participant: get_existing_requests(root_path / 'logs' / f'{participant}.jsonl') for participant in participants}
+suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0)
+#%%
+if False:
+    #%%
+    json.dump(suggestion_data_raw, open(f'{batch_code}_sugdata.json', 'w'))
+#%%
+suggestion_data.to_csv(f'{batch_code}_suggestion_stats.csv')
 #%%
 def get_rev(participant):
     logpath = root_path / 'logs' / (participant+'.jsonl')

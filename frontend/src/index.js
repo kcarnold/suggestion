@@ -9,6 +9,9 @@ if (window.location.search.slice(1, 7) === 'panopt') {
 } else if (window.location.search.slice(1) === 'showall') {
   let ShowAllScreens = require('./ShowAllScreens').default;
   topLevel = <ShowAllScreens />;
+} else if (window.location.search.slice(1) === 'bench') {
+  let Bench = require('./Bench').default;
+  topLevel = <Bench />;
 } else {
   let App = require('./App').default;
   topLevel = <App />;

@@ -34,13 +34,13 @@ export default function WSClient(path) {
     console.log('ws open', self.ws.readyState, self.queue);
     self.deflater = new pako.Deflate({to: 'string'});
     self.inflater = new pako.Inflate({to: 'string'});
-    self.stateChanged && self.stateChanged('open');
     for (var i=0; i<self.helloMsgs.length; i++) {
         _send(self.helloMsgs[i]);
     }
     while(self.queue.length) {
       _send(self.queue.shift());
     }
+    self.stateChanged && self.stateChanged('open');
   }
 
   function backoffReconnect() {
@@ -73,6 +73,7 @@ export default function WSClient(path) {
     } else {
         self.queue.push(msg);
     }
+    return msg;
   }
 
   self.isOpen = function() {
