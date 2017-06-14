@@ -715,8 +715,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             if promise is not None:
                 promise_slot = promise['slot']
+                promise_words = promise['words']
                 # Remove the first word of the promise from the pool, we'll get to it later.
-                promise_first_word = promise['words'][0]
+                promise_first_word = promise_words[0]
                 if promise_first_word in first_words:
                     first_word_ents.pop(first_words[promise_first_word])
             else:
@@ -727,21 +728,24 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         beam_width=num_intermediates,
                         length_after_first=length_after_first, **beam_search_kwargs)
                     for ent in first_word_ents]
-            if promise is not None and len(promise['words']) < 5:
+            if promise is not None and len(promise_words) < 5:
                 # Sneak an extra job into the queue...
                 promise_extension = True
                 # Promise provided, but we need to extend it with some new words.
-                remaining_length = max(1, length_after_first - len(' '.join(promise['words'])))
+                remaining_length = max(1, length_after_first - len(' '.join(promise_words)))
                 jobs.append(executor.submit(beam_search_phrases,
-                    model, toks + promise['words'], beam_width=num_intermediates,
+                    model, toks + promise_words, beam_width=num_intermediates,
                     length_after_first=remaining_length, **beam_search_kwargs))
             else:
                 promise_extension = False
             results = (yield jobs)
             if promise_extension:
-                # Deal with the results of our extra job.
-                extra_promise_words = results.pop()[0][1]
-                promise = {'slot': promise_slot, 'words': promise['words'] + extra_promise_words}
+                # The extra job computed a bunch of possible promise continuations. Hold them aside.
+                promise_extension_results = results.pop()
+                # Convert them into a format compatible with our beam search.
+                # Make the score positive, so we can know not to taboo this entry.
+                promise_beam = [(ent[0] + 500, promise_words + ent[1]) for ent in promise_extension_results]
+                results.append(promise_beam)
 
             # Now build final suggestions.
             is_new_word = len(cur_word) == 0
@@ -756,7 +760,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     llk = ent[0]
                     words = ent[1]
                     # Penalize a suggestion that has already been made exactly like this before.
-                    if is_new_word and ' '.join(words[:3]) in suggested_already_this_tok:
+                    if llk < 0 and is_new_word and ' '.join(words[:3]) in suggested_already_this_tok:
                         print("Taboo:", ' '.join(words))
                         llk -= 5000.
                     active_entities.append((llk, words, {}))
@@ -765,10 +769,13 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             for ender in sentence_enders[:2]:
                 active_entities.append((995, [ender], {'type': 'eos'}))
 
-            # Add the promise continuation also, also flagged special.
+            # Add the highest likelihood promise continuation also, also flagged special.
             if promise is not None:
                 llk = 999
-                words = promise['words']
+                if promise_extension:
+                    words = promise_beam[0][1]
+                else:
+                    words = promise_words
                 active_entities.append((llk, words, {'type': 'promise'}))
 
             # Pad the active entities with null suggestions.
@@ -822,10 +829,13 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             # Take 3 suggestions
             assignments = [None] * 3
             first_words_used = {}
+            if promise is not None:
+                first_words_used[promise['words'][0]] = promise_slot
             for slot_idx in range(3):
                 if slot_idx == promise_slot:
+                    # Assign the existing promise to this entry.
+                    # We may extend it later with one of the computed extensions.
                     assignments[slot_idx] = promise_entity_idx
-                    first_words_used[promise['words'][0]] = slot_idx
                     continue
                 while True:
                     llk, words, meta = active_entities[entity_idx]
@@ -845,7 +855,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
                 cur_summaries = np.array([sentiment_data[entity_idx] for entity_idx in assignments])
                 cur_objective = objective(cur_summaries)
-                # FIXME: should this be by-slot? Currently if one option is large and negative, anything goes.
                 min_logprob_allowed = min(active_entities[entity_idx][0] for entity_idx in assignments) + max_logprob_penalty
 
                 # Greedily replace suggestions so as to increase sentiment diversity.
@@ -869,9 +878,15 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         replaces_slot = first_words_used.get(words[0])
                         if replaces_slot is not None:
                             prev_llk = active_entities[assignments[replaces_slot]][0]
-                            if prev_llk >= 0:
+                            if replaces_slot == promise_slot:
+                                # This could replace the promise iff it was a continuation.
+                                if words[:len(promise_words)] == promise_words:
+                                    # print("Considering replacing promise", words)
+                                    pass
+                                else:
+                                    continue
+                            elif prev_llk >= 0:
                                 # Sorry, this was a special one, can't kick it out.
-                                # TODO: maybe we have a more diverse continuation for the promise?? check if it was a promise, and if so, what this starts with.
                                 continue
                             candidate_summaries = cur_summaries.copy()
                             candidate_summaries[replaces_slot] = cur_summary
@@ -911,8 +926,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
                 # Sort the slots by sentiment, but keeping the promise in its spot.
                 if promise is not None:
-                    assert assignments[promise_slot] == promise_entity_idx
-                    assignments.pop(promise_slot)
+                    assert active_entities[assignments[promise_slot]][1][:len(promise_words)] == promise_words
+                    promise_entity_idx = assignments.pop(promise_slot)
                 assignments.sort(key=lambda entity_idx: -sentiment_data[entity_idx])
                 if promise is not None:
                     assignments.insert(promise_slot, promise_entity_idx)
