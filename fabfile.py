@@ -3,8 +3,8 @@ from fabric.contrib.project import rsync_project
 
 env.use_ssh_config = True
 env.hosts = [
-    'iis-dev',
-#    'megacomplete-aws',
+    # 'iis-dev',
+   'megacomplete-aws',
 ]
 
 def deploy():
