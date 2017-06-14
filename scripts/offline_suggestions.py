@@ -195,7 +195,7 @@ for participant_id, requests in suggestion_data_raw.items():
             sofar=req['sofar'],
             phrases=phrases,))
 #%%
-pd.concat([sentiment_df, pd.DataFrame(req_meta)], axis=1).to_csv('all_sentiments.csv', index=False)
+pd.concat([sentiment_df, pd.DataFrame(req_meta)], axis=1).to_csv('all_sentiments-clf-order2.csv', index=False)
 
 #%%
 rs = np.random.RandomState(0)
@@ -217,7 +217,8 @@ for idx in samples:
             meta['p1'],
             meta['p2'],
             meta['p3'],))
-pd.DataFrame(to_rate, columns=['idx', 'context', 's1', 's2', 's3']).to_csv('to_rate_sentiment_suggs.csv', index=False)
+if False:
+    pd.DataFrame(to_rate, columns=['idx', 'context', 's1', 's2', 's3']).to_csv('to_rate_sentiment_suggs.csv', index=False)
 #%%
 rating_results = pd.read_csv('to_rate_sentiment_suggs.csv')
 #%%
@@ -274,7 +275,7 @@ for row in pivoted_ratings.itertuples():
             phrase=phrase,
             ))
 rating_match_df = pd.DataFrame(rating_match)
-rating_match_df.to_csv('rating_match.csv',index=False)
+rating_match_df.to_csv('rating_match-clf-order2.csv',index=False)
 #%%
 2**rating_match_df.kl_div.mean(), 2**rating_match_df.kl_div_null.mean()
 #%%
