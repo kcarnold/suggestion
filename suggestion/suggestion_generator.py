@@ -925,7 +925,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 if sentiment is not None:
                     meta['sentiment_summary'] = sentiment_data[entity_idx]
                 phrases.append((words, meta))
-                suggested_already_this_tok.add(' '.join(words[:3]))
+                if is_new_word:
+                    suggested_already_this_tok.add(' '.join(words[:3]))
 
         if is_bos:
             phrases = [(words, dict(meta, bos=True)) for words, meta in phrases]
