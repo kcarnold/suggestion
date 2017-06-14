@@ -606,7 +606,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     if sug_state is None:
         sug_state = {}
     if 'suggested_already' not in sug_state:
-        sug_state['suggested_already'] = set()
+        sug_state['suggested_already'] = {}
     suggested_already = sug_state['suggested_already']
 
     if word_bonuses is None and prewrite_info is not None:
@@ -746,12 +746,17 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             # Now build final suggestions.
             is_new_word = len(cur_word) == 0
             active_entities = []
+            final_tok = toks[-1]
+            if final_tok in suggested_already:
+                suggested_already_this_tok = suggested_already[final_tok]
+            else:
+                suggested_already_this_tok = suggested_already[final_tok] = set()
             for beam in results:
                 for ent in beam:
                     llk = ent[0]
                     words = ent[1]
                     # Penalize a suggestion that has already been made exactly like this before.
-                    if is_new_word and ' '.join(words[:3]) in suggested_already:
+                    if is_new_word and ' '.join(words[:3]) in suggested_already_this_tok:
                         print("Taboo:", ' '.join(words))
                         llk -= 5000.
                     active_entities.append((llk, words, {}))
@@ -920,7 +925,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 if sentiment is not None:
                     meta['sentiment_summary'] = sentiment_data[entity_idx]
                 phrases.append((words, meta))
-                suggested_already.add(' '.join(words[:3]))
+                suggested_already_this_tok.add(' '.join(words[:3]))
 
         if is_bos:
             phrases = [(words, dict(meta, bos=True)) for words, meta in phrases]
