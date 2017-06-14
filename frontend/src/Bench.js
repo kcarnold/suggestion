@@ -43,15 +43,18 @@ const Requester = (requests) => {
     if (msg.type === 'suggestions') {
       let idx = responses.length;
       if (msg.timestamp !== newRequestTimestamps[idx]) debugger;
+      let request = requests[idx];
       msg.timestamp = +new Date();
       responses.push(msg);
       stats.numInflight--;
       let rtt = msg.timestamp - newRequestTimestamps[idx];
-      console.log(rtt);
-      let sentType = requests[idx].sentiment;
+      let sentType = request.sentiment;
       if (!sentType) sentType = 'nosugg';
       else if (sentType !== 'diverse') sentType = 'match';
       stats[sentType].push(rtt);
+      let suggs = msg.next_word.map(s => (s.words || []).concat(s.continuation[0].words).join(' '));
+      console.log(request.cur_word.length, suggs.join('; '));
+      if (request.cur_word.length === 0 && suggs.filter(x=>x.length).length === 0) debugger
     }
   };
 
