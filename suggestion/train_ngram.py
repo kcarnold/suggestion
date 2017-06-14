@@ -60,6 +60,10 @@ if __name__ == '__main__':
                         help="model name")
     parser.add_argument('--split-stars', action='store_true',
         help="Also train models for each review star rating.")
+    parser.add_argument('--order', default=5,
+        help="ngram order for the main model")
+    parser.add_argument('--star-ngram-order', default=2,
+        help="n-gram order for the star models")
     parser.add_argument('--sufarr', action='store_true',
         help="Build a suffix array of all documents.")
     args = parser.parse_args()
@@ -77,14 +81,19 @@ if __name__ == '__main__':
             star_indices = np.flatnonzero(reviews.stars_review == stars)
             counts.append(len(star_indices))
             # star_indices = np.random.choice(star_indices, size=args.subsample_stars, replace=False)
-            dump_kenlm(f"{args.model_name}-{stars}star", (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(star_indices, desc=f"Writing {stars}-star")))
+            dump_kenlm(
+                f"{args.model_name}-{stars}star",
+                (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(star_indices, desc=f"Writing {stars}-star")),
+                order=args.star_ngram_order)
         json.dump(counts, open('models/star_counts.json', 'w'))
 
         bucket_size = min(counts)
-        dump_kenlm(f"{args.model_name}-balanced", (
-            ' '.join(tokenized_reviews[idx])
-            for stars in tqdm.trange(1, 6, desc="Writing balanced")
-            for idx in np.random.choice(np.flatnonzero(reviews.stars_review == stars), bucket_size, replace=False)))
+        dump_kenlm(
+            f"{args.model_name}-balanced",
+            (' '.join(tokenized_reviews[idx])
+             for stars in tqdm.trange(1, 6, desc="Writing balanced")
+             for idx in np.random.choice(np.flatnonzero(reviews.stars_review == stars), bucket_size, replace=False)),
+            order=args.order)
 
     print("Saving reviews")
     with open('models/tokenized_reviews.pkl', 'wb') as f:
