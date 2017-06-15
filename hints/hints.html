@@ -1,0 +1,27 @@
+<script src="jquery-3.2.1.js"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js"></script>
+<link rel="stylesheet" href="hints.css">
+<body>
+<p>Write a review of Chipotle.</p>
+<p>Try to cover as many aspects of the experience as you can.</p>
+
+<div class="expzone">
+    <div class="textentry">
+        Your writing (<span id="wordcount">0</span> of 100 words)<br>
+        <textarea name="writing"></textarea>
+    </div>
+    <div class="suggs">
+        Hints (click to insert)<br>
+        <select size="10"></select>
+    </div>
+    <div class="examples-outer">
+        Examples<br>
+        <div class="examples"></div>
+    </div>
+</div>
+
+<input type="hidden" name="condition">
+<input type="hidden" name="log">
+
+<script src="hints.js"></script>
+</body>

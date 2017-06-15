@@ -1,0 +1,59 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.expzone {
+    display: flex;
+    flex-flow: row nowrap;
+    width: 600px;
+    height: 300px;
+}
+
+.textentry {
+    flex: 1 0 auto;
+    padding: 5px;
+}
+
+.textentry textarea {
+    height: 100%;
+    width: 100%;
+    padding: 5px;
+}
+
+.suggs select {
+    width: 100%;
+    height: 100%;
+}
+
+.suggs {
+    flex: 1 0 auto;
+    padding: 5px;
+}
+
+.cond-examples .suggs {
+  display: none;
+}
+
+.cond-suggs .examples-outer {
+  display: none;
+}
+
+
+.examples {
+    overflow: scroll;
+    height: 100%;
+    border: 1px solid black;
+}
+
+.examples-outer {
+    height: 100%;
+}
+
+.example {
+    white-space: pre-line;
+    border-bottom: 1px solid black;
+    padding: 5px;
+}
