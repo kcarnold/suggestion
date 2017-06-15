@@ -10,7 +10,7 @@ import numpy as np
 import datetime
 import itertools
 
-batch_code = 'sent3_01'
+batch_code = 'sent3_2'
 
 #%%
 if '__file__' in globals():
@@ -76,6 +76,7 @@ def get_existing_requests(logfile):
             responses.append(dict(entry['msg'].copy(), responseTimestamp=entry['jsTimestamp']))
     assert len(requests) == len(responses)
     suggestions = []
+    prev_request_ts = None
     for request, response in zip(requests, responses):
         phrases = response['next_word']
         phrases = [' '.join(phrase['one_word']['words'] + phrase['continuation'][0]['words']) for phrase in phrases]
@@ -95,11 +96,13 @@ def get_existing_requests(logfile):
             **request,
             ctx=ctx,
             p1=p1, p2=p2, p3=p3,
-            server_dur=response['dur'],
+            server_dur=response['dur'] * 1000,
             latency=latency,
+            time_since_prev=request_ts - prev_request_ts if prev_request_ts is not None else None,
             sentiment_method=sentiment,
             timestamp=request_ts)
         suggestions.append(entry)
+        prev_request_ts = request_ts
     return suggestions
 suggestion_data_raw = {participant: get_existing_requests(root_path / 'logs' / f'{participant}.jsonl') for participant in participants}
 suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0)
