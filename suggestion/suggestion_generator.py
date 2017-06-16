@@ -19,6 +19,10 @@ from . import suffix_array, clustering, manual_bos
 
 LOG10 = np.log(10)
 
+
+SHOW_SENTIMENT_OPTIONS = False
+
+
 '''
 tweeterinchief
 '''
@@ -816,12 +820,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 for entity_idx, posterior in zip(classify_jobs_meta, itertools.chain.from_iterable(classify_jobs_results)):
                     sentiment_data[entity_idx] = summarize_posterior(posterior)
 
-                if False:
-                    for i in np.argsort(sentiment_data):
-                        llk, words, meta = active_entities[i]
-                        print(f'{sentiment_data[i]:.2f}', ' '.join(words))
-
-
             entity_idx = 0
             promise_entity_idx = 0
             if promise is not None:
@@ -860,6 +858,15 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 cur_summaries = np.array([sentiment_data[entity_idx] for entity_idx in assignments])
                 cur_objective = objective(cur_summaries)
                 min_logprob_allowed = min(active_entities[entity_idx][0] for entity_idx in assignments) + max_logprob_penalty
+
+
+                if SHOW_SENTIMENT_OPTIONS:
+                    for i in np.argsort(sentiment_data):
+                        llk, words, meta = active_entities[i]
+                        if llk < min_logprob_allowed:
+                            continue
+                        print(f'{sentiment_data[i]:.2f} {llk:.2f}', ' '.join(words))
+
 
                 # Greedily replace suggestions so as to increase sentiment diversity.
                 while True:
