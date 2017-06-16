@@ -246,6 +246,10 @@ const MASTER_CONFIGS = {
     baseConditions: ['sentdiverse', 'sentmatch', 'nosugg'],
     instructions: 'sentiment'
   },
+  polarized: {
+    baseConditions: ['sentpos', 'sentneg', 'word'],
+    instructions: 'review',
+  },
 };
 
 
