@@ -23,10 +23,6 @@ LOG10 = np.log(10)
 SHOW_SENTIMENT_OPTIONS = False
 
 
-'''
-tweeterinchief
-'''
-
 PRELOAD_MODELS = '''
 yelp_train-balanced
 yelp_train-1star
