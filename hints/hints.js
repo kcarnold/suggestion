@@ -2,13 +2,21 @@ var hintsData = JSON.parse('[["START", ["I can\'t believe I haven\'t", "I really
 
 var examplesData = JSON.parse('["Champaign Chipotle sucks. \\n\\nHonestly, I love Chipotle. I\'ve had it in numerous places, always enjoyed a big juicy burrito, but this one... The worst of the worst. My burrito was half-sized, and most of the ingredients were overhelmed by rice and beans. Barbacoa was tough and dry... Rice was dry too, Corn was pale and weird. Pretty much all of the ingredients tasted different!\\n\\nNever again.", "I used to LOVE Chipotle.  But then they stopped carrying my favorite Nantucket Nectars flavor.  After that, they decreased the portion size of an order of crispy tacos from 4 tacos to 3.\\n\\nOn my last visit, I felt like they gave me even less carnitas on my 3 crispy tacos than I had before.  I\'m sad and I miss the way Chipotle used to be.  If you\'re looking to get full, tacos are not a good choice.  Try the burrito because it comes with lots of rice and beans as fillers.\\n\\nOn a positive note, do drop your business card in the bowl for the weekly drawing.  I won a couple of years ago and everyone in my office got to eat Chipotle for free for lunch.", "What can I say that would be original? It is a chain burrito joint, but NOT owned my McD\'s as some might tell you. It\'s clean, friendly, often built near schools.\\n\\nI\'ve been here probably a 1000 times since they\'ve opened... free burritos on halloween for dressing up in foil is a tradition with my wife and our friends.\\n\\nMy present burrito is: Burrito w/ light rice, beans & fajita veggies, chicken, mild & corn & medium salsa, guac, lettuce. I like the cheese, but I\'m lactose intolerant. \\n\\nBTW, Students get free fountain drinks!\\n\\nOne time i saw one of the managers wearing a Chipotle shirt I thought was cool, so I asked if I could buy one. She said \\"Sure\\" and sold it to me. They actually rang me up, it was $10, and she charged me a chips & guac for a profit. For about $12.50 I got a nice long-sleeve t-shirt. If I wear it into other chipotles, the employees think I\'m a manager at another store and get nervous, which is hilarious but I try not to do it too often.\\n\\nCome on, it\'s cheap, fun, music\'s good, food\'s fresh and great, and the company has an Awesome attitude about their product. Just go already", "Your standard (amazing) Chipotle menu. The place itself is really clean and spacious. I always manage to find a table for myself. It\'s a perfect place to grab a quick bite after the movies. I recommend parking a little bit further (e.g. near the apartments or closer to Ralph\'s because the area directly in front of Chipotle is a death zone due to spontaneously appearing pedestrians and idiotic drivers.", "What can you say, it\'s a Chipotle and barring some sort of horrible gaffe by the staff, they\'re generally all the same. I find Chipotle to be the best of the \\"big burrito\\" style joints and drastically better than local fave Anna\'s, so I\'m pretty stoked to have this location (and the forthcoming one in Central Square) up and running.\\n\\nI thought the staff was stellar. They were incredibly friendly and speedy when I went in and they were answering all of the questions that the multitudes of Chipotle-newbies had for \'em.\\n\\nThe food was good, although I did humble the staff a bit as they had three different staff members attempt to wrap my burrito before giving up and busting out a second tortilla to keep it all packed inside.\\n\\nIf I had to make a complaint (and to be objective, I suppose I do) they could definitely use some more seating. It\'s a small location, but I think they could have set it up vastly different to maximize seating capacity.\\n\\nAs always, my second complaint would be that it\'s a $10 burrito and a drink runs you up to $12 pretty fast. It\'s generally worth every penny, but it\'s certainly not a \\"cheap\\" lunch option. \\n\\nUndoubtedly, they\'ll get plenty of my business in the future.", "I have to say, that even though they have good burritos, I\'m not a Chipotle fan (I\'m a Qdoba die hard)... \\n\\nNO nachos on the menu??  NO taco salad??  And I\'ve pretty much had a lousy experience with the line staff there every time... one time the guy was mumbling so badly I couldn\'t understand a damn thing he was asking me....  and you can tell the line workers REALLY HATE their job.  It\'s fine if you don\'t like your job, but do you have to radiate it so much while working and push it upon me when all I want is some nachos, which oh, by the way, you don\'t have?? \\n\\nIt\'s sort of like that episode of Seinfeld when the group goes to a different coffee shop for lunch, and Elaine wants a big salad, and the waitress looks at her like she\'s crazy... I mean, you have all the ingredients, just throw it all together in a bowl for me already, will ya?\\n\\nand why do they have to charge so much extra for a spoonful of guacamole on the burrito?!?!  I don\'t get it. \\n\\nI avoid chipotle now like the plague.", "looks great\\nhas beer\\nfast order process\\nsometimes crowded\\nkid friendly\\ngreat food\\n\\nthat\'s the summary\\n\\nchips are really nice and not uber oily. just dry. gives the illusion that they aren\'t that bad for you...which is pretty much everything in this place given the monster portion sizes\\n\\nall that said, it tastes great, is a cheap meal and as far as fast food goes, it\'s incredible and actual sidesteps the genre. i can\'t pick a better place to eat on the go\\n\\nmonster portion sizes...", "I always get dragged here....I did try it a couple of times, but once I had dinner with a friend and there was A FLY IN HER BURRITO. \\nThat\'s just gross. And this is coming from a girl who will gladly eat cheese off the floor. \\n\\nThe guys are nice, I guess, but no, I don\'t want flies with that.", "This Chipotle gets four stars for keeping me coming back for more. Where else can you wait in a place with a line 30 deep, and have your (large, advertised-as-sustainably-grown) meal in your hands 5-10 minutes later? The guys and gals in this place work hard and fast, and keep the floor and tables clean!I enjoy the patio dining.", "I\'m sure you\'ve tried Chipotle before, so the taste is always pretty standard. Before you read on, you should know i LOVE Chipotle and avoid walking down Telegraph to go home because I know I\'d be tempted soon as I see their logo. (Steak Burrito Bol w/ tortilla on the side: extra rice, no beans, corn, mild salsa, small bit of sour cream, cheese, lots of lettuce = amazing!) \\n\\nPortions: During the student rush, they sometimes skimp when they add all that noms chicken/steak/corn/rice. But the servers are always really friendly and will oblige if you ask for extra rice or lettuce, etc. \\n\\nOne thing you HAVE to try if you haven\'t already: SMOKED Chipotle sauce! I\'m not the biggest fan of spicy, but this makes the burrito so so tasty. If you don\'t see one lying around (*ahem to the people who steal them), ask the cashier and they always bring out a new one for you. \\n\\nThere aren\'t too many tables to sit and eat your food, so I usually take my food to go."]')
 
-var condition = 'selected';
+var condition = _.sample(['examples', 'full', 'selected']);
 var showSuggs = condition !== 'examples';
 $('.expzone').addClass('cond-'+(showSuggs ? 'suggs' : 'examples'));
 
+var writingTA = document.querySelector('[name=writing]');
 $('[name=condition]').val(condition);
 
+var logEntries = [];
+function log(evt) {
+    logEntries.push(evt);
+    $('[name=log]').val(JSON.stringify(logEntries));
+}
+
 function showHints(hints) {
+    log({type: 'showHints', hints: hints});
     var box = document.querySelector('.suggs select');
     box.innerHTML = hints.map(x => "<option>"+x+"</option>").join('');
 }
@@ -17,9 +25,10 @@ var prevNumFinishedSents = null;
 
 $('.suggs select').on('change', function(evt) {
     evt.preventDefault();
-    document.querySelector('textarea').value += evt.target.value + ' ';
+    log({type: 'clickHint', hint: evt.target.value});
+    writingTA.value += evt.target.value + ' ';
     evt.target.value = '';
-    $('textarea').focus();
+    $(writingTA).focus();
     textUpdated();
     return false;
 });
@@ -30,7 +39,7 @@ function countWords(str) {
 }
 
 function textUpdated() {
-    var curText =$('textarea').val();
+    var curText = writingTA.value;
     $('#wordcount').text(countWords(curText));
     var numFinishedSents = (curText.replace(/\.{3,}/, ' _ELLIPS_ ').match(/[\.\?\!]+/g) || []).length;
     if (numFinishedSents !== prevNumFinishedSents) {
@@ -42,7 +51,7 @@ function textUpdated() {
     prevNumFinishedSents = numFinishedSents;
 }
 
-$('textarea').on('input', function(evt) {
+$(writingTA).on('input', function(evt) {
     textUpdated();
 });
 

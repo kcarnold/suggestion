@@ -8,17 +8,19 @@ html {
 .expzone {
     display: flex;
     flex-flow: row nowrap;
-    width: 600px;
+    width: 700px;
     height: 300px;
+    align-items: stretch;
 }
 
 .textentry {
-    flex: 1 0 auto;
+    flex: 0 0 300px;
     padding: 5px;
+    display: flex;
 }
 
 .textentry textarea {
-    height: 100%;
+    flex: 1 0 auto;
     width: 100%;
     padding: 5px;
 }
@@ -31,29 +33,40 @@ html {
 .suggs {
     flex: 1 0 auto;
     padding: 5px;
+    display: none;
 }
 
-.cond-examples .suggs {
-  display: none;
+.cond-examples .examples-outer {
+  display: flex;
 }
 
-.cond-suggs .examples-outer {
-  display: none;
+.cond-suggs .suggs {
+  display: flex;
 }
 
 
 .examples {
-    overflow: scroll;
+    overflow-y: scroll;
     height: 100%;
     border: 1px solid black;
 }
 
 .examples-outer {
-    height: 100%;
+  padding: 5px;
+  display: none;
 }
 
 .example {
     white-space: pre-line;
     border-bottom: 1px solid black;
     padding: 5px;
+}
+
+
+.sec p {
+    margin: 0;
+}
+
+.sec {
+    flex-flow: column nowrap;
 }
