@@ -10,7 +10,7 @@ import numpy as np
 import datetime
 import itertools
 
-batch_code = 'sent3_012'
+batch_code = 'sent3_2'
 
 #%%
 if '__file__' in globals():
