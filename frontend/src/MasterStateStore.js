@@ -172,6 +172,26 @@ const namedConditions = {
     showSuggsAtBos: true,
     sentiment: 'diverse',
   },
+  sentpos: {
+    sugFlags: {
+      useSufarr: false,
+      continuation_length: 17,
+      use_bos_suggs: false,
+    },
+    showPhrase: true,
+    showSuggsAtBos: true,
+    sentiment: 'pos',
+  },
+  sentneg: {
+    sugFlags: {
+      useSufarr: false,
+      continuation_length: 17,
+      use_bos_suggs: false,
+    },
+    showPhrase: true,
+    showSuggsAtBos: true,
+    sentiment: 'neg',
+  },
   sentmatch: {
     sugFlags: {
       useSufarr: false,

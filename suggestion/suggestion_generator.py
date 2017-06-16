@@ -19,9 +19,9 @@ from . import suffix_array, clustering, manual_bos
 
 LOG10 = np.log(10)
 
-'''
-tweeterinchief
-'''
+
+SHOW_SENTIMENT_OPTIONS = False
+
 
 PRELOAD_MODELS = '''
 yelp_train-balanced
@@ -793,6 +793,10 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     objective = scalar_diversity
                 else:
                     # Try to maximize the likelihood of the desired sentiment
+                    if sentiment == 'pos':
+                        sentiment = 5
+                    elif sentiment == 'neg':
+                        sentiment = 1
                     target_sentiment = sentiment - 1
                     assert 0 <= target_sentiment < 5
                     def summarize_posterior(sent_posteriors):
@@ -811,12 +815,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 sentiment_data = [.5] * len(active_entities)
                 for entity_idx, posterior in zip(classify_jobs_meta, itertools.chain.from_iterable(classify_jobs_results)):
                     sentiment_data[entity_idx] = summarize_posterior(posterior)
-
-                if False:
-                    for i in np.argsort(sentiment_data):
-                        llk, words, meta = active_entities[i]
-                        print(f'{sentiment_data[i]:.2f}', ' '.join(words))
-
 
             entity_idx = 0
             promise_entity_idx = 0
@@ -857,6 +855,15 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 cur_objective = objective(cur_summaries)
                 min_logprob_allowed = min(active_entities[entity_idx][0] for entity_idx in assignments) + max_logprob_penalty
 
+
+                if SHOW_SENTIMENT_OPTIONS:
+                    for i in np.argsort(sentiment_data):
+                        llk, words, meta = active_entities[i]
+                        if llk < min_logprob_allowed:
+                            continue
+                        print(f'{sentiment_data[i]:.2f} {llk:.2f}', ' '.join(words))
+
+
                 # Greedily replace suggestions so as to increase sentiment diversity.
                 while True:
                     for entity_idx in assignments:
@@ -893,7 +900,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                             new_objective = objective(candidate_summaries)
                         else:
                             # Case 2: it replaces the currently least-diverse word.
-                            new_objectives = np.zeros(3)
+                            new_objectives = np.full(3, -np.inf)
                             for replaces_slot in range(3):
                                 prev_llk = active_entities[assignments[replaces_slot]][0]
                                 if prev_llk >= 0:
