@@ -180,7 +180,7 @@ const namedConditions = {
     },
     showPhrase: true,
     showSuggsAtBos: true,
-    sentiment: 'pos',
+    sentiment: 5,
   },
   sentneg: {
     sugFlags: {
@@ -190,7 +190,7 @@ const namedConditions = {
     },
     showPhrase: true,
     showSuggsAtBos: true,
-    sentiment: 'neg',
+    sentiment: 1,
   },
   sentmatch: {
     sugFlags: {

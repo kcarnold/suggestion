@@ -91,6 +91,8 @@ if enable_bos_suggs:
     print("Done.", file=sys.stderr)
 
 
+sentiment_starters_by_stars_and_sentnum = json.load(open(paths.models / 'yelp_sentiment_starters.json'))
+
 import numba
 @numba.jit
 def _next_elt_le(arr, criterion, start, end):
@@ -728,7 +730,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         beam_width=num_intermediates,
                         length_after_first=length_after_first, **beam_search_kwargs)
                     for ent in first_word_ents]
-            if promise is not None and len(promise_words) < 5:
+            if promise is not None and len(promise_words) < 5 and not any(x in promise_words for x in '.?!'):
                 # Sneak an extra job into the queue...
                 promise_extension = True
                 # Promise provided, but we need to extend it with some new words.
@@ -778,6 +780,29 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     words = promise_words
                 active_entities.append((llk, words, {'type': 'promise'}))
 
+            # If we're at the beginning of a sentence, add the special sentiment sentence starters.
+            if sentiment is not None and toks[-1] in ["<D>", "<S>"]:
+                sent_idx = sum(1 for tok in toks if tok == '</S>')
+                if sentiment == 'diverse':
+                    sent_targets = [0, 2, 4]
+                else:
+                    sent_targets = [sentiment - 1] * 3
+                this_time_taboo = set()
+                for tgt_sentiment in sent_targets:
+                    sent_bos_options = sentiment_starters_by_stars_and_sentnum[tgt_sentiment][min(sent_idx, 2)]
+                    for bos_option in sent_bos_options:
+                        toks = bos_option.split()
+                        first_3_words = ' '.join(toks[:3])
+                        if first_3_words in this_time_taboo:
+                            continue
+                        if first_3_words in suggested_already_this_tok:
+                            print("bos taboo:", bos_option)
+                            continue
+                        active_entities.append((100, toks, {'type': 'sentiment_bos', 'sentiment': tgt_sentiment / 4}))
+                        this_time_taboo.add(first_3_words)
+                        break
+
+
             # Pad the active entities with null suggestions.
             for i in range(3):
                 active_entities.append((-9999, [''], {'type': 'null'}))
@@ -793,10 +818,6 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     objective = scalar_diversity
                 else:
                     # Try to maximize the likelihood of the desired sentiment
-                    if sentiment == 'pos':
-                        sentiment = 5
-                    elif sentiment == 'neg':
-                        sentiment = 1
                     target_sentiment = sentiment - 1
                     assert 0 <= target_sentiment < 5
                     def summarize_posterior(sent_posteriors):
@@ -807,12 +828,12 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 classify_jobs = []
                 classify_jobs_meta = []
                 for entity_idx, (llk, words, meta) in enumerate(active_entities):
-                    if meta.get('type') == 'eos':
+                    if meta.get('type') == 'eos' or 'sentiment' in meta:
                         continue
                     classify_jobs.append(words)
                     classify_jobs_meta.append(entity_idx)
                 classify_jobs_results = (yield map_as_jobs(executor, partial(sentiment_classifier.classify_seq_by_tok, clf_startstate), classify_jobs, chunksize=32))
-                sentiment_data = [.5] * len(active_entities)
+                sentiment_data = [ent[2].get('sentiment', .5) for ent in active_entities]
                 for entity_idx, posterior in zip(classify_jobs_meta, itertools.chain.from_iterable(classify_jobs_results)):
                     sentiment_data[entity_idx] = summarize_posterior(posterior)
 
