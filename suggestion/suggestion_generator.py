@@ -893,7 +893,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                             new_objective = objective(candidate_summaries)
                         else:
                             # Case 2: it replaces the currently least-diverse word.
-                            new_objectives = np.zeros(3)
+                            new_objectives = np.full(3, -np.inf)
                             for replaces_slot in range(3):
                                 prev_llk = active_entities[assignments[replaces_slot]][0]
                                 if prev_llk >= 0:
