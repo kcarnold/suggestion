@@ -791,6 +791,12 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     def summarize_posterior(sent_posteriors):
                         return np.mean(sent_posteriors, axis=0) @ sentiment_classifier.sentiment_weights
                     objective = scalar_diversity
+                elif sentiment in ['pos', 'neg']:
+                    negate_sentiment = -1. if sentiment == 'neg' else 1.
+                    def summarize_posterior(sent_posteriors):
+                        return np.mean(sent_posteriors, axis=0) @ sentiment_classifier.sentiment_weights
+                    def objective(slots):
+                        return negate_sentiment * np.sum(slots)
                 else:
                     # Try to maximize the likelihood of the desired sentiment
                     target_sentiment = sentiment - 1
