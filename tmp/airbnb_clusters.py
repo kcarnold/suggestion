@@ -115,7 +115,7 @@ probs = clf.predict_proba(X)
 show_cluster(1)
 #%%
 import contextlib
-with open('airbnb_starts.txt', 'w') as f, contextlib.redirect_stdout(f):
+with open('airbnb_clusters.txt', 'w') as f, contextlib.redirect_stdout(f):
     for class_idx, cluster_idx in enumerate(clf.classes_):
         print(cluster_idx)
 #        show_cluster(cluster_idx)
@@ -152,3 +152,9 @@ with open('airbnb_starts.txt', 'w') as f, contextlib.redirect_stdout(f):
         print()
         print()
         cluster_data.append(datum)
+#%%
+import json
+json.dump(cluster_data, open('airbnb_cluster_data.json','w'))
+#%%
+airbnb_examples = np.random.RandomState(0).choice(listings.space, 10, replace=False).tolist()
+json.dump(airbnb_examples, open('airbnb_examples.json', 'w'))
