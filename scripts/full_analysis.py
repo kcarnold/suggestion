@@ -10,7 +10,7 @@ import numpy as np
 import datetime
 import itertools
 
-batch_code = 'sent3_2'
+batch_code = 'polarized_0'
 
 #%%
 if '__file__' in globals():
@@ -72,9 +72,30 @@ def get_existing_requests(logfile):
         entry = json.loads(line)
         if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions':
             requests.append(entry['request'].copy())
+            # print(f"Request {requests[-1]['request_id']}")
+            if len(requests) > 1 and requests[-1]['request_id'] == requests[-2]['request_id']:
+                print("Duplicate request, keeping newer.")
+                newer_timestamp = max(ent['timestamp'] for ent in requests[-2:])
+                requests[-2:] = [ent for ent in requests[-2:] if ent['timestamp'] == newer_timestamp]
+
         if entry['type'] == 'receivedSuggestions':
-            responses.append(dict(entry['msg'].copy(), responseTimestamp=entry['jsTimestamp']))
-    assert len(requests) == len(responses)
+            msg = entry['msg'].copy()
+            responses.append(dict(msg, responseTimestamp=entry['jsTimestamp']))
+            # print(f"Response {msg['request_id']}")
+            if len(responses) > 1 and msg['request_id'] == responses[-2]['request_id']:
+                print("Dropping the older of duplicate responses.")
+                # Keep the pair with the newer timestamp.
+                newer_timestamp = max(ent['timestamp'] for ent in responses[-2:])
+                responses[-2:] = [ent for ent in responses[-2:] if ent['timestamp'] == newer_timestamp]
+            corresponding_request_seq = len(responses) - 1
+            if msg['request_id'] != requests[corresponding_request_seq]['request_id']:
+                print(f"Warning, mismatched request {msg['request_id']} vs {requests[corresponding_request_seq]['request_id']} at {len(requests)} {len(responses)}")
+                assert False
+                # Ok, what happened? Perhaps the JS client sent a duplicate request, and (somehow?) only one of them got a response.
+                # If that's the case, the previous request was a duplicate.
+                if requests[corresponding_request_seq]['request_id'] == requests[corresponding_request_seq - 1]['request_id']:
+                    requests.pop(corresponding_request_seq)
+    assert len(requests) == len(responses), f"Invalid logfile? {logfile}, {len(requests)} {len(responses)}"
     suggestions = []
     prev_request_ts = None
     for request, response in zip(requests, responses):
