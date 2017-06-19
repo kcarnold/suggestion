@@ -21,7 +21,8 @@ else:
 
 def get_survey_seq(batch_code):
     seq = [('intro', 0)]
-    if batch_code.startswith('sent3'):
+    batch_code_basename = batch_code.split('_', 1)[0]
+    if batch_code_basename in ['sent3', 'polarized']:
         for i in range(3):
             seq.append(('postTask3', i))
         seq.append(('postExp3', 0))
