@@ -250,6 +250,10 @@ const MASTER_CONFIGS = {
     baseConditions: ['sentpos', 'sentneg', 'word'],
     instructions: 'review',
   },
+  sent32: {
+    baseConditions: ['sentdiverse', 'sentmatch', 'word'],
+    instructions: 'review',
+  },
 };
 
 
