@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import M from 'mobx';
-import moment from 'moment';
-import {observer, Provider} from 'mobx-react';
+import {observer} from 'mobx-react';
 import WSClient from './wsclient';
-import {MasterStateStore} from './MasterStateStore';
-import {MasterView} from './MasterView';
 
 
 class Stats {
@@ -78,8 +75,8 @@ const Requester = (requests) => {
 
     if (idx < requests.length - 1) {
       // Schedule another.
-      let nextTs = requests[idx + 1].timestamp;
-      let curTs = requests[idx].timestamp;
+      // let nextTs = requests[idx + 1].timestamp;
+      // let curTs = requests[idx].timestamp;
       // let diff = Math.min(1000, nextTs - curTs);
       let diff = 5000 * (stats.numInflight - 1) * Math.random();
       curTimeout = setTimeout(sendNext, diff);
