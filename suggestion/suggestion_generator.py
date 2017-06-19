@@ -781,7 +781,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 active_entities.append((llk, words, {'type': 'promise'}))
 
             # If we're at the beginning of a sentence, add the special sentiment sentence starters.
-            if sentiment is not None and toks[-1] in ["<D>", "<S>"]:
+            if sentiment is not None and len(cur_word) == 0 and toks[-1] in ["<D>", "<S>"]:
                 sent_idx = sum(1 for tok in toks if tok == '</S>')
                 if sentiment == 'diverse':
                     sent_targets = [0, 2, 4]
