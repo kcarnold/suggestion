@@ -1023,3 +1023,13 @@ def request_to_kwargs(request):
         promise=request.get('promise'),
         sentiment=request.get('sentiment'),
         word_bonuses=None)
+
+
+def do_request_raw(request):
+    return get_suggestions(
+        sofar=request['sofar'], cur_word=request['cur_word'],
+        **request_to_kwargs(request))
+
+
+def do_request_raw_json(request_json):
+    return do_request_raw(json.loads(request_json))
