@@ -7,6 +7,7 @@ import numpy as np
 import nltk
 import cytoolz
 import joblib
+import random
 from scipy.misc import logsumexp
 import itertools
 from functools import partial
@@ -784,13 +785,17 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             if sentiment is not None and len(cur_word) == 0 and toks[-1] in ["<D>", "<S>"]:
                 sent_idx = sum(1 for tok in toks if tok == '</S>')
                 if sentiment == 'diverse':
-                    sent_targets = [0, 2, 4]
+                    sent_targets = [[0, 1], [2], [3, 4]]
                 else:
-                    sent_targets = [sentiment - 1] * 3
+                    sent_targets = [[sentiment - 1]] * 3
                 this_time_taboo = set()
-                for tgt_sentiment in sent_targets:
-                    sent_bos_options = sentiment_starters_by_stars_and_sentnum[tgt_sentiment][min(sent_idx, 2)]
-                    for bos_option in sent_bos_options:
+                for tgt_sentiments in sent_targets:
+                    sent_bos_options = [
+                        (tgt_sentiment, bos_option)
+                        for tgt_sentiment in tgt_sentiments
+                        for bos_option in sentiment_starters_by_stars_and_sentnum[tgt_sentiment][min(sent_idx, 2)]]
+                    random.shuffle(sent_bos_options)
+                    for tgt_sentiment, bos_option in sent_bos_options:
                         toks = bos_option.split()
                         first_3_words = ' '.join(toks[:3])
                         if first_3_words in this_time_taboo:
