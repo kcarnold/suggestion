@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-06-12T15:33:14Z",
-  "lastModifiedDate": "2017-06-12T15:37:11Z",
+  "lastModifiedDate": "2017-06-20T14:27:30Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -177,61 +177,6 @@
         }
       }
     },
-    "QID6": {
-      "questionType": {
-        "type": "MC",
-        "selector": "SAHR",
-        "subSelector": "TX"
-      },
-      "questionText": "How detailed is the review you just wrote? (it's perfectly fine if it wasn't)",
-      "questionLabel": null,
-      "validation": {
-        "doesForceResponse": true
-      },
-      "questionName": "Q6",
-      "choices": {
-        "25": {
-          "recode": "25",
-          "description": "Extremely detailed",
-          "choiceText": "Extremely detailed",
-          "imageDescription": null,
-          "variableName": null,
-          "analyze": true
-        },
-        "26": {
-          "recode": "26",
-          "description": "Very detailed",
-          "choiceText": "Very detailed",
-          "imageDescription": null,
-          "variableName": null,
-          "analyze": true
-        },
-        "27": {
-          "recode": "27",
-          "description": "Moderately detailed",
-          "choiceText": "Moderately detailed",
-          "imageDescription": null,
-          "variableName": null,
-          "analyze": true
-        },
-        "28": {
-          "recode": "28",
-          "description": "Slightly detailed",
-          "choiceText": "Slightly detailed",
-          "imageDescription": null,
-          "variableName": null,
-          "analyze": true
-        },
-        "29": {
-          "recode": "29",
-          "description": "Not detailed at all",
-          "choiceText": "Not detailed at all",
-          "imageDescription": null,
-          "variableName": null,
-          "analyze": true
-        }
-      }
-    },
     "QID14": {
       "questionType": {
         "type": "Slider",
@@ -372,12 +317,150 @@
         "selector": "ML",
         "subSelector": null
       },
-      "questionText": "How would you describe the process you used when writing?",
+      "questionText": "How would you describe your thought process while writing?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
       },
       "questionName": "Q10"
+    },
+    "QID11": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe the words or phrases that the keyboard gave -- what they were and how you used them (or didn't use them)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q11"
+    },
+    "QID3": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "How much do you agree with the following statements about the words or phrases that the keyboard gave?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q3",
+      "subQuestions": {
+        "2": {
+          "recode": "2",
+          "description": "They were interesting",
+          "choiceText": "They were interesting",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "3": {
+          "recode": "3",
+          "description": "They were relevant",
+          "choiceText": "They were relevant",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "4": {
+          "recode": "4",
+          "description": "They were distracting",
+          "choiceText": "They were distracting",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "5": {
+          "recode": "5",
+          "description": "They were helpful",
+          "choiceText": "They were helpful",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "6": {
+          "recode": "6",
+          "description": "They made me say something I didn't want to say.",
+          "choiceText": "They made me say something I didn't want to say.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "7": {
+          "recode": "7",
+          "description": "They felt pushy.",
+          "choiceText": "They felt pushy.",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "They helped me write about an aspect I wouldn't have otherwise",
+          "choiceText": "They helped me write about an aspect I wouldn't have otherwise",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "9": {
+          "recode": "9",
+          "description": "They were timely.",
+          "choiceText": "They were timely.",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "12": {
+          "recode": "12",
+          "description": "Strongly agree",
+          "choiceText": "Strongly agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "13": {
+          "recode": "13",
+          "description": "Agree",
+          "choiceText": "Agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "14": {
+          "recode": "14",
+          "description": "Somewhat agree",
+          "choiceText": "Somewhat agree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "15": {
+          "recode": "15",
+          "description": "Neither agree nor disagree",
+          "choiceText": "Neither agree nor disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "16": {
+          "recode": "16",
+          "description": "Somewhat disagree",
+          "choiceText": "Somewhat disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "17": {
+          "recode": "17",
+          "description": "Disagree",
+          "choiceText": "Disagree",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "18": {
+          "recode": "18",
+          "description": "Strongly disagree",
+          "choiceText": "Strongly disagree",
+          "imageDescription": null,
+          "analyze": true
+        }
+      },
+      "randomization": {
+        "type": "all"
+      }
     },
     "QID22": {
       "questionType": {
@@ -561,9 +644,6 @@
     "Q4": {
       "question": "QID4"
     },
-    "Q6": {
-      "question": "QID6"
-    },
     "Q14_1": {
       "question": "QID14",
       "choice": "QID14.choices.1"
@@ -594,6 +674,41 @@
     },
     "Q10": {
       "question": "QID10"
+    },
+    "Q11": {
+      "question": "QID11"
+    },
+    "Q3_2": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.2"
+    },
+    "Q3_3": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.3"
+    },
+    "Q3_4": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.4"
+    },
+    "Q3_5": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.5"
+    },
+    "Q3_6": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.6"
+    },
+    "Q3_7": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.7"
+    },
+    "Q3_8": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.8"
+    },
+    "Q3_9": {
+      "question": "QID3",
+      "subQuestion": "QID3.subQuestions.9"
     },
     "Q22_10": {
       "question": "QID22",
@@ -639,10 +754,6 @@
         },
         {
           "type": "Question",
-          "questionId": "QID6"
-        },
-        {
-          "type": "Question",
           "questionId": "QID14"
         },
         {
@@ -652,6 +763,14 @@
         {
           "type": "Question",
           "questionId": "QID10"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID11"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID3"
         },
         {
           "type": "Question",
