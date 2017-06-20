@@ -245,6 +245,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
+    <p>The keyboard may show words or phrases. They may or may not be useful to you to save typing or to give ideas. Try to pay attention to them about the same amount for all three restaurants.</p>
     <p><b>Note</b>: We've changed how the keyboard picks words or phrases to show.</p>
     <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
