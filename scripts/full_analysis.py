@@ -10,7 +10,7 @@ import numpy as np
 import datetime
 import itertools
 
-batch_code = 'polarized_0'
+batch_code = 'sent32_0'
 
 #%%
 if '__file__' in globals():
@@ -22,7 +22,7 @@ else:
 def get_survey_seq(batch_code):
     seq = [('intro', 0)]
     batch_code_basename = batch_code.split('_', 1)[0]
-    if batch_code_basename in ['sent3', 'polarized']:
+    if batch_code_basename in ['sent3', 'sent32', 'polarized']:
         for i in range(3):
             seq.append(('postTask3', i))
         seq.append(('postExp3', 0))
