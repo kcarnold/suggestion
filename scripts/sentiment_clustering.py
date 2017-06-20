@@ -64,14 +64,15 @@ dists_to_centers_2 = mbk_wordvecs.transform(dense_vecs_2)
 dists_to_centers_argsort_2 = np.argsort(dists_to_centers_2, axis=0)
 #%%
 def show_cluster(idx):
-    close_indices = np.argsort(dists_to_centers_2[:,idx])[:10]
+    close_indices = dists_to_centers_argsort_2[:,idx][:10]
     for idx in close_indices:
         print(sents_2[idx])
 #%%
-for i in range(dists_to_centers_2.shape[1]):
+for i in range(2):#dists_to_centers_2.shape[1]):
     print()
     print(i)
-    close_indices = np.argsort(dists_to_centers_2[:,i])[:10]
+#    close_indices = np.argsort(dists_to_centers_2[:,i])[:10]
+    close_indices = dists_to_centers_argsort_2[:,i][:10]
     for idx in close_indices:
         print(sents_2[idx])
 #    orig_docs = doc_idx_0[orig_indices_2[close_indices]]
@@ -80,7 +81,7 @@ for i in range(dists_to_centers_2.shape[1]):
 #    all_stars.append(orig_stars)
 #%%
 closest_cluster_2 = np.argmin(dists_to_centers_2, axis=1)
-np.argsort(np.bincount(closest_cluster_2))
+np.sort(np.bincount(closest_cluster_2))
 #%%
 dist_to_closest_cluster = np.min(dists_to_centers_2, axis=1)
 is_close = dist_to_closest_cluster < np.median(dist_to_closest_cluster)
@@ -92,7 +93,7 @@ is_close = dist_to_closest_cluster < np.median(dist_to_closest_cluster)
 #%% Consider only sentences that are near their corresponding clusters (more clusters could reduce these)
 indices_3 = np.flatnonzero(is_close)
 sents_3 = [sents_2[idx] for idx in indices_3]
-#%% Re-vectorize just for sentence openers, without stopwords, but tighter cutoffs.
+#%% Re-vectorize just for sentence openers, without filtering for stopwords
 opener_vectorizer = TfidfVectorizer(min_df=5, max_df=.75, ngram_range=(1,2), stop_words=None)
 opener_vecs_3 = opener_vectorizer.fit_transform([' '.join(sent.split()[:5]) for sent in sents_3])
 #%%
@@ -147,17 +148,30 @@ for cluster_idx in np.argsort(entr(star_dist).sum(axis=1))[-3:]:
 #%%
 # Grr, some of those openings indicate places. Fix that.
 place_labels = reviews.city.str.cat(reviews.state, sep=', ')
-place_indices = {place: idx for idx, place in enumerate(sorted(place_labels.unique()))}
-place_label_as_idx = np.array([place_indices[lbl] for lbl in place_labels])
+place_indices = {place: idx for idx, place in enumerate(sorted(place_labels[doc_idx_3].unique()))}
+place_label_as_idx_3 = np.array([place_indices[lbl] for lbl in place_labels[doc_idx_3]])
 #%%
-geog_clf = BernoulliNB().fit(opener_vecs_3, place_label_as_idx[doc_idx_3])
-#%%
+geog_clf = BernoulliNB().fit(opener_vecs_3, place_label_as_idx_3)
 geog_probs = geog_clf.predict_proba(opener_vecs_3)
-#%%
 geog_distinctiveness = np.max(geog_probs, axis=1)
 #%%
+geog_counts = np.bincount(place_label_as_idx_3)
+geog_prior = geog_counts / geog_counts.sum()
+#%%
+from sklearn.ensemble import BaggingClassifier
+# Bag, using the empirical class distribution from the entire set as a class prior.
+geog_clf_bagging = BaggingClassifier(BernoulliNB(class_prior=geog_prior), max_samples=0.5, max_features=1.0)
+geog_clf_bagging.fit(opener_vecs_3, place_label_as_idx_3)
+#%%
+geog_probs_bag = geog_clf_bagging.predict_proba(opener_vecs_3)
+#from sklearn.ensemble import RandomForestClassifier
+#geog_clf_rf = RandomForestClassifier(n_estimators=2)
+#geog_clf_rf.fit(opener_vecs_3, place_label_as_idx[doc_idx_3])
+#%%
+#geog_probs_rf = geog_clf_rf.predict_proba(opener_vecs_3)
+#%%
 def summarize_argsort(labels, scores, n=10, n_mid=10, show=lambda label, score: print(f'{score:.2f} {label}')):
-    argsort = np.argsort(scores)
+    argsort = np.argsort(scores + np.random.standard_normal(len(scores)) * 1e-2)
     print('smallest')
     for i in argsort[:n]:
         show(labels[i], scores[i])
@@ -175,6 +189,8 @@ def summarize_argsort(labels, scores, n=10, n_mid=10, show=lambda label, score: 
         show(labels[i], scores[i])
 
 summarize_argsort(sents_3, geog_distinctiveness)
+#%%
+summarize_argsort(sents_3, np.max(geog_probs_bag, axis=1))
 #%% Ok, any phrase with geographical distinctiveness > .5 is taboo.
 #%% Try to predict sentence number
 sent_idx_3 = sent_idx_0[indices_1[indices_2[indices_3]]]
@@ -251,3 +267,20 @@ by_stars_sents = [
 #%%
 import json
 json.dump(by_stars_sents, open('yelp_sentiment_starters.json','w'), indent=2)
+
+
+
+#%% Predict cluster from text so far.
+# Construct a dataset of (g(prior_sents), f(prev_sent)) => cluster_idx
+# where f(x) = rank of distances to cluster centers, so closest cluster gets largest
+# and g(x) = elementwise-max(f(x) for x in collection)
+
+# Start with just f(prev) -> cluster
+prevs_x = []
+prevs_y = []
+for doc in tqdm.tqdm(reviews[reviews.is_train].tokenized.iloc[:50]):
+    sents = doc.split('\n')
+    vectorized = vectorizer.transform(sents).dot(projection_mat)
+    dist_to_centers_thisdoc = mbk_wordvecs.transform(vectorized)
+    for sent_idx, sent
+    ranks_to_centers = num_clusters - rankdata(dist_to_centers_thisdoc, axis=1)
