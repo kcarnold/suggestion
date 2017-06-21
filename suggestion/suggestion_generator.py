@@ -637,8 +637,10 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
             print("Warning: promise enabled but making beginning-of-sentence suggestions!")
         if use_bos_suggs == 'manual':
             phrases, sug_state = manual_bos.get_manual_bos(sofar, sug_state)
-        else:
+        elif use_bos_suggs in ['diverse', 'continue']:
             phrases, sug_state, _ = get_bos_suggs(sofar, sug_state, bos_sugg_flag=use_bos_suggs, constraints=constraints)
+        else:
+            phrases = None
         if phrases is not None:
             return phrases, sug_state
 
@@ -782,7 +784,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                 active_entities.append((llk, words, {'type': 'promise'}))
 
             # If we're at the beginning of a sentence, add the special sentiment sentence starters.
-            if sentiment is not None and len(cur_word) == 0 and toks[-1] in ["<D>", "<S>"]:
+            if sentiment is not None and use_bos_suggs == 'sentiment' and len(cur_word) == 0 and toks[-1] in ["<D>", "<S>"]:
                 sent_idx = sum(1 for tok in toks if tok == '</S>')
                 if sentiment == 'diverse':
                     sent_targets = [[0, 1], [2], [3, 4]]
