@@ -38,8 +38,10 @@ def load_reviews():
 
 class WordFreqAnalyzer:
     def __init__(self, vocab, counts):
-        freqs = counts / counts.sum()
+        self.vocab = vocab
+        self.counts = counts
         self.word2idx = {word: idx for idx, word in enumerate(vocab)}
+        freqs = counts / counts.sum()
         self.log_freqs = np.log(freqs)
 
     def lookup_indices(self, toks):
