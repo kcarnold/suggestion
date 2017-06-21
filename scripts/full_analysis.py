@@ -327,6 +327,7 @@ if __name__ == '__main__':
         participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
     participant_level_data['finalLen'] = participant_level_data.finalText.str.len()
     participant_level_data.to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
+    participant_level_data.query('kind == "final"').to_json(f'data/by_participant/participant_level_{batch_code}_{run_id}.json', orient='records')
     print('excluded:', excluded)
 
     with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
