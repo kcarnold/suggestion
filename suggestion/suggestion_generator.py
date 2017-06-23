@@ -220,13 +220,15 @@ def generate_phrase_from_sufarr(model, sufarr, context_toks, length, prefix_logp
 
 
 
-def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=None, **kw):
+def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=None, use_sufarr=False, null_logprob_weight=None, **kw):
     if model is None:
         model = 'yelp_train'
     if isinstance(model, str):
         model = get_model(model)
     if 'pos_weights' in kw:
         kw['pos_weights'] = np.array(kw['pos_weights'])
+
+    assert not use_sufarr
 
     state, _ = model.get_state(context_toks)
     first_words, first_word_probs = next_word_probs(model, state, context_toks[-1], prefix_logprobs=prefix_logprobs, **kw)
@@ -236,9 +238,9 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
     for idx in np.random.choice(len(first_words), min(len(first_words), n), p=first_word_probs, replace=False):
         first_word = model.id2str[first_words[idx]]
         first_word_logprob = np.log(first_word_probs[idx])
-#        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
-        phrase, phrase_logprobs = generate_phrase_from_sufarr(model, sufarr, context_toks + [first_word], length - 1, **kw)
-        res.append(([first_word] + phrase, np.hstack(([first_word_logprob], phrase_logprobs))))
+        phrase, phrase_logprobs = generate_phrase(model, context_toks + [first_word], length - 1, **kw)
+        # phrase, phrase_logprobs = generate_phrase_from_sufarr(model, sufarr, context_toks + [first_word], length - 1, **kw)
+        res.append(([first_word] + phrase, dict(probs=np.hstack(([first_word_logprob], phrase_logprobs)).tolist())))
     return res
 
 

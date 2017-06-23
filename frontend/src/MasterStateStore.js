@@ -104,6 +104,15 @@ const namedConditions = {
     },
     showPhrase: true
   },
+  samplePhrase: {
+    sugFlags: {
+      temperature: 1.,
+      useSufarr: false,
+      rare_word_bonus: 0.,
+      continuation_length: 17
+    },
+    showPhrase: true
+  },
   topicdiverse: {
     sugFlags: {
       useSufarr: false,
