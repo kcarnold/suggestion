@@ -1,14 +1,6 @@
 import joblib
 import subprocess
 
-def spacy_tok_to_doc(spacy_sent_strs):
-    res = []
-    for i, sent_str in enumerate(spacy_sent_strs):
-        res.append('<S>' if i > 0 else '<D>')
-        res.extend(sent_str.lower().split())
-        res.append('</S>')
-    return res
-
 
 def dump_kenlm(model_name, tokenized_sentences, **model_args):
     # Dump tokenized sents / docs, one per line,

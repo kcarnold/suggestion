@@ -4,14 +4,14 @@ import json
 from sys import intern
 import tqdm
 import joblib
-from suggestion.util import spacy_tok_to_doc, dump_kenlm
+from suggestion.util import dump_kenlm
 from suggestion.suffix_array import DocSuffixArray
 from suggestion import tokenization
 import pandas as pd
 import numpy as np
 
 import re
-cant_type = re.compile(r'[^\-a-z., !\']')
+cant_type = re.compile(r'[^\-A-Za-z., !\']')
 
 spelled_out = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen'.split()
 
@@ -23,8 +23,17 @@ def sub_numbers(txt):
         return ''
     return re.sub(r'\b\d+\b', number_form, txt)
 
-def convert_tokenization(doc):
-    doc = doc.lower()
+def spacy_tok_to_doc(spacy_sent_strs):
+    res = []
+    for i, sent_str in enumerate(spacy_sent_strs):
+        res.append('<S>' if i > 0 else '<D>')
+        res.extend(sent_str.split())
+        res.append('</S>')
+    return res
+
+def convert_tokenization(doc, lowercase=True):
+    if lowercase:
+        doc = doc.lower()
     doc = sub_numbers(doc)
     sents = doc.split('\n')
     sents = [cant_type.sub('', sent) for sent in sents]
@@ -45,10 +54,10 @@ def tokenize(text):
     return '\n'.join(token_spaced_sents)
 
 
-def preprocess_csv(input_filename, model_name):
+def preprocess_csv(input_filename, model_name, lowercase=True):
     import pandas as pd
     data = pd.read_csv(input_filename)
-    dump_kenlm(model_name, (' '.join(convert_tokenization(tokenize(text))) for text in tqdm.tqdm(data.Text)))
+    dump_kenlm(model_name, (' '.join(convert_tokenization(tokenize(text), lowercase=lowercase)) for text in tqdm.tqdm(data.Text)))
 
 
 if __name__ == '__main__':
@@ -56,6 +65,8 @@ if __name__ == '__main__':
     parser.add_argument('--input',
                         help='Input data filename (pickle)',
                         default='yelp_preproc/train_data.pkl')
+    parser.add_argument('--no-lower', action='store_true',
+        help="Don't lowercase sentences.")
     parser.add_argument('--model-name', default="yelp_train",
                         help="model name")
     parser.add_argument('--split-stars', action='store_true',
@@ -72,7 +83,7 @@ if __name__ == '__main__':
     data = pd.read_pickle(args.input)
     reviews = data['data']
 
-    tokenized_reviews = [convert_tokenization(tokenized)
+    tokenized_reviews = [convert_tokenization(tokenized, lowercase=not args.no_lower)
         for tokenized in tqdm.tqdm(reviews.tokenized, desc="Converting format")]
 
     if args.split_stars:
@@ -96,7 +107,7 @@ if __name__ == '__main__':
             order=args.order)
 
     print("Saving reviews")
-    with open('models/tokenized_reviews.pkl', 'wb') as f:
+    with open(f'models/{args.model_name}_tokenized.pkl', 'wb') as f:
         pickle.dump(tokenized_reviews, f, -1)
 
     dump_kenlm(args.model_name, (' '.join(doc) for doc in tqdm.tqdm(tokenized_reviews, desc="Writing")))
