@@ -39,6 +39,7 @@ skip_col_re = dict(
 prefix_subs = {
     "How much do you agree with the following statements about the suggestions that the system gave?-They ": "suggs-",
     "How much do you agree with the following statements?-The suggestions ": "suggs-",
+    "How much do you agree with the following statements about the words or phrases that the keyboard...-They": "suggs-",
     "Now think about the brainstorming you did before the final writing. How much do you agree with th...-": "brainstorm-",
     "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
     "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
@@ -96,6 +97,10 @@ def get_existing_requests(logfile):
                 # If that's the case, the previous request was a duplicate.
                 if requests[corresponding_request_seq]['request_id'] == requests[corresponding_request_seq - 1]['request_id']:
                     requests.pop(corresponding_request_seq)
+    # I've occasionally seen the final request get unanswered.
+    if len(requests) == len(responses) + 1:
+        assert requests[-2]['request_id'] == responses[-1]['request_id']
+        requests.pop(-1)
     assert len(requests) == len(responses), f"Invalid logfile? {logfile}, {len(requests)} {len(responses)}"
     suggestions = []
     prev_request_ts = None
@@ -252,8 +257,6 @@ if __name__ == '__main__':
         conditions = log_analyses['conditions']
         survey_data = {name: survey[survey['clientId'] == participant].to_dict(orient='records')#.to_json(orient='records'))
             for name, survey in surveys.items()}
-        with open(os.path.join(root_path, 'logs', participant+'-analyzed.json'), 'w') as f:
-            json.dump(dict(log_analyses=log_analyses, survey_data=survey_data), f)
 
 
         print('\n'*10)
