@@ -1,50 +1,50 @@
 import json
 
 def get_existing_requests(logfile):
-    requests = []
-    responses = []
+    # Each request has a timestamp, which is effectively its unique id.
+    weird_counter = 0
+    dupe_counter = 0
+    requests = {}
     for line in open(logfile):
         if not line:
             continue
         entry = json.loads(line)
         if entry['kind'] == 'meta' and entry['type'] == 'requestSuggestions':
-            requests.append(entry['request'].copy())
-            # print(f"Request {requests[-1]['request_id']}")
-            if len(requests) > 1 and requests[-1]['request_id'] == requests[-2]['request_id']:
-                # print("Duplicate request, keeping newer.")
-                newer_timestamp = max(ent['timestamp'] for ent in requests[-2:])
-                requests[-2:] = [ent for ent in requests[-2:] if ent['timestamp'] == newer_timestamp]
+            msg = entry['request'].copy()
+            requests[msg['timestamp']] = {'request': msg, 'response': None}
 
         if entry['type'] == 'receivedSuggestions':
-            msg = entry['msg'].copy()
-            responses.append(dict(msg, responseTimestamp=entry['jsTimestamp']))
-            # print(f"Response {msg['request_id']}")
-            if len(responses) > 1 and msg['request_id'] == responses[-2]['request_id']:
-                # print("Dropping the older of duplicate responses.")
-                # Keep the pair with the newer timestamp.
-                newer_timestamp = max(ent['timestamp'] for ent in responses[-2:])
-                responses[-2:] = [ent for ent in responses[-2:] if ent['timestamp'] == newer_timestamp]
-            corresponding_request_seq = len(responses) - 1
-            if msg['request_id'] != requests[corresponding_request_seq]['request_id']:
-                print(f"Warning, mismatched request {msg['request_id']} vs {requests[corresponding_request_seq]['request_id']} at {len(requests)} {len(responses)}")
-                assert False
-                # Ok, what happened? Perhaps the JS client sent a duplicate request, and (somehow?) only one of them got a response.
-                # If that's the case, the previous request was a duplicate.
-                if requests[corresponding_request_seq]['request_id'] == requests[corresponding_request_seq - 1]['request_id']:
-                    requests.pop(corresponding_request_seq)
-    # I've occasionally seen the final request get unanswered.
-    if len(requests) == len(responses) + 1:
-        assert requests[-2]['request_id'] == responses[-1]['request_id']
-        requests.pop(-1)
-    assert len(requests) == len(responses), f"Invalid logfile? {logfile}, {len(requests)} {len(responses)}"
+            msg = dict(entry['msg'], responseTimestamp=entry['jsTimestamp'])
+            if requests[msg['timestamp']]['response'] is not None:
+                weird_counter += 1
+            requests[msg['timestamp']]['response'] = msg
+
+    # Keep only responded-to requests
+    requests = {ts: req for ts, req in requests.items() if req['response'] is not None}
+
+    def without_ts(dct):
+        dct = dct['request'].copy()
+        dct.pop('timestamp')
+        return dct
+    requests_dedupe = []
+    for ts, request in sorted(requests.items()):
+        if len(requests_dedupe) > 0 and without_ts(request) == without_ts(requests_dedupe[-1]):
+            dupe_counter += 1
+        else:
+            requests_dedupe.append(request)
+
     suggestions = []
     prev_request_ts = None
-    for request, response in zip(requests, responses):
+    for entry in requests_dedupe:
+        request = entry['request']
+        response = entry['response']
         phrases = response['next_word']
         phrases = [' '.join(phrase['one_word']['words'] + phrase['continuation'][0]['words']) for phrase in phrases]
         while len(phrases) < 3:
             phrases.append([''])
-        assert len(phrases) == 3
+        if len(phrases) > 3:
+            weird_counter += 1
+            phrases = phrases[:3]
         p1, p2, p3 = phrases
         request_ts = request.pop('timestamp')
         response_request_ts = response.pop('timestamp')
@@ -66,4 +66,8 @@ def get_existing_requests(logfile):
             timestamp=request_ts)
         suggestions.append(entry)
         prev_request_ts = request_ts
+
+    if weird_counter != 0 or dupe_counter != 0:
+        print(f"{logfile} weird={weird_counter} dup={dupe_counter}")
+
     return suggestions
