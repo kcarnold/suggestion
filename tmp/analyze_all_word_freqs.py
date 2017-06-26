@@ -26,7 +26,9 @@ all_data[all_data.study == 'study4'].kind.value_counts()
 #%% Only take the "final" writings.
 all_data = all_data.query('kind == "final"')
 #%% MANUAL PROCESSING STEP. Dump out everything.
-all_data.loc[:,'finalText'].drop_duplicates().to_csv('all_writings.csv', index=False)
+if False:
+    #%%
+    all_data.loc[:,'finalText'].drop_duplicates().to_csv('all_writings.csv', index=False)
 
 #%% Now: load that into Excel -> Copy to Word -> correct all typos and obvious misspellings
 # replace newlines with spaces, remove double-spaces. Copy back into Excel.
@@ -120,9 +122,15 @@ by_sentence = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'co
 #%% Now spend a long time annotating.
 
 #%% Ok now you're done.
-with_annotations = pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_partial20170624.csv')
-with_annotations = pd.merge(by_sentence, with_annotations, left_on=['participant_id', 'block', 'sent_idx', 'sentence'], right_on=['participant_id', 'block', 'sent_idx', 'sentence'], how='left')
+with_annotations = pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
+with_annotations = pd.merge(by_sentence, with_annotations, left_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], right_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], how='left')
 #%%
 all_topics = {topic for tlist in with_annotations.topics if isinstance(tlist, str) for topic in tlist.split()}
 #%%
-with_annotations.drop('sent_idx sentence ,condition'.split(), axis=1).groupby(['participant_id', 'block', 'condition']).max().dropna()
+sentiment_annos = with_annotations.drop('sent_idx sentence'.split(), axis=1).groupby(['config', 'participant_id', 'block', 'condition']).max()
+#.dropna().groupby('participant_id').count().neg
+#%%
+topic_diversity = with_annotations.dropna(subset=['topics']).groupby(['config', 'participant_id', 'block', 'condition']).topics.agg(lambda group: len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split()})))
+#%%
+sentiment_annos.to_csv('data/sentiment_annos.csv')
+topic_diversity.to_frame('topic_diversity').to_csv('data/topic_diversity.csv')
