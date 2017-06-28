@@ -1,20 +1,26 @@
 import os
 import pandas as pd
 import numpy as np
-import pandas as pd
 import re
 from collections import Counter
+import nltk
 
 from suggestion.paths import paths
 root_path = paths.parent
 
 from suggestion.util import mem, flatten_dict
+from suggestion import tokenization
+import string
 
 from suggestion.analysis_util import (
         # survey stuff
         skip_col_re, prefix_subs,
         # log analysis stuff
         get_existing_requests, classify_annotated_event, get_log_analysis)
+
+
+from suggestion.analyzers import WordFreqAnalyzer
+analyzer = WordFreqAnalyzer.build()
 
 
 STUDY_COLUMNS = '''
@@ -212,78 +218,44 @@ def get_correction_task_results():
     with_corrections['corrected_text'] = with_corrections.corrected_text.apply(lambda s: s.replace('\u2019', "'").lower())
     return with_corrections
 
+
+MIN_WORD_COUNT = 5
+def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
+    if not isinstance(doc, str):
+        return
+    toks = tokenization.tokenize(doc.lower())[0]
+    filtered = []
+    freqs = []
+    for tok in toks:
+        if tok[0] not in string.ascii_letters:
+            continue
+        vocab_idx = analyzer.word2idx.get(tok)
+        if vocab_idx is None or analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
+            print("Skipping", tok)
+            continue
+        filtered.append(tok)
+        freqs.append(analyzer.log_freqs[vocab_idx])
+    return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs)))
+
+
+
 #%%
-if False:
-
-    #%%
-    from suggestion.analyzers import WordFreqAnalyzer
-    analyzer = WordFreqAnalyzer.build()
-    #%%
-    # Hapax legomena are pruned by KenLM. Should we prune more?
-    [analyzer.vocab[i] for i in np.flatnonzero(analyzer.counts == 5)[:5]]
-    #%% Ok let's ignore any word with count < 5 in Yelp.
-    MIN_WORD_COUNT = 5
-    from suggestion import tokenization
-    import string
-    def analyze(doc):
-        toks = tokenization.tokenize(doc.lower())[0]
-        filtered = []
-        freqs = []
-        for tok in toks:
-            if tok[0] not in string.ascii_letters:
-                continue
-            vocab_idx = analyzer.word2idx.get(tok)
-            if vocab_idx is None or analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
-                print("Skipping", tok)
-                continue
-            filtered.append(tok)
-            freqs.append(analyzer.log_freqs[vocab_idx])
-        return pd.Series(dict(wf_N=len(freqs), wf_mean=np.mean(freqs), wf_std=np.std(freqs)))
-    word_freq_data = with_latency.corrected.apply(analyze)
-    #%%
-    with_word_freq = pd.merge(with_exclusions, word_freq_data, left_index=True, right_index=True)
-    #%%
-    if False:
-        with_word_freq.to_csv('all_word_freqs_2.csv', index=False)
-
-
-    #%%
-    import nltk
+def get_annotation_task(all_data):
     by_sentence = []
-    for (participant_id, config, condition, block), text in with_word_freq.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected.items():
+    for (participant_id, config, condition, block), text in all_data.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected_text.items():
         by_sentence.append((participant_id, config, condition, block, -1, text))
         for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
             by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
-    by_sentence = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
-    #%%
-    if False:
-        by_sentence.to_csv('by_sentence_to_annotate.csv', index=False)
+    return pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
+
+# Annotation task:
+# Step 1: run get_annotation_task(all_data).to_csv('by_sentence_to_annotate.csv', index=False)
+# Step 2: spend a long time annotating
+# Step 3: store as... some CSV file.
 
 
-    #%% Now spend a long time annotating.
-
-    #%% Ok now you're done.
-    with_annotations = pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
-    with_annotations = pd.merge(by_sentence, with_annotations, left_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], right_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], how='left')
-    #%%
-    all_topics = {topic.replace('-','') for tlist in with_annotations.topics if isinstance(tlist, str) for topic in tlist.split()}
-    #%%
-    sentiment_annos = (
-            with_annotations.drop('sent_idx sentence'.split(), axis=1)
-            .groupby(['config', 'participant_id', 'block', 'condition']).max())
-    sentiment_annos.to_csv('data/sentiment_annos.csv')
-    #.dropna().groupby('participant_id').count().neg
-    #%%
-    topic_diversity = (
-            with_annotations
-            .dropna(subset=['topics'])
-            .groupby(['config', 'participant_id', 'block', 'condition'])
-            .topics
-            .agg(lambda group:
-                len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
-    #%%
-    topic_diversity.to_frame('topic_diversity').to_csv('data/topic_diversity.csv')
-
+def get_all_annotation_results():
+    return pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
 
 #%%
 @mem.cache
@@ -291,7 +263,7 @@ def get_latencies(participants):
     suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
-
+#%%
 
 def get_all_data():
     participants_by_study = get_participants_by_study()
@@ -329,10 +301,42 @@ def get_all_data():
             log_analysis_data,
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
+#    trial_level_data['final_len]
+
     # Manual text corrections
     trial_level_data = pd.merge(
         trial_level_data, get_correction_task_results(),
         left_on='final_text', right_on='final_text', how='left')
+
+
+    # Compute likelihoods
+    trial_level_data = pd.merge(
+        trial_level_data,
+        trial_level_data.corrected_text.dropna().apply(analyze_llks),
+        left_index=True, right_index=True, how='left')
+
+    # Pull in annotations.
+    annotation_results = get_all_annotation_results().query('sent_idx >= 0')#.drop('sent_idx sentence'.split(), axis=1)
+    annotation_results['pos'] = pd.to_numeric(annotation_results['pos'])
+    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
+    mean_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).mean().loc[:,['pos', 'neg']]
+    max_sentiments = max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'})
+    mean_sentiments = mean_sentiments.rename(columns={'pos': 'mean_positive', 'neg': 'mean_negative'})
+    sentiments = pd.merge(max_sentiments, mean_sentiments, left_index=True, right_index=True)
+    trial_level_data = pd.merge(
+            trial_level_data, sentiments.reset_index(),
+            left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
+
+    topic_diversity = (
+            annotation_results
+            .dropna(subset=['topics'])
+            .groupby(['config', 'participant_id', 'block', 'condition'])
+            .topics
+            .agg(lambda group:
+                len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
+    trial_level_data = pd.merge(
+        trial_level_data, topic_diversity.to_frame('num_topics').reset_index(),
+        left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
 
 
     # Calculate latency.
@@ -376,5 +380,4 @@ def get_all_data():
     return full_data
 
 all_data = get_all_data()
-get_correction_task(all_data)
 
