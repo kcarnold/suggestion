@@ -31,6 +31,10 @@ gender
 education
 english_proficiency
 verbalized_during
+total_actions_nobackspace
+total_key_taps
+total_rec_taps
+rec_frac
 '''.strip().split()
 
 TRIAL_COLUMNS = '''
@@ -203,55 +207,14 @@ def get_correction_task(all_data):
 
 @mem.cache
 def get_correction_task_results():
-    with_corrections = pd.read_excel('all_writings_corrected.xlsx')
+    with_corrections = pd.read_excel(str(paths.parent / 'all_writings_corrected.xlsx')).rename(columns={'finalText': 'final_text', 'corrected': 'corrected_text'})
     # Fix smartquotes.
-    with_corrections['corrected'] = with_corrections.corrected.apply(lambda s: s.replace('\u2019', "'").lower())
+    with_corrections['corrected_text'] = with_corrections.corrected_text.apply(lambda s: s.replace('\u2019', "'").lower())
     return with_corrections
 
 #%%
 if False:
 
-    #%%
-    with_corrections = pd.merge(all_data, with_corrections, left_on='finalText', right_on='finalText')
-    #%%
-    from suggestion.analysis_util import get_existing_requests
-    participants = with_corrections.participant_id.unique().tolist()
-
-    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
-    #%%
-    suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
-    #suggestion_data.to_csv('all_suggestion_data.csv')
-    #%%
-    latency_75 = suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75))
-    #%%
-    with_latency = pd.merge(with_corrections, latency_75.to_frame('latency_75'), how='left', left_on='participant_id', right_index=True)
-    with_latency = with_latency.drop('dur_75 dur_95 mean_llk min_llk dist_from_best tokenized'.split(), axis=1)
-    with_latency['total_actions'] = with_latency.num_tapBackspace + with_latency.num_tapKey + with_latency.num_tapSugg_bos + with_latency.num_tapSugg_full + with_latency.num_tapSugg_part
-    with_latency['total_sugg'] = with_latency.num_tapSugg_bos + with_latency.num_tapSugg_full + with_latency.num_tapSugg_part
-    with_latency['frac_sugg'] = with_latency.total_sugg / with_latency.total_actions
-    with_latency['frac_key'] = with_latency.num_tapKey / with_latency.total_actions
-    #%%
-    by_participant = pd.merge(
-            with_corrections.loc[:, ['participant_id', 'num_tapBackspace' , 'num_tapKey' , 'num_tapSugg_bos' , 'num_tapSugg_full' , 'num_tapSugg_part']].groupby('participant_id').sum(),
-            latency_75.to_frame('latency_75'), how='left', left_index=True, right_index=True)
-    by_participant['total_actions'] = by_participant.num_tapBackspace + by_participant.num_tapKey + by_participant.num_tapSugg_bos + by_participant.num_tapSugg_full + by_participant.num_tapSugg_part
-    by_participant['total_sugg'] = by_participant.num_tapSugg_bos + by_participant.num_tapSugg_full + by_participant.num_tapSugg_part
-    by_participant['frac_sugg'] = by_participant.total_sugg / by_participant.total_actions
-    by_participant['frac_key'] = by_participant.num_tapKey / by_participant.total_actions
-    #%%
-    too_much_latency = (by_participant['latency_75'] > 500)
-    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
-    #%%
-    too_few_actions = (
-    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (by_participant.frac_sugg < .01) | (by_participant.frac_key < .01)
-        )
-    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
-    #%%
-    exclude = too_few_actions | too_much_latency
-    print(f"Excluding {np.sum(exclude)} total")
-    #%%
-    with_exclusions = pd.merge(with_latency, exclude.to_frame('exclude'), left_on='participant_id', right_index=True)
     #%%
     from suggestion.analyzers import WordFreqAnalyzer
     analyzer = WordFreqAnalyzer.build()
@@ -323,9 +286,17 @@ if False:
 
 
 #%%
-#@mem.cache
+@mem.cache
+def get_latencies(participants):
+    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
+    suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
+    return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
+
+
 def get_all_data():
     participants_by_study = get_participants_by_study()
+    # [participants_by_study.study == 'sent3_2']
+    participants = list(participants_by_study.participant_id)
 
     survey_data = {'participant': None, 'trial': None}
     raw_survey_data = get_survey_data_raw()
@@ -344,16 +315,13 @@ def get_all_data():
             survey_data[subname] = pd.merge(
                     survey_data[subname], processed_survey_data,
                     left_on=merge_on, right_on=merge_on, how='outer')
-#    survey_data = survey_data.
 
     participant_level_data = pd.merge(
             survey_data['participant'], participants_by_study,
-            left_on='participant_id', right_on='participant_id', how='outer')
+            left_on='participant_id', right_on='participant_id', how='outer').set_index('participant_id')
 
-    # FIXME: remove the flag
     log_analysis_data_raw = {participant: get_log_analysis_data(participant)
-        # [participants_by_study.study == 'sent3_2']
-        for participant in participants_by_study.participant_id}
+        for participant in participants}
     log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
     trial_level_data = pd.merge(
@@ -361,12 +329,44 @@ def get_all_data():
             log_analysis_data,
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
+    # Manual text corrections
+    trial_level_data = pd.merge(
+        trial_level_data, get_correction_task_results(),
+        left_on='final_text', right_on='final_text', how='left')
+
+
+    # Calculate latency.
+    participant_level_data = pd.merge(
+            participant_level_data, get_latencies(participants),
+            left_index=True, right_index=True, how='left')
+
+    # Aggregate behavioral stats
+    trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap')]]
+    taps_agg = trial_level_counts.groupby('participant_id').sum()
+    participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
+    participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
+    participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
+    participant_level_data['rec_frac'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
+
+    too_much_latency = (participant_level_data['latency_75'] > 500)
+    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
+    too_few_actions = (
+    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
+        (participant_level_data.rec_frac < .01) | (participant_level_data.rec_frac > .99)
+        )
+    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
+    exclude = too_few_actions | too_much_latency
+    print(f"Excluding {np.sum(exclude)} total")
+    participant_level_data = pd.merge(
+            participant_level_data, exclude.to_frame('exclude'),
+            left_index=True, right_index=True, how='left')
+
     full_data = pd.merge(
             participant_level_data,
             trial_level_data,
-            left_on='participant_id', right_on='participant_id', how='right')
+            left_index=True, right_on='participant_id', how='right').reset_index()
 
-    assert participant_level_data.participant_id.value_counts().max() == 1
+#    assert participant_level_data.participant_id.value_counts().max() == 1
 
     desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
     missing_cols = sorted(desired_cols - set(full_data.columns))
