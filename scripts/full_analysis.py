@@ -1,6 +1,5 @@
 import re
 import os
-import argparse
 import pathlib
 import pickle
 import subprocess
@@ -9,6 +8,8 @@ import json
 import numpy as np
 import datetime
 import itertools
+
+from suggestion.util import mem
 
 from suggestion.analysis_util import get_existing_requests
 
@@ -67,15 +68,18 @@ import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
 assert len(participants) == len(set(participants)), "Duplicate participants"
 #%%
+@mem.cache
+def get_suggestion_data(participant):
+    return get_existing_requests(root_path / 'logs' / f'{participant}.jsonl')
 
-suggestion_data_raw = {participant: get_existing_requests(root_path / 'logs' / f'{participant}.jsonl') for participant in participants}
+suggestion_data_raw = {participant: get_suggestion_data(participant) for participant in participants}
 suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0)
 #%%
 if False:
     #%%
     json.dump(suggestion_data_raw, open(f'{batch_code}_sugdata.json', 'w'))
 #%%
-suggestion_data.to_csv(f'{batch_code}_suggestion_stats.csv')
+#suggestion_data.to_csv(f'{batch_code}_suggestion_stats.csv')
 #%%
 def get_rev(participant):
     logpath = root_path / 'logs' / (participant+'.jsonl')
@@ -100,6 +104,7 @@ def get_analyzer(git_rev):
     shutil.copy(os.path.join(root_path, 'frontend', 'analyze.js'), os.path.join(rev_root, 'frontend', 'analyze.js'))
     return os.path.join(rev_root, 'frontend', 'analysis')
 #%%
+@mem.cache
 def run_log_analysis(participant):
     logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
     analyzer_path = get_analyzer(get_rev(participant))
@@ -261,36 +266,37 @@ if __name__ == '__main__':
 
     all_survey_data = pd.DataFrame(all_survey_data)
 
-    all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
+#    all_survey_data.to_csv(f'data/surveys/surveys_{batch_code}_{run_id}.csv', index=False)
     participant_level_data = pd.DataFrame(participant_level_data_raw).fillna(0)
     if 'prewriteText' in participant_level_data.columns:
         participant_level_data['prewriteLen'] = participant_level_data.prewriteText.str.len()
     participant_level_data['finalLen'] = participant_level_data.finalText.str.len()
     participant_level_data.to_csv(f'data/by_participant/participant_level_{batch_code}_{run_id}.csv', index=False)
     participant_level_data.query('kind == "final"').to_json(f'data/by_participant/participant_level_{batch_code}_{run_id}.json', orient='records')
-    print('excluded:', excluded)
+#    print('excluded:', excluded)
 
-    with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
-        pickle.dump([{k: all_log_analyses[k] for k in non_excluded_participants}, survey_data], f, -1)
-        print("Wrote", f'data/analysis_{batch_code}_{run_id}.pkl')
+#    with open(f'data/analysis_{batch_code}_{run_id}.pkl','wb') as f:
+#        pickle.dump([{k: all_log_analyses[k] for k in non_excluded_participants}, survey_data], f, -1)
+#        print("Wrote", f'data/analysis_{batch_code}_{run_id}.pkl')
 
 
-    all_survey_data[all_survey_data.value.str.len() > 5].to_csv(f'data/survey_freetexts_{batch_code}_{run_id}.csv')
+#    all_survey_data[all_survey_data.value.str.len() > 5].to_csv(f'data/survey_freetexts_{batch_code}_{run_id}.csv')
 
 #%%
-text_lens = all_survey_data.groupby(['survey', 'name']).value.apply(lambda x: x.str.len().max())
-answers_to_summarize = text_lens[text_lens>20]
-for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_frame('mrl').reset_index(), left_on=['survey', 'name'], right_on=['survey', 'name']).groupby('participant_id'):
-    print(pid)
-    for (survey, idx), this_survey_data in data_to_summarize.groupby(['survey', 'idx']):
-        if survey == 'intro':
-            continue
-        print(survey, idx)
-        for row in this_survey_data.itertuples():
-            print(row.condition, row.name, '===', row.value)
+def summarize_freetexts(all_survey_data):
+    text_lens = all_survey_data.groupby(['survey', 'name']).value.apply(lambda x: x.str.len().max())
+    answers_to_summarize = text_lens[text_lens>20]
+    for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_frame('mrl').reset_index(), left_on=['survey', 'name'], right_on=['survey', 'name']).groupby('participant_id'):
+        print(pid)
+        for (survey, idx), this_survey_data in data_to_summarize.groupby(['survey', 'idx']):
+            if survey == 'intro':
+                continue
+            print(survey, idx)
+            for row in this_survey_data.itertuples():
+                print(row.condition, row.name, '===', row.value)
+            print()
         print()
-    print()
-#        print(this_survey_data.info())
+summarize_freetexts(all_survey_data)
 #%%
 def tokenize(text):
     import nltk
