@@ -235,7 +235,7 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
             continue
         filtered.append(tok)
         freqs.append(analyzer.log_freqs[vocab_idx])
-    return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs)))
+    return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
 
@@ -319,10 +319,11 @@ def get_all_data():
     annotation_results = get_all_annotation_results().query('sent_idx >= 0')#.drop('sent_idx sentence'.split(), axis=1)
     annotation_results['pos'] = pd.to_numeric(annotation_results['pos'])
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
-    mean_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).mean().loc[:,['pos', 'neg']]
-    max_sentiments = max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'})
-    mean_sentiments = mean_sentiments.rename(columns={'pos': 'mean_positive', 'neg': 'mean_negative'})
-    sentiments = pd.merge(max_sentiments, mean_sentiments, left_index=True, right_index=True)
+    total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
+    sentiments = pd.merge(
+        max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'}),
+        total_sentiments.rename(columns={'pos': 'total_positive', 'neg': 'total_negative'}),
+        left_index=True, right_index=True)
     trial_level_data = pd.merge(
             trial_level_data, sentiments.reset_index(),
             left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
@@ -338,6 +339,8 @@ def get_all_data():
         trial_level_data, topic_diversity.to_frame('num_topics').reset_index(),
         left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
 
+
+    trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
     # Calculate latency.
     participant_level_data = pd.merge(
@@ -362,7 +365,7 @@ def get_all_data():
     exclude = too_few_actions | too_much_latency
     print(f"Excluding {np.sum(exclude)} total")
     participant_level_data = pd.merge(
-            participant_level_data, exclude.to_frame('exclude'),
+            participant_level_data, exclude.to_frame('is_excluded'),
             left_index=True, right_index=True, how='left')
 
     full_data = pd.merge(
@@ -371,6 +374,11 @@ def get_all_data():
             left_index=True, right_on='participant_id', how='right').reset_index()
 
 #    assert participant_level_data.participant_id.value_counts().max() == 1
+
+    omit_cols_prefixes = ['How much did you say about each topic', 'Roughly how many lines of each', 'brainstorm']
+    drop_cols = [col for col in full_data.columns if any(col.startswith(x) for x in omit_cols_prefixes)]
+    full_data = full_data.drop(drop_cols, axis=1)
+
 
     desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
     missing_cols = sorted(desired_cols - set(full_data.columns))
