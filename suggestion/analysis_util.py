@@ -1,4 +1,37 @@
 import json
+import re
+
+#
+# Data for decoding surveys.
+#
+
+skip_col_re = re.compile(
+    r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order|Demographic Questions|Closing Survey.+')
+
+prefix_subs = {
+    "How much do you agree with the following statements about the suggestions that the system gave?-They ": "suggs-",
+    "How much do you agree with the following statements?-The suggestions ": "suggs-",
+    "How much do you agree with the following statements about the words or phrases that the keyboard...-They ": "suggs-",
+    "Now think about the brainstorming you did before the final writing. How much do you agree with th...-": "brainstorm-",
+    "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
+    "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
+}
+
+decode_scales = {
+        "Strongly disagree": 1,
+        "Disagree": 2,
+        "Somewhat disagree": 3,
+        "Neither agree nor disagree": 4,
+        "Somewhat agree": 5,
+        "Agree": 6,
+        "Strongly agree": 7,
+
+        "Very Inaccurate": 1,
+        "Moderately Inaccurate": 2,
+        "Neither Accurate Nor Inaccurate": 3,
+        "Moderately Accurate": 4,
+        "Very Accurate": 5}
+
 
 def get_existing_requests(logfile):
     # Each request has a timestamp, which is effectively its unique id.
@@ -71,3 +104,4 @@ def get_existing_requests(logfile):
         print(f"{logfile} weird={weird_counter} dup={dupe_counter}")
 
     return suggestions
+

@@ -35,34 +35,6 @@ def get_survey_seq(batch_code):
         seq.append(('postExp', 0))
     return seq
 
-skip_col_re = dict(
-    any=r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order',
-    )
-
-prefix_subs = {
-    "How much do you agree with the following statements about the suggestions that the system gave?-They ": "suggs-",
-    "How much do you agree with the following statements?-The suggestions ": "suggs-",
-    "How much do you agree with the following statements about the words or phrases that the keyboard...-They": "suggs-",
-    "Now think about the brainstorming you did before the final writing. How much do you agree with th...-": "brainstorm-",
-    "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
-    "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
-}
-
-decode_scales = {
-        "Strongly disagree": 1,
-        "Disagree": 2,
-        "Somewhat disagree": 3,
-        "Neither agree nor disagree": 4,
-        "Somewhat agree": 5,
-        "Agree": 6,
-        "Strongly agree": 7,
-
-        "Very Inaccurate": 1,
-        "Moderately Inaccurate": 2,
-        "Neither Accurate Nor Inaccurate": 3,
-        "Moderately Accurate": 4,
-        "Very Accurate": 5}
-
 
 import yaml
 participants = yaml.load(open(root_path / 'participants.yaml'))[batch_code].split()
@@ -119,25 +91,6 @@ def run_log_analysis(participant):
 
     return analyzed
 
-
-def extract_survey_data(survey, data):
-    for k, v in data.items():
-        if re.match(skip_col_re['any'], k):
-            skipped_cols.add(k)
-            continue
-        for x, y in prefix_subs.items():
-            if k.startswith(x):
-                k = k.replace(x, y, 1)
-                break
-        v = decode_scales.get(v, v)
-
-        if k.startswith("Which writing was..."):
-            yield 'num-'+k, ["A, definitely", "A, somewhat", "about the same", "B, somewhat", "B, definitely"].index(v) - 2.0
-            v = v.replace("A", conditions[0]).replace("B", conditions[1])
-        elif survey == 'postExp' and isinstance(v, str):
-            v = re.sub(r'\bA\b', f'A [{conditions[0]}]', v)
-            v = re.sub(r'\bB\b', f'B [{conditions[1]}]', v)
-        yield k, v
 
 
 #%%
