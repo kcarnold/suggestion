@@ -25,4 +25,15 @@ def make_model(model_name, order=5, prune=2):
     subprocess.run([str(kenlm_bin / 'build_binary'), model_full_name + '.arpa', model_full_name + '.kenlm'])
 
 
+def flatten_dict(x, prefix=''):
+    result = {}
+    for k, v in x.items():
+        if isinstance(v, dict):
+            result.update(flatten_dict(v, prefix=prefix + k + '_'))
+        else:
+            result[prefix + k] = v
+    return result
+
+
+
 mem = joblib.Memory('cache', mmap_mode='r')

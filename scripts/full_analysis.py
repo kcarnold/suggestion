@@ -53,43 +53,7 @@ if False:
 #%%
 #suggestion_data.to_csv(f'{batch_code}_suggestion_stats.csv')
 #%%
-def get_rev(participant):
-    logpath = root_path / 'logs' / (participant+'.jsonl')
-    with open(logpath) as logfile:
-        for line in logfile:
-            line = json.loads(line)
-            if 'rev' in line:
-                return line['rev']
 
-#%%
-def get_analyzer(git_rev):
-    import shutil
-    by_rev = os.path.join(root_path, 'old-code')
-    rev_root = os.path.join(by_rev, git_rev)
-    if not os.path.isdir(rev_root):
-        print("Checking out repository at", git_rev)
-        subprocess.check_call(['git', 'clone', '..', git_rev], cwd=by_rev)
-        subprocess.check_call(['git', 'checkout', git_rev], cwd=rev_root)
-        print("Installing npm packages")
-        subprocess.check_call(['yarn'], cwd=os.path.join(rev_root, 'frontend'))
-        subprocess.check_call(['yarn', 'add', 'babel-cli'], cwd=os.path.join(rev_root, 'frontend'))
-    shutil.copy(os.path.join(root_path, 'frontend', 'analyze.js'), os.path.join(rev_root, 'frontend', 'analyze.js'))
-    return os.path.join(rev_root, 'frontend', 'analysis')
-#%%
-@mem.cache
-def run_log_analysis(participant):
-    logpath = os.path.join(root_path, 'logs', participant+'.jsonl')
-    analyzer_path = get_analyzer(get_rev(participant))
-    with open(logpath) as logfile:
-        result = subprocess.check_output([analyzer_path], stdin=logfile)
-    bundled_participants = json.loads(result)
-    assert len(bundled_participants) == 1
-    pid, analyzed = bundled_participants[0]
-    with open(logpath) as logfile:
-        lines = (json.loads(line) for line in logfile)
-        analyzed['sug_gen_durs'] = [rec['msg']['dur'] for rec in lines if rec.get('type') == 'receivedSuggestions']
-
-    return analyzed
 
 
 

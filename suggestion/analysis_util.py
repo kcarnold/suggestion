@@ -1,5 +1,9 @@
+import os
 import json
 import re
+from suggestion.util import mem, flatten_dict
+from suggestion.paths import paths
+import subprocess
 
 #
 # Data for decoding surveys.
@@ -105,3 +109,67 @@ def get_existing_requests(logfile):
 
     return suggestions
 
+
+def get_rev(participant):
+    logpath = paths.parent / 'logs' / (participant+'.jsonl')
+    with open(logpath) as logfile:
+        for line in logfile:
+            line = json.loads(line)
+            if 'rev' in line:
+                return line['rev']
+
+def get_analyzer(git_rev):
+    import shutil
+    by_rev = paths.parent / 'old-code'
+    rev_root = by_rev / git_rev
+    if not os.path.isdir(rev_root):
+        print("Checking out repository at", git_rev)
+        subprocess.check_call(['git', 'clone', '..', git_rev], cwd=by_rev)
+        subprocess.check_call(['git', 'checkout', git_rev], cwd=rev_root)
+        print("Installing npm packages")
+        subprocess.check_call(['yarn'], cwd=os.path.join(rev_root, 'frontend'))
+        subprocess.check_call(['yarn', 'add', 'babel-cli'], cwd=os.path.join(rev_root, 'frontend'))
+    shutil.copy(paths.parent / 'frontend' / 'analyze.js', rev_root / 'frontend' / 'analyze.js')
+    return os.path.join(rev_root, 'frontend', 'analysis')
+
+
+@mem.cache
+def get_log_analysis_raw(participant):
+    logpath = paths.parent / 'logs' / (participant+'.jsonl')
+    git_rev = get_rev(participant)
+    analyzer_path = get_analyzer(git_rev)
+    with open(logpath) as logfile:
+        return subprocess.check_output([analyzer_path], stdin=logfile), git_rev
+
+
+def get_log_analysis(participant):
+    result, git_rev = get_log_analysis_raw(participant)
+    bundled_participants = json.loads(result)
+    assert len(bundled_participants) == 1
+    pid, analyzed = bundled_participants[0]
+    analyzed['git_rev'] = git_rev
+    return analyzed
+
+
+
+def classify_annotated_event(evt):
+    typ = evt['type']
+    if typ in {'externalAction', 'next'}:
+        return None
+    text = evt['curText']
+    null_word = len(text) == 0 or text[-1] == ' '
+    text = text.strip()
+    bos = len(text) == 0 or text[-1] in '.?!'
+    if typ == 'tapKey':
+        return 'tapKey'
+    if typ == 'tapBackspace':
+        return 'tapBackspace'
+    if typ == 'tapSuggestion':
+        if bos:
+            sugg_mode = 'bos'
+        elif null_word:
+            sugg_mode = 'full'
+        else:
+            sugg_mode = 'part'
+        return 'tapSugg_' + sugg_mode
+    assert False, typ
