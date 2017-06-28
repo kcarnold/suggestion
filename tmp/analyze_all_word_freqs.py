@@ -105,7 +105,8 @@ word_freq_data = with_latency.corrected.apply(analyze)
 #%%
 with_word_freq = pd.merge(with_exclusions, word_freq_data, left_index=True, right_index=True)
 #%%
-with_word_freq.to_csv('all_word_freqs_2.csv', index=False)
+if False:
+    with_word_freq.to_csv('all_word_freqs_2.csv', index=False)
 
 
 #%%
@@ -116,7 +117,9 @@ for (participant_id, config, condition, block), text in with_word_freq.sample(fr
     for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
         by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
 by_sentence = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
-#by_sentence.to_csv('by_sentence_to_annotate.csv', index=False)
+#%%
+if False:
+    by_sentence.to_csv('by_sentence_to_annotate.csv', index=False)
 
 
 #%% Now spend a long time annotating.
@@ -125,12 +128,20 @@ by_sentence = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'co
 with_annotations = pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
 with_annotations = pd.merge(by_sentence, with_annotations, left_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], right_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], how='left')
 #%%
-all_topics = {topic for tlist in with_annotations.topics if isinstance(tlist, str) for topic in tlist.split()}
+all_topics = {topic.replace('-','') for tlist in with_annotations.topics if isinstance(tlist, str) for topic in tlist.split()}
 #%%
-sentiment_annos = with_annotations.drop('sent_idx sentence'.split(), axis=1).groupby(['config', 'participant_id', 'block', 'condition']).max()
+sentiment_annos = (
+        with_annotations.drop('sent_idx sentence'.split(), axis=1)
+        .groupby(['config', 'participant_id', 'block', 'condition']).max())
+sentiment_annos.to_csv('data/sentiment_annos.csv')
 #.dropna().groupby('participant_id').count().neg
 #%%
-topic_diversity = with_annotations.dropna(subset=['topics']).groupby(['config', 'participant_id', 'block', 'condition']).topics.agg(lambda group: len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split()})))
+topic_diversity = (
+        with_annotations
+        .dropna(subset=['topics'])
+        .groupby(['config', 'participant_id', 'block', 'condition'])
+        .topics
+        .agg(lambda group:
+            len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
 #%%
-sentiment_annos.to_csv('data/sentiment_annos.csv')
 topic_diversity.to_frame('topic_diversity').to_csv('data/topic_diversity.csv')
