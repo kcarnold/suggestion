@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import numpy as np
+import pandas as pd
+import re
 from collections import Counter
 
 from suggestion.paths import paths
@@ -17,7 +20,7 @@ from suggestion.analysis_util import (
 STUDY_COLUMNS = '''
 experiment_name
 config
-rev
+git_rev
 conditions
 instructions'''.strip().split()
 
@@ -92,10 +95,12 @@ def get_survey_data_raw():
         for name in survey_names}
 
 
-def process_survey_data(survey_data_raw):
-    data = pd.concat(survey_data_raw, names=['survey', 'survey_record_idx']).reset_index(level=-1, drop=True).reset_index()
+def process_survey_data(survey, survey_data_raw):
+    is_repeated = survey in ['postTask', 'postTask3', 'postFreewrite']
+    data = survey_data_raw
     data = data.rename(columns={'clientId': 'participant_id'})
-    data['survey_trial_idx'] = data.groupby(['participant_id', 'survey']).cumcount()
+    if is_repeated:
+        data['block'] = data.groupby(['participant_id']).cumcount()
     data = data.dropna(subset=['participant_id'])
 
     # Drop junk columns.
@@ -113,15 +118,22 @@ def process_survey_data(survey_data_raw):
     data = data.rename(columns=cols_to_rename)
 
     # Specific renames
-    renames = {
+    renames = {}
+    renames['intro'] = {
         "How old are you?": ("age", 'numeric'),
         "What is your gender?": ("gender", None),
-        "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
         "How proficient would you say you are in English?": ("english_proficiency", None),
         "What is the highest level of school you have completed or the highest degree you have received? ": ("education", None),
+    }
+    renames['postTask'] = renames['postTask3'] = {
+        "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
+    }
+    renames['postExp'] = renames['postExp3'] = {
         "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
     }
-    for orig, new in renames.items():
+    for orig, new in renames[survey].items():
+        if orig not in data.columns:
+            continue
         col_data = data.pop(orig)
         new_name = new[0]
         if new[1] == 'numeric':
@@ -136,7 +148,7 @@ def get_participants_by_study():
     for study_name, participants in yaml.load(open(root_path / 'participants.yaml')).items():
         for participant in participants.split():
             participants_table.append((participant, study_name))
-    return pd.DataFrame(participants_table, columns=['participant_id', 'study'])
+    return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
 
 
 def get_log_analysis_data(participant):
@@ -177,28 +189,175 @@ def get_log_analysis_data(participant):
         participant_level_data_raw.append(datum)
     return participant_level_data_raw
 
+
+
+# Correction task:
+# Step 1: run get_correction_task.to_csv('correction_task.csv', index=False)
+# Step 2: load that into Excel -> Copy to Word -> correct all typos and obvious misspellings
+# Step 2.5: replace newlines with spaces, remove double-spaces. Copy back into Excel.
+# Step 3: Save the result as all_writings_corrected.xlsx.
+
+def get_correction_task(all_data):
+    return all_data.query('kind == "final"').loc[:, 'final_text'].drop_duplicates().reset_index()
+
+
+@mem.cache
+def get_correction_task_results():
+    with_corrections = pd.read_excel('all_writings_corrected.xlsx')
+    # Fix smartquotes.
+    with_corrections['corrected'] = with_corrections.corrected.apply(lambda s: s.replace('\u2019', "'").lower())
+    return with_corrections
+
+#%%
+if False:
+
+    #%%
+    with_corrections = pd.merge(all_data, with_corrections, left_on='finalText', right_on='finalText')
+    #%%
+    from suggestion.analysis_util import get_existing_requests
+    participants = with_corrections.participant_id.unique().tolist()
+
+    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
+    #%%
+    suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
+    #suggestion_data.to_csv('all_suggestion_data.csv')
+    #%%
+    latency_75 = suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75))
+    #%%
+    with_latency = pd.merge(with_corrections, latency_75.to_frame('latency_75'), how='left', left_on='participant_id', right_index=True)
+    with_latency = with_latency.drop('dur_75 dur_95 mean_llk min_llk dist_from_best tokenized'.split(), axis=1)
+    with_latency['total_actions'] = with_latency.num_tapBackspace + with_latency.num_tapKey + with_latency.num_tapSugg_bos + with_latency.num_tapSugg_full + with_latency.num_tapSugg_part
+    with_latency['total_sugg'] = with_latency.num_tapSugg_bos + with_latency.num_tapSugg_full + with_latency.num_tapSugg_part
+    with_latency['frac_sugg'] = with_latency.total_sugg / with_latency.total_actions
+    with_latency['frac_key'] = with_latency.num_tapKey / with_latency.total_actions
+    #%%
+    by_participant = pd.merge(
+            with_corrections.loc[:, ['participant_id', 'num_tapBackspace' , 'num_tapKey' , 'num_tapSugg_bos' , 'num_tapSugg_full' , 'num_tapSugg_part']].groupby('participant_id').sum(),
+            latency_75.to_frame('latency_75'), how='left', left_index=True, right_index=True)
+    by_participant['total_actions'] = by_participant.num_tapBackspace + by_participant.num_tapKey + by_participant.num_tapSugg_bos + by_participant.num_tapSugg_full + by_participant.num_tapSugg_part
+    by_participant['total_sugg'] = by_participant.num_tapSugg_bos + by_participant.num_tapSugg_full + by_participant.num_tapSugg_part
+    by_participant['frac_sugg'] = by_participant.total_sugg / by_participant.total_actions
+    by_participant['frac_key'] = by_participant.num_tapKey / by_participant.total_actions
+    #%%
+    too_much_latency = (by_participant['latency_75'] > 500)
+    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
+    #%%
+    too_few_actions = (
+    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
+        (by_participant.frac_sugg < .01) | (by_participant.frac_key < .01)
+        )
+    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
+    #%%
+    exclude = too_few_actions | too_much_latency
+    print(f"Excluding {np.sum(exclude)} total")
+    #%%
+    with_exclusions = pd.merge(with_latency, exclude.to_frame('exclude'), left_on='participant_id', right_index=True)
+    #%%
+    from suggestion.analyzers import WordFreqAnalyzer
+    analyzer = WordFreqAnalyzer.build()
+    #%%
+    # Hapax legomena are pruned by KenLM. Should we prune more?
+    [analyzer.vocab[i] for i in np.flatnonzero(analyzer.counts == 5)[:5]]
+    #%% Ok let's ignore any word with count < 5 in Yelp.
+    MIN_WORD_COUNT = 5
+    from suggestion import tokenization
+    import string
+    def analyze(doc):
+        toks = tokenization.tokenize(doc.lower())[0]
+        filtered = []
+        freqs = []
+        for tok in toks:
+            if tok[0] not in string.ascii_letters:
+                continue
+            vocab_idx = analyzer.word2idx.get(tok)
+            if vocab_idx is None or analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
+                print("Skipping", tok)
+                continue
+            filtered.append(tok)
+            freqs.append(analyzer.log_freqs[vocab_idx])
+        return pd.Series(dict(wf_N=len(freqs), wf_mean=np.mean(freqs), wf_std=np.std(freqs)))
+    word_freq_data = with_latency.corrected.apply(analyze)
+    #%%
+    with_word_freq = pd.merge(with_exclusions, word_freq_data, left_index=True, right_index=True)
+    #%%
+    if False:
+        with_word_freq.to_csv('all_word_freqs_2.csv', index=False)
+
+
+    #%%
+    import nltk
+    by_sentence = []
+    for (participant_id, config, condition, block), text in with_word_freq.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected.items():
+        by_sentence.append((participant_id, config, condition, block, -1, text))
+        for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
+            by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
+    by_sentence = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
+    #%%
+    if False:
+        by_sentence.to_csv('by_sentence_to_annotate.csv', index=False)
+
+
+    #%% Now spend a long time annotating.
+
+    #%% Ok now you're done.
+    with_annotations = pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
+    with_annotations = pd.merge(by_sentence, with_annotations, left_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], right_on=['participant_id', 'block', 'sent_idx', 'sentence', 'config', 'condition'], how='left')
+    #%%
+    all_topics = {topic.replace('-','') for tlist in with_annotations.topics if isinstance(tlist, str) for topic in tlist.split()}
+    #%%
+    sentiment_annos = (
+            with_annotations.drop('sent_idx sentence'.split(), axis=1)
+            .groupby(['config', 'participant_id', 'block', 'condition']).max())
+    sentiment_annos.to_csv('data/sentiment_annos.csv')
+    #.dropna().groupby('participant_id').count().neg
+    #%%
+    topic_diversity = (
+            with_annotations
+            .dropna(subset=['topics'])
+            .groupby(['config', 'participant_id', 'block', 'condition'])
+            .topics
+            .agg(lambda group:
+                len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
+    #%%
+    topic_diversity.to_frame('topic_diversity').to_csv('data/topic_diversity.csv')
+
+
 #%%
 #@mem.cache
 def get_all_data():
     participants_by_study = get_participants_by_study()
 
-    survey_data = process_survey_data(get_survey_data_raw())
+    survey_data = {'participant': None, 'trial': None}
+    raw_survey_data = get_survey_data_raw()
+    raw_survey_data['postTask'] = pd.concat([raw_survey_data.pop('postTask'), raw_survey_data.pop('postTask3')], axis=0)
+    raw_survey_data['postExp'] = pd.concat([raw_survey_data.pop('postExp'), raw_survey_data.pop('postExp3')], axis=0)
+    for survey_name, survey_data_raw in raw_survey_data.items():
+        processed_survey_data = process_survey_data(survey_name, survey_data_raw)
+        is_participant_level = 'block' not in processed_survey_data.columns
+        subname = 'participant' if is_participant_level else 'trial'
+        merge_on = ['participant_id']
+        if not is_participant_level:
+            merge_on = merge_on + ['block']
+        if survey_data[subname] is None:
+            survey_data[subname] = processed_survey_data
+        else:
+            survey_data[subname] = pd.merge(
+                    survey_data[subname], processed_survey_data,
+                    left_on=merge_on, right_on=merge_on, how='outer')
 #    survey_data = survey_data.
-    is_participant_level = survey_data.survey.isin(['intro', 'postExp', 'postExp3'])
-    participant_level_survey_data = survey_data[is_participant_level].dropna(axis=1, thresh=10).drop(['survey_trial_idx'], axis=1)
-    trial_level_survey_data = survey_data[~is_participant_level].dropna(axis=1, thresh=10).rename(columns={'survey_trial_idx': 'block'})
 
     participant_level_data = pd.merge(
-            participant_level_survey_data, participants_by_study,
+            survey_data['participant'], participants_by_study,
             left_on='participant_id', right_on='participant_id', how='outer')
 
     # FIXME: remove the flag
     log_analysis_data_raw = {participant: get_log_analysis_data(participant)
+        # [participants_by_study.study == 'sent3_2']
         for participant in participants_by_study.participant_id}
     log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
     trial_level_data = pd.merge(
-            trial_level_survey_data,
+            survey_data['trial'],
             log_analysis_data,
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
@@ -206,6 +365,8 @@ def get_all_data():
             participant_level_data,
             trial_level_data,
             left_on='participant_id', right_on='participant_id', how='right')
+
+    assert participant_level_data.participant_id.value_counts().max() == 1
 
     desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
     missing_cols = sorted(desired_cols - set(full_data.columns))
@@ -215,4 +376,5 @@ def get_all_data():
     return full_data
 
 all_data = get_all_data()
+get_correction_task(all_data)
 
