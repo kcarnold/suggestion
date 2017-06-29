@@ -258,7 +258,8 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p><b>Note</b>: We've changed how the keyboard picks words or phrases to show.</p>
-    <p>Tap Next when you're ready to start. (If you need a break, take it before tapping Next.)<br/><br/><NextBtn /></p></div>
+    <p>For this study, we need to know how closely people are watching the boxes above the keyboard. So if "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you miss a few.)</p>
+    <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
@@ -294,9 +295,8 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
-          <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you miss a few.)</p>
-
-          <p>æ shown {experimentState.attentionCheckStats.total} times, noticed {experimentState.attentionCheckStats.passed} times.</p>
+          <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you miss a few.)
+          (So far: shown {experimentState.attentionCheckStats.total} times, tapped {experimentState.attentionCheckStats.passed} times.)</p>
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} />
