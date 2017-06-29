@@ -290,8 +290,4 @@ export class ExperimentStateStore {
     default:
     }
   };
-
-  dispose() {
-    this.disposers.forEach(x => {x()});
-  }
 }

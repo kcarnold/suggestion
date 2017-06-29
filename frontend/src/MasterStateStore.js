@@ -525,9 +525,6 @@ export class MasterStateStore {
       switch (preEvent.type) {
       case 'setupExperiment':
         this.block = preEvent.block;
-        if (this.experimentState) {
-          this.experimentState.dispose();
-        }
         this.conditionName = preEvent.condition;
         this.curExperiment = preEvent.name;
         this.experiments.set(preEvent.name, new ExperimentStateStore(this.condition));
