@@ -19,7 +19,7 @@ const surveyURLs = {
   postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_3K1BKZMz3O0miZT', // postExp4
 }
 
-const wordCountTarget = 100;
+const wordCountTarget = 75;
 
 const texts = {
   detailed: {
