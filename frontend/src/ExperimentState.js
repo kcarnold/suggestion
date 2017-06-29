@@ -272,10 +272,7 @@ export class ExperimentStateStore {
           this.activeSuggestion = null;
           this.lastSpaceWasAuto = false;
         }
-        if (this.attentionCheckStats.passed === 0) {
-          alert("You just missed an æ. Next time, remember to tap any box that has æ in it.\n\n(Sorry if you get this message multiple times.)");
-        }
-        return [{type: 'failedAttnCheck'}];
+        return [{type: 'failedAttnCheck', stats: this.attentionCheckStats}];
       }
     }
     return [];

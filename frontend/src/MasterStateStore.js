@@ -609,6 +609,12 @@ export class MasterStateStore {
         this.pingTime = event.ping.mean;
       }
       break;
+    case 'failedAttnCheck':
+      if (!this.replaying && (event.stats || {}).passed === 0) {
+        alert("You just missed an æ. Next time, remember to tap any box that has æ in it.\n\n(Sorry if you get this message multiple times.)");
+      }
+      break;
+
     default:
     }
 
