@@ -1,6 +1,7 @@
 import M from 'mobx';
 import _ from 'lodash';
 import countWords from './CountWords';
+import seedrandom from 'seedrandom';
 
 /**** Main experiment-screen state store!
 
@@ -54,6 +55,8 @@ export class ExperimentStateStore {
           avoidLetter: this.useConstraints.avoidLetter ? this.constraintsBySentence[this.curSentenceNum % this.constraintsBySentence.length] : null
         };
       },
+      attentionCheck: null,
+      attentionCheckStats: {total: 0, passed: 0},
       tapLocations: [],
       contextSequenceNum: 0,
       lastSuggestionsFromServer: [],
@@ -101,7 +104,15 @@ export class ExperimentStateStore {
             isValid: true,
           });
         }
-        return suggestions.slice(0, 3);
+        suggestions = suggestions.slice(0, 3);
+
+        let {attentionCheck} = this;
+        if (attentionCheck !== null && suggestions[attentionCheck.slot].words.length > attentionCheck.word) {
+          let sugg = suggestions[attentionCheck.slot];
+          sugg.attentionCheck = true;
+          sugg.words[attentionCheck.word] = 'æ' + sugg.words[attentionCheck.word];
+        }
+        return suggestions;
       },
       insertText: M.action((toInsert, charsToDelete, taps) => {
         let cursorPos = this.curText.length;
@@ -110,6 +121,9 @@ export class ExperimentStateStore {
         this.tapLocations = this.tapLocations.slice(0, newCursorPos).concat(taps || _.map(toInsert, () => null));
       }),
       tapKey: M.action(event => {
+        let ac = this.validateAttnCheck(null);
+        if (ac !== null) return ac;
+
         let isNonWord = event.key.match(/\W/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         let toInsert = event.key;
@@ -128,11 +142,15 @@ export class ExperimentStateStore {
         this.activeSuggestion = null;
       }),
       tapBackspace: M.action(() => {
+        /* Ignore the attention check, don't count this for or against. */
         this.insertText('', 1);
         this.lastSpaceWasAuto = false;
         this.activeSuggestion = null;
       }),
-      insertSuggestion: M.action(slot => {
+      handleTapSuggestion: M.action(slot => {
+        let ac = this.validateAttnCheck(slot);
+        if (ac !== null) return ac;
+
         let wordToInsert = null;
         let tappedSuggestion = this.visibleSuggestions[slot];
         if (tappedSuggestion.contextSequenceNum === this.contextSequenceNum) {
@@ -186,6 +204,21 @@ export class ExperimentStateStore {
     // This works because every context change also changes curText.
     this.disposers.push(M.observe(this, 'curText', () => {
       this.contextSequenceNum++;
+
+      // Update attn check
+      let rng = seedrandom(this.curText);
+      if (/* && this.activeSuggestion === null &&*/ rng() < .1) {
+
+        let acWord;
+        if (this.curText.slice(-1) === ' ') {
+          // Full-word suggestion -> put the AC anywhere.
+          acWord = Math.floor(rng() * 4);
+        } else {
+          // partial-word -- assume they're not looking at the continuations.
+          acWord = 0;
+        }
+        this.attentionCheck = {slot: Math.floor(rng() * 3), word: acWord};
+      }
     }));
   }
 
@@ -214,6 +247,21 @@ export class ExperimentStateStore {
     return result;
   }
 
+  validateAttnCheck(slot) {
+    if (this.attentionCheck !== null && this.visibleSuggestions[this.attentionCheck.slot].attentionCheck) {
+      this.attentionCheckStats.total++;
+      if (this.attentionCheck.slot === slot) {
+        this.attentionCheck = null;
+        this.attentionCheckStats.passed++;
+        return {type: 'passedAttnCheck'};
+      } else {
+        this.attentionCheck = null;
+        return {type: 'failedAttnCheck'};
+      }
+    }
+    return null;
+  }
+
   handleEvent = (event) => {
     switch (event.type) {
     case 'tapKey':
@@ -226,7 +274,7 @@ export class ExperimentStateStore {
       this.updateSuggestions(event);
       break;
     case 'tapSuggestion':
-      this.insertSuggestion(event.slot);
+      this.handleTapSuggestion(event.slot);
       break;
     default:
     }
