@@ -31,7 +31,7 @@ class Consent extends React.Component {
         <p><b><span style={{fontSize: '14.0pt'}}>What can I expect if I take part in this research? What is the time commitment?</span></b></p>
         <p>You will type a few paragraphs of text, using keyboards that give various kinds of help in the process. You should not include any personally identifiable information in what you write.</p>
         <p>There will be questionnaires throughout the study, which may include questions about your age, gender, personality, computer use, and other demographic information.</p>
-        <p>Some aspects of this study will occur at your own pace, so the time commitment may vary, but we expect it to be <strong>between 30 and 45 minutes</strong>. There will be an opportunity to take a break about every 5 minutes.</p>
+        <p>Some aspects of this study will occur at your own pace, so the time commitment may vary, but we expect it to be <strong>between 30 and 60 minutes</strong>. There will be an opportunity to take a break about every 5 minutes.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>What are the risks and possible discomforts?</span></b></p>
         <p>There are no anticipated risks beyond normal use of a computer or smartphone. Please take a break if you start to feel any discomfort from prolonged computer use.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>Are there any benefits from being in this research study? </span></b></p>
