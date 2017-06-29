@@ -209,7 +209,7 @@ export class ExperimentStateStore {
     this.contextSequenceNum++;
 
     // Update attn check
-    let rng = seedrandom(this.curText);
+    let rng = seedrandom(this.curText + this.contextSequenceNum);
     if (rng() < .1) {
 
       let acWord;
