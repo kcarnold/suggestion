@@ -58,11 +58,9 @@ const texts = {
     instructionsQuiz: null,
   },
   yelp: {
-    overallInstructions: <div>
-      <p>Write a review of your experience.</p>
-      <blockquote>The best reviews are passionate, personal, and accurate. They offer a rich narrative, a wealth of detail, and a helpful tip or two for other consumers.</blockquote>
-      <p>(based on Yelp's Guidelines)</p>
-    </div>,
+    overallInstructions: <span>
+      Write a review of your experience. &ldquo;<em>The best reviews are passionate, personal, and accurate. They offer a rich narrative, a wealth of detail, and a helpful tip or two for other consumers.</em>&rdquo; (based on Yelp's Guidelines)... and please try to avoid typos.
+    </span>,
     brainstormingInstructions: null,
     revisionInstructions: null,
     instructionsQuiz: null,
