@@ -213,6 +213,7 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
 
   return <div>
     <p>Think of {numPlaces} <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
+    {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
     {indices.map(idx => <div key={idx} className="Restaurant">{idx}.
       Name: <ControlledInput name={`restaurant${idx}`} /><br />
       When were you last there? <ControlledInput name={`visit${idx}`}/>
