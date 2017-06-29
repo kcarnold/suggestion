@@ -268,6 +268,9 @@ export class ExperimentStateStore {
           this.activeSuggestion = null;
           this.lastSpaceWasAuto = false;
         }
+        if (this.attentionCheckStats.passed === 0) {
+          alert("You just missed an æ. Next time, remember to tap any box that has æ in it.");
+        }
         return [{type: 'failedAttnCheck'}];
       }
     }
