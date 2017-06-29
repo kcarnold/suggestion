@@ -915,6 +915,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                         replaces_slot = first_words_used.get(words[0])
                         if replaces_slot is not None:
                             prev_llk = active_entities[assignments[replaces_slot]][0]
+                            if llk < prev_llk + max_logprob_penalty:
+                                # Too much relevance cost.
+                                continue
                             if replaces_slot == promise_slot:
                                 # This could replace the promise iff it was a continuation.
                                 if words[:len(promise_words)] == promise_words:
@@ -935,6 +938,9 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                                 prev_llk = active_entities[assignments[replaces_slot]][0]
                                 if prev_llk >= 0:
                                     # Sorry, this was a special one, can't kick it out.
+                                    continue
+                                elif llk < prev_llk + max_logprob_penalty:
+                                    # Sorry, too much relevance cost.
                                     continue
                                 candidate_summaries = cur_summaries.copy()
                                 candidate_summaries[replaces_slot] = cur_summary
