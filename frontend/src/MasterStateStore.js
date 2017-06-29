@@ -190,6 +190,7 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 5,
+    useAttentionCheck: true,
   },
   sentneg: {
     sugFlags: {
@@ -200,6 +201,7 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 1,
+    useAttentionCheck: true,
   },
   sentmatch: {
     sugFlags: {

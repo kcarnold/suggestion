@@ -258,7 +258,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     <p><b>Note</b>: We've changed how the keyboard picks words or phrases to show.</p>
-    <p>For this study, we need to measure how closely people are watching the boxes above the keyboard. So if "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>
+    {state.condition.useAttentionCheck && <p>For this study, we need to measure how closely people are watching the boxes above the keyboard. So if "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
     <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
     : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
 
@@ -295,7 +295,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
-          <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. Don't worry if you happen to miss a few.</p>
+          {state.condition.useAttentionCheck && <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. Don't worry if you happen to miss a few.</p>}
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} />

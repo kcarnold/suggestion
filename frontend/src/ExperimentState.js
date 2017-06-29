@@ -210,7 +210,7 @@ export class ExperimentStateStore {
 
     // Update attn check
     let rng = seedrandom(this.curText + this.contextSequenceNum);
-    if (rng() < .1) {
+    if (this.condition.useAttentionCheck && rng() < .1) {
 
       let acWord;
       if (this.curText.slice(-1) === ' ') {
