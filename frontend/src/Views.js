@@ -282,6 +282,9 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
+          <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. (Don't worry if you miss a few.)</p>
+
+          <p>æ shown {experimentState.attentionCheckStats.total} times, noticed {experimentState.attentionCheckStats.passed} times.</p>
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} />
