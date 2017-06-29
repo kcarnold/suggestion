@@ -47,7 +47,7 @@ export class ExperimentStateStore {
       useConstraints: {},
       constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
       get curSentenceNum() {
-        return (this.curText.match(/\.\s/g) || []).length;
+        return (this.curText.match(/[?.!]\s/g) || []).length;
       },
       get curConstraint() {
         return {
