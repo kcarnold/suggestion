@@ -9,18 +9,18 @@ load_dotenv(find_dotenv())
 
 dataCenter = 'harvard.az1'
 api_token = os.environ['QUALTRICS_API_TOKEN']
-#surveyId = "SV_8HVnUso1f0DZExv"
 surveys = dict(
   intro='SV_9GiIgGOn3Snoxwh',
+  intro2='SV_9mGf4CUxHYIg56d',
   instructionsQuiz='SV_42ziiSrsZzOdBul',
   # postFreewrite='SV_0OCqAQl6o7BiidT',
   postTask='SV_5yztOdf3SX8EtOl',
   postTask3="SV_7OPqWyf4iipivwp",
   postExp='SV_8HVnUso1f0DZExv',
   postExp3='SV_eQbXXnoiDBWeww5',
+  postExp4='SV_3K1BKZMz3O0miZT',
   )
 
-surveyId = "SV_0OCqAQl6o7BiidT"
 
 def get_survey(survey_id):
     return requests.get(

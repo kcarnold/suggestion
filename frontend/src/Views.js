@@ -9,12 +9,14 @@ import Consent from './Consent';
 const hostname = window.location.host;
 
 const surveyURLs = {
-  intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
+  // intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
+  intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9mGf4CUxHYIg56d', // new intro with personality
   postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
   // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
   postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_7OPqWyf4iipivwp',
   // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
-  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_eQbXXnoiDBWeww5',
+  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_eQbXXnoiDBWeww5',
+  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_3K1BKZMz3O0miZT', // postExp4
 }
 
 const wordCountTarget = 100;
