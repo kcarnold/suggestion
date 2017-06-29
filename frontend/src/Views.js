@@ -119,8 +119,10 @@ const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
   }} disabled={props.disabled}>{props.children || "Next"}</button>);
 
 
-const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <input
-  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}} value={state.controlledInputs.get(name) || ''} />));
+const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name, ...props}) => <input
+  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}}
+  value={state.controlledInputs.get(name) || ''}
+  {...props} />));
 
 const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
   name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
@@ -216,10 +218,10 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
     {indices.map(idx => <div key={idx} className="Restaurant">{idx}.
       Name: <ControlledInput name={`restaurant${idx}`} /><br />
-      When were you last there? <ControlledInput name={`visit${idx}`}/>
+      About how long ago were you there, in days? <ControlledInput name={`visit${idx}`} type="number" min="0"/>
       <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} />
       <br/><br />On a scale of 1 to 5, do you already know what you want to say about this place? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
-      <ControlledInput name={`knowWhat${idx}`} />
+      <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" />
     </div>)}
     <p>(The Next button will be enabled once all fields are filled out.)</p>
     <NextBtn disabled={!complete} />

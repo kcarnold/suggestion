@@ -448,7 +448,7 @@ export class MasterStateStore {
         let {controlledInputs} = this;
         let res = this.conditions.map((condition, idx) => ({
           name: controlledInputs.get(`restaurant${idx+1}`),
-          visit: controlledInputs.get(`visit${idx+1}`),
+          visit: controlledInputs.get(`visit${idx+1}`) + " day(s) ago",
           stars: controlledInputs.get(`star${idx+1}`),
           knowWhatToWrite: controlledInputs.get(`knowWhat${idx+1}`)
         }));
