@@ -2,9 +2,9 @@ import M from 'mobx';
 import _ from 'lodash';
 import countWords from './CountWords';
 
-/**** Main state store!
+/**** Main experiment-screen state store!
 
-This represents all the state, UI state included. The entire UI should be a function of this, with perhaps a few pragmatic exceptions (none yet - 2016-12-17).
+This represents all the state relevant to a trial.
 
 A Suggestion is an important object. It contains:
 {
