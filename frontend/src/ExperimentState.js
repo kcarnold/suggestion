@@ -210,7 +210,7 @@ export class ExperimentStateStore {
 
     // Update attn check
     let rng = seedrandom(this.curText);
-    if (/* && this.activeSuggestion === null &&*/ rng() < .1) {
+    if (rng() < .1) {
 
       let acWord;
       if (this.curText.slice(-1) === ' ') {
@@ -225,6 +225,8 @@ export class ExperimentStateStore {
         acSlot = (acSlot + 1) % 3;
       }
       this.attentionCheck = {slot: acSlot, word: acWord};
+    } else {
+      this.attentionCheck = null;
     }
     return {type: 'suggestion_context_changed'};
   }
