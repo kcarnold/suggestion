@@ -526,9 +526,11 @@ export class MasterStateStore {
   }
 
   handleEvent = M.action((event) => {
+    let sideEffects = [];
     this.lastEventTimestamp = event.jsTimestamp;
     if (this.experimentState) {
-      this.experimentState.handleEvent(event);
+      let res = this.experimentState.handleEvent(event);
+      if (res) sideEffects = sideEffects.concat(res);
     }
     if (this.tutorialTasks) {
       this.tutorialTasks.handleEvent(event);
@@ -588,5 +590,6 @@ export class MasterStateStore {
     if (this.screenNum !== screenAtStart) {
       this.initScreen();
     }
+    return sideEffects;
   });
 }

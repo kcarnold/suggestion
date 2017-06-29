@@ -122,7 +122,7 @@ export class ExperimentStateStore {
       }),
       tapKey: M.action(event => {
         let ac = this.validateAttnCheck(null);
-        if (ac !== null) return ac;
+        if (ac.length) return ac;
 
         let isNonWord = event.key.match(/\W/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
@@ -140,16 +140,18 @@ export class ExperimentStateStore {
         this.insertText(toInsert, deleteSpace ? 1 : 0, taps);
         this.lastSpaceWasAuto = autoSpace;
         this.activeSuggestion = null;
+        return [this.changedMsg()];
       }),
       tapBackspace: M.action(() => {
         /* Ignore the attention check, don't count this for or against. */
         this.insertText('', 1);
         this.lastSpaceWasAuto = false;
         this.activeSuggestion = null;
+        return [this.changedMsg()];
       }),
       handleTapSuggestion: M.action(slot => {
         let ac = this.validateAttnCheck(slot);
-        if (ac !== null) return ac;
+        if (ac.length) return ac;
 
         let wordToInsert = null;
         let tappedSuggestion = this.visibleSuggestions[slot];
@@ -177,6 +179,7 @@ export class ExperimentStateStore {
         }
         this.insertText(wordToInsert + ' ', charsToDelete, null);
         this.lastSpaceWasAuto = true;
+        return [this.changedMsg()];
       }),
 
       updateSuggestions: M.action(event => {
@@ -198,28 +201,30 @@ export class ExperimentStateStore {
         }));
       }),
     });
+  }
 
-    this.disposers = [];
-    // Keep a running sequence of contexts.
-    // This works because every context change also changes curText.
-    this.disposers.push(M.observe(this, 'curText', () => {
-      this.contextSequenceNum++;
+  changedMsg() {
+    this.contextSequenceNum++;
 
-      // Update attn check
-      let rng = seedrandom(this.curText);
-      if (/* && this.activeSuggestion === null &&*/ rng() < .1) {
+    // Update attn check
+    let rng = seedrandom(this.curText);
+    if (/* && this.activeSuggestion === null &&*/ rng() < .1) {
 
-        let acWord;
-        if (this.curText.slice(-1) === ' ') {
-          // Full-word suggestion -> put the AC anywhere.
-          acWord = Math.floor(rng() * 4);
-        } else {
-          // partial-word -- assume they're not looking at the continuations.
-          acWord = 0;
-        }
-        this.attentionCheck = {slot: Math.floor(rng() * 3), word: acWord};
+      let acWord;
+      if (this.curText.slice(-1) === ' ') {
+        // Full-word suggestion -> put the AC anywhere.
+        acWord = Math.floor(rng() * 4);
+      } else {
+        // partial-word -- assume they're not looking at the continuations.
+        acWord = 0;
       }
-    }));
+      let acSlot = Math.floor(rng() * 3);
+      if (this.activeSuggestion !== null && this.activeSuggestion.slot === acSlot) {
+        acSlot = (acSlot + 1) % 3;
+      }
+      this.attentionCheck = {slot: acSlot, word: acWord};
+    }
+    return {type: 'suggestion_context_changed'};
   }
 
   getSuggestionContext() {
@@ -253,29 +258,32 @@ export class ExperimentStateStore {
       if (this.attentionCheck.slot === slot) {
         this.attentionCheck = null;
         this.attentionCheckStats.passed++;
-        return {type: 'passedAttnCheck'};
+        return [{type: 'passedAttnCheck'}];
       } else {
+        // Failed attn check.
         this.attentionCheck = null;
-        return {type: 'failedAttnCheck'};
+        if (false) {
+          // Delete stuff...
+          this.insertText('', Math.min(this.curText.length, 5));
+          this.activeSuggestion = null;
+          this.lastSpaceWasAuto = false;
+        }
+        return [{type: 'failedAttnCheck'}];
       }
     }
-    return null;
+    return [];
   }
 
   handleEvent = (event) => {
     switch (event.type) {
     case 'tapKey':
-      this.tapKey(event);
-      break;
+      return this.tapKey(event);
     case 'tapBackspace':
-      this.tapBackspace();
-      break;
+      return this.tapBackspace();
     case 'receivedSuggestions':
-      this.updateSuggestions(event);
-      break;
+      return this.updateSuggestions(event);
     case 'tapSuggestion':
-      this.handleTapSuggestion(event.slot);
-      break;
+      return this.handleTapSuggestion(event.slot);
     default:
     }
   };

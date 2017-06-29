@@ -110,7 +110,19 @@ function dispatch(event) {
   event.jsTimestamp = +new Date();
   event.kind = clientKind;
   log(event);
-  eventHandlers.forEach(fn => fn(event));
+  let sideEffects = [];
+  eventHandlers.forEach(fn => {
+    let res = fn(event);
+    if (res.length) {
+      sideEffects = sideEffects.concat(res);
+    }
+  });
+  // Run side-effects after all handlers have had at it.
+  sideEffects.forEach(sideEffect => {
+    if (sideEffect.type !== 'suggestion_context_changed') {
+      setTimeout(() => dispatch(sideEffect), 0);
+    }
+  });
 }
 
 // Every event gets logged to the server. Keep events small!
