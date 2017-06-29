@@ -54,8 +54,17 @@ const texts = {
     brainstormingInstructions: <span />,
     revisionInstructions: <span/>,
     instructionsQuiz: null,
+  },
+  yelp: {
+    overallInstructions: <div>
+      <p>Write a review of your experience.</p>
+      <blockquote>The best reviews are passionate, personal, and accurate. They offer a rich narrative, a wealth of detail, and a helpful tip or two for other consumers.</blockquote>
+      <p>(based on Yelp's Guidelines)</p>
+    </div>,
+    brainstormingInstructions: null,
+    revisionInstructions: null,
+    instructionsQuiz: null,
   }
-
 };
 
 const tutorialTaskDescs = {

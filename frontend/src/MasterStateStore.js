@@ -263,6 +263,10 @@ const MASTER_CONFIGS = {
     baseConditions: ['sentdiverse', 'sentmatch', 'word'],
     instructions: 'review',
   },
+  sent4: {
+    baseConditions: ['sentpos', 'sentneg'],
+    instructions: 'yelp',
+  }
 };
 
 
@@ -324,6 +328,19 @@ function seededShuffle(seed, array) {
   return shuffle(seedrandom(seed), array);
 }
 
+function specialSent4PlaceSort(participantId, places) {
+  places = _.sortBy(places, 'stars');
+  let neg = places.slice(0, 2), pos = places.slice(2);
+  neg = seededShuffle(`${participantId}-places-neg`, neg);
+  pos = seededShuffle(`${participantId}-places-pos`, pos);
+  let order = seededShuffle(`${participantId}-places-order`, [pos, neg]);
+  return order[0].concat(order[1]);
+}
+
+// function testSpecialSent4PlaceSort() {
+//   JSON.stringify(specialSent4PlaceSort('a01', [{stars: 5}, {stars: 4}, {stars: 1}, {stars: 3}]));
+// }
+
 export class MasterStateStore {
   masterConfig: Object;
   masterConfigName: string;
@@ -346,6 +363,10 @@ export class MasterStateStore {
     this.masterConfigName = configName;
     this.masterConfig = MASTER_CONFIGS[configName];
     this.conditions = seededShuffle(`${this.clientId}-conditions`, this.masterConfig.baseConditions);
+    if (configName === 'sent4') {
+      // This condition repeats the base conditions.
+      this.conditions = this.conditions.concat(this.conditions);
+    }
     this.initScreen();
   }
 
@@ -431,7 +452,12 @@ export class MasterStateStore {
           stars: controlledInputs.get(`star${idx+1}`),
           knowWhatToWrite: controlledInputs.get(`knowWhat${idx+1}`)
         }));
-        return seededShuffle(`${this.clientId}-places`, res);
+        if (this.masterConfigName === 'sent4') {
+          // Sort places special: pick two good, then two bad, or vice versa.
+          return specialSent4PlaceSort(this.clientId, res);
+        } else {
+          return seededShuffle(`${this.clientId}-places`, res);
+        }
       },
       get suggestionRequestParams() {
         let sentiment = this.condition.sentiment;
