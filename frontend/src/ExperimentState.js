@@ -107,7 +107,9 @@ export class ExperimentStateStore {
         suggestions = suggestions.slice(0, 3);
 
         let {attentionCheck} = this;
-        if (attentionCheck !== null && suggestions[attentionCheck.slot].words.length > attentionCheck.word) {
+        if (attentionCheck !== null &&
+            suggestions[attentionCheck.slot].isValid &&
+            suggestions[attentionCheck.slot].words.length > attentionCheck.word + 1) {
           let sugg = suggestions[attentionCheck.slot];
           sugg.attentionCheck = true;
           sugg.words[attentionCheck.word] = 'æ' + sugg.words[attentionCheck.word];
