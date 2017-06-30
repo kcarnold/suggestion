@@ -169,7 +169,8 @@ def get_log_analysis_data(participant):
     conditions = log_analyses['conditions']
     base_datum = dict(participant_id=participant,
                  conditions=','.join(conditions),
-                 config=log_analyses['config'])
+                 config=log_analyses['config'],
+                 git_rev=log_analyses['git_rev'])
     for page, page_data in log_analyses['byExpPage'].items():
         datum = base_datum.copy()
         if '-' in page:
@@ -266,6 +267,15 @@ def get_latencies(participants):
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
 #%%
+def unclean_merge_columns(df):
+    return [col for col in df.columns if col.endswith('_x') or col.endswith('_y')]
+
+def clean_merge(*a, **kw):
+    res = pd.merge(*a, **kw)
+    unclean = unclean_merge_columns(res)
+    assert len(unclean) == 0, unclean
+    return res
+
 
 def get_all_data():
     participants_by_study = get_participants_by_study()
@@ -286,11 +296,11 @@ def get_all_data():
         if survey_data[subname] is None:
             survey_data[subname] = processed_survey_data
         else:
-            survey_data[subname] = pd.merge(
+            survey_data[subname] = clean_merge(
                     survey_data[subname], processed_survey_data,
                     left_on=merge_on, right_on=merge_on, how='outer')
 
-    participant_level_data = pd.merge(
+    participant_level_data = clean_merge(
             survey_data['participant'], participants_by_study,
             left_on='participant_id', right_on='participant_id', how='outer').set_index('participant_id')
 
@@ -298,21 +308,22 @@ def get_all_data():
         for participant in participants}
     log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
-    trial_level_data = pd.merge(
+    trial_level_data = clean_merge(
             survey_data['trial'],
             log_analysis_data,
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
+    assert not unclean_merge_columns(trial_level_data)
 #    trial_level_data['final_len]
 
     # Manual text corrections
-    trial_level_data = pd.merge(
+    trial_level_data = clean_merge(
         trial_level_data, get_correction_task_results(),
         left_on='final_text', right_on='final_text', how='left')
 
 
     # Compute likelihoods
-    trial_level_data = pd.merge(
+    trial_level_data = clean_merge(
         trial_level_data,
         trial_level_data.corrected_text.dropna().apply(analyze_llks),
         left_index=True, right_index=True, how='left')
@@ -322,22 +333,22 @@ def get_all_data():
     annotation_results['pos'] = pd.to_numeric(annotation_results['pos'])
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
     total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
-    sentiments = pd.merge(
+    sentiments = clean_merge(
         max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'}),
         total_sentiments.rename(columns={'pos': 'total_positive', 'neg': 'total_negative'}),
         left_index=True, right_index=True)
-    trial_level_data = pd.merge(
+    trial_level_data = clean_merge(
             trial_level_data, sentiments.reset_index(),
-            left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
+            left_on=['participant_id', 'config', 'block', 'condition'], right_on=['participant_id', 'config', 'block', 'condition'], how='left')
 
     topic_diversity = (
             annotation_results
             .dropna(subset=['topics'])
-            .groupby(['config', 'participant_id', 'block', 'condition'])
+            .groupby(['participant_id', 'block', 'condition'])
             .topics
             .agg(lambda group:
                 len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
-    trial_level_data = pd.merge(
+    trial_level_data = clean_merge(
         trial_level_data, topic_diversity.to_frame('num_topics').reset_index(),
         left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
 
@@ -345,7 +356,7 @@ def get_all_data():
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
     # Calculate latency.
-    participant_level_data = pd.merge(
+    participant_level_data = clean_merge(
             participant_level_data, get_latencies(participants),
             left_index=True, right_index=True, how='left')
 
@@ -366,11 +377,11 @@ def get_all_data():
     print(f"Excluding {np.sum(too_few_actions)} for too few actions")
     exclude = too_few_actions | too_much_latency
     print(f"Excluding {np.sum(exclude)} total")
-    participant_level_data = pd.merge(
+    participant_level_data = clean_merge(
             participant_level_data, exclude.to_frame('is_excluded'),
             left_index=True, right_index=True, how='left')
 
-    full_data = pd.merge(
+    full_data = clean_merge(
             participant_level_data,
             trial_level_data,
             left_index=True, right_on='participant_id', how='right').reset_index()
