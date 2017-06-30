@@ -14,7 +14,7 @@ import string
 
 from suggestion.analysis_util import (
         # survey stuff
-        skip_col_re, prefix_subs,
+        skip_col_re, prefix_subs, decode_scales,
         # log analysis stuff
         get_existing_requests, classify_annotated_event, get_log_analysis)
 
@@ -126,6 +126,8 @@ def process_survey_data(survey, survey_data_raw):
                 cols_to_rename[col] = col.replace(x, y, 1)
                 break
     data = data.rename(columns=cols_to_rename)
+
+    data = data.applymap(lambda x: decode_scales.get(x, x))
 
     # Specific renames
     renames = {}
