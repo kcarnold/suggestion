@@ -1,0 +1,1510 @@
+{
+  "id": "SV_9mGf4CUxHYIg56d",
+  "name": "Writing Study - Intro - 2017-06-29",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-06-29T10:57:44Z",
+  "lastModifiedDate": "2017-06-29T13:41:33Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span><br>\n<br>The main part of this task will be writing about each experience that you just listed. There will be a brief survey after each writing session, then a survey about the experiment overall. <div><br></div><div>If any part of this task is confusing or unclear, please don't hesitate to ask us about it!<br>\n<br>Before we get started, could you please answer a few questions about yourself?<br></div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q1"
+    },
+    "QID12": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q12",
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID6": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>\n\n<div><br />\nPlease answer the below to the best of your ability. You will not be penalized should you decide not to answer a question. Thank you.</div>\n\n<div> </div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q8"
+    },
+    "QID7": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "How old are you?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 18.0,
+          "maximum": 110.0
+        }
+      },
+      "questionName": "Q9"
+    },
+    "QID4": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is the highest level of school you have completed or the highest degree you have received? ",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q5",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Less than high school degree",
+          "choiceText": "Less than high school degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "High school graduate (high school diploma or equivalent including GED)",
+          "choiceText": "High school graduate (high school diploma or equivalent including GED)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Some college but no degree",
+          "choiceText": "Some college but no degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Associate degree in college (2-year)",
+          "choiceText": "Associate degree in college (2-year)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "recode": "5",
+          "description": "Bachelor's degree in college (4-year)",
+          "choiceText": "Bachelor's degree in college (4-year)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "recode": "6",
+          "description": "Master's degree",
+          "choiceText": "Master's degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "recode": "7",
+          "description": "Doctoral degree",
+          "choiceText": "Doctoral degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "8": {
+          "recode": "8",
+          "description": "Professional degree (JD, MD)",
+          "choiceText": "Professional degree (JD, MD)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID5": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is your gender?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q7",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Male",
+          "choiceText": "Male",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Female",
+          "choiceText": "Female",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Something else, or I'd prefer not to say",
+          "choiceText": "Something else, or I'd prefer not to say",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID16": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "How proficient would you say you are in English?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q16",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Basic",
+          "choiceText": "Basic",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Conversational",
+          "choiceText": "Conversational",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Fluent",
+          "choiceText": "Fluent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Native or bilingual",
+          "choiceText": "Native or bilingual",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID32": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 0.0,
+          "maximum": 0.0
+        }
+      },
+      "questionName": "Q32"
+    },
+    "QID31": {
+      "questionType": {
+        "type": "Timing",
+        "selector": "PageTimer",
+        "subSelector": null
+      },
+      "questionText": "Timing",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q31",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "First Click",
+          "choiceText": "First Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Last Click",
+          "choiceText": "Last Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Page Submit",
+          "choiceText": "Page Submit",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Click Count",
+          "choiceText": "Click Count",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID21": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "<p>A bat and a ball cost $1.10 in total. The bat costs a dollar more than the ball. How much does the ball cost, in cents?</p>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q22"
+    },
+    "QID22": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets (in minutes)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q23"
+    },
+    "QID23": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 days for the patch to cover the entire lake, how long would it take for the patch to cover half of the lake (in days)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q24"
+    },
+    "QID24": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 days, how long would it take them to drink one barrel of water together (in days)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q25"
+    },
+    "QID25": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are in the class?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q26"
+    },
+    "QID26": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. How much has he made (in dollars)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q27"
+    },
+    "QID27": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he invested, on July 17, the stocks he had purchased were down 50%. Fortunately for Simon, from July 17 to October 17, the stocks he had purchased went up 75%. At this point, Simon:",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q28",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "has broken even in the stock market",
+          "choiceText": "has broken even in the stock market",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "is ahead of where he began",
+          "choiceText": "is ahead of where he began",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "has lost money",
+          "choiceText": "has lost money",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID20": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "<div>Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.</div><div><br></div><div><div><div><div><span class=\"user-generated notranslate\" style=\"margin: 0px; padding: 0px; border: 0px; font-style: inherit; font-variant: inherit; font-stretch: inherit; font-size: inherit; line-height: inherit; font-family: inherit;\"><b>Indicate for each statement whether it is Very Inaccurate, Moderately Inaccurate, Neither Accurate Nor Inaccurate, Moderately Accurate, or Very Accurate as a description of you.</b></span></div></div></div></div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q21",
+      "subQuestions": {
+        "4": {
+          "recode": "4",
+          "description": "I am not easily bothered by things",
+          "choiceText": "I am not easily bothered by things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "5": {
+          "recode": "5",
+          "description": "I am not interested in abstract ideas",
+          "choiceText": "I am not interested in abstract ideas",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "6": {
+          "recode": "6",
+          "description": "I am not interested in speculating about things",
+          "choiceText": "I am not interested in speculating about things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "7": {
+          "recode": "7",
+          "description": "I am not interested in theoretical discussions",
+          "choiceText": "I am not interested in theoretical discussions",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "8": {
+          "recode": "8",
+          "description": "I am often down in the dumps",
+          "choiceText": "I am often down in the dumps",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "9": {
+          "recode": "9",
+          "description": "I am quick to understand things",
+          "choiceText": "I am quick to understand things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "10": {
+          "recode": "10",
+          "description": "I am skilled in handling social situations",
+          "choiceText": "I am skilled in handling social situations",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "11": {
+          "recode": "11",
+          "description": "I am the life of the party",
+          "choiceText": "I am the life of the party",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "12": {
+          "recode": "12",
+          "description": "I am very pleased with myself",
+          "choiceText": "I am very pleased with myself",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "13": {
+          "recode": "13",
+          "description": "I am wary of others",
+          "choiceText": "I am wary of others",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "14": {
+          "recode": "14",
+          "description": "I ask questions that nobody else does",
+          "choiceText": "I ask questions that nobody else does",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "15": {
+          "recode": "15",
+          "description": "I avoid difficult reading material",
+          "choiceText": "I avoid difficult reading material",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "16": {
+          "recode": "16",
+          "description": "I avoid philosophical discussions",
+          "choiceText": "I avoid philosophical discussions",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "17": {
+          "recode": "17",
+          "description": "I believe in human goodness",
+          "choiceText": "I believe in human goodness",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "18": {
+          "recode": "18",
+          "description": "I believe in the importance of art",
+          "choiceText": "I believe in the importance of art",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "19": {
+          "recode": "19",
+          "description": "I believe in the power of fate",
+          "choiceText": "I believe in the power of fate",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "20": {
+          "recode": "20",
+          "description": "I believe some people are born lucky",
+          "choiceText": "I believe some people are born lucky",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "21": {
+          "recode": "21",
+          "description": "I believe that my success depends on ability rather than luck",
+          "choiceText": "I believe that my success depends on ability rather than luck",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "22": {
+          "recode": "22",
+          "description": "I believe that others have good intentions",
+          "choiceText": "I believe that others have good intentions",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "23": {
+          "recode": "23",
+          "description": "I believe that people are basically moral",
+          "choiceText": "I believe that people are basically moral",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "24": {
+          "recode": "24",
+          "description": "I believe that people are essentially evil",
+          "choiceText": "I believe that people are essentially evil",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "25": {
+          "recode": "25",
+          "description": "I believe that the world is controlled by a few powerful people",
+          "choiceText": "I believe that the world is controlled by a few powerful people",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "26": {
+          "recode": "26",
+          "description": "I believe that too much tax money goes to support artists",
+          "choiceText": "I believe that too much tax money goes to support artists",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "27": {
+          "recode": "27",
+          "description": "I believe that unfortunate events occur because of bad luck",
+          "choiceText": "I believe that unfortunate events occur because of bad luck",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "28": {
+          "recode": "28",
+          "description": "I can easily link facts together",
+          "choiceText": "I can easily link facts together",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "29": {
+          "recode": "29",
+          "description": "I can handle a lot of information",
+          "choiceText": "I can handle a lot of information",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "30": {
+          "recode": "30",
+          "description": "I can say things beautifully",
+          "choiceText": "I can say things beautifully",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "31": {
+          "recode": "31",
+          "description": "I carry the conversation to a higher level",
+          "choiceText": "I carry the conversation to a higher level",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "32": {
+          "recode": "32",
+          "description": "I challenge others' points of view",
+          "choiceText": "I challenge others' points of view",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "33": {
+          "recode": "33",
+          "description": "I consider myself an average person",
+          "choiceText": "I consider myself an average person",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "34": {
+          "recode": "34",
+          "description": "I dislike myself",
+          "choiceText": "I dislike myself",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "35": {
+          "recode": "35",
+          "description": "I distrust people",
+          "choiceText": "I distrust people",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "36": {
+          "recode": "36",
+          "description": "I do not enjoy going to art museums",
+          "choiceText": "I do not enjoy going to art museums",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "37": {
+          "recode": "37",
+          "description": "I do not like art",
+          "choiceText": "I do not like art",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "38": {
+          "recode": "38",
+          "description": "I do not like poetry",
+          "choiceText": "I do not like poetry",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "39": {
+          "recode": "39",
+          "description": "I don't like to draw attention to myself",
+          "choiceText": "I don't like to draw attention to myself",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "40": {
+          "recode": "40",
+          "description": "I don't talk a lot",
+          "choiceText": "I don't talk a lot",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "41": {
+          "recode": "41",
+          "description": "I enjoy hearing new ideas",
+          "choiceText": "I enjoy hearing new ideas",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "42": {
+          "recode": "42",
+          "description": "I enjoy thinking about things",
+          "choiceText": "I enjoy thinking about things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "43": {
+          "recode": "43",
+          "description": "I enjoy wild flights of fancy",
+          "choiceText": "I enjoy wild flights of fancy",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "44": {
+          "recode": "44",
+          "description": "I feel comfortable around people",
+          "choiceText": "I feel comfortable around people",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "45": {
+          "recode": "45",
+          "description": "I feel comfortable with myself",
+          "choiceText": "I feel comfortable with myself",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "46": {
+          "recode": "46",
+          "description": "I get excited by new ideas",
+          "choiceText": "I get excited by new ideas",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "47": {
+          "recode": "47",
+          "description": "I have a rich vocabulary",
+          "choiceText": "I have a rich vocabulary",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "48": {
+          "recode": "48",
+          "description": "I have a vivid imagination",
+          "choiceText": "I have a vivid imagination",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "49": {
+          "recode": "49",
+          "description": "I have difficulty understanding abstract ideas",
+          "choiceText": "I have difficulty understanding abstract ideas",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "50": {
+          "recode": "50",
+          "description": "I have frequent mood swings",
+          "choiceText": "I have frequent mood swings",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "51": {
+          "recode": "51",
+          "description": "I have little to say",
+          "choiceText": "I have little to say",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "52": {
+          "recode": "52",
+          "description": "I keep in the background",
+          "choiceText": "I keep in the background",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "53": {
+          "recode": "53",
+          "description": "I know how to captivate people",
+          "choiceText": "I know how to captivate people",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "54": {
+          "recode": "54",
+          "description": "I know the answers to many questions",
+          "choiceText": "I know the answers to many questions",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "55": {
+          "recode": "55",
+          "description": "I like to solve complex problems",
+          "choiceText": "I like to solve complex problems",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "56": {
+          "recode": "56",
+          "description": "I love to read challenging material",
+          "choiceText": "I love to read challenging material",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "57": {
+          "recode": "57",
+          "description": "I love to think up new ways of doing things",
+          "choiceText": "I love to think up new ways of doing things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "58": {
+          "recode": "58",
+          "description": "I make friends easily",
+          "choiceText": "I make friends easily",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "59": {
+          "recode": "59",
+          "description": "I need things explained only once",
+          "choiceText": "I need things explained only once",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "60": {
+          "recode": "60",
+          "description": "I often feel blue",
+          "choiceText": "I often feel blue",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "61": {
+          "recode": "61",
+          "description": "I panic easily",
+          "choiceText": "I panic easily",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "62": {
+          "recode": "62",
+          "description": "I rarely get irritated",
+          "choiceText": "I rarely get irritated",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "63": {
+          "recode": "63",
+          "description": "I rarely look for a deeper meaning in things",
+          "choiceText": "I rarely look for a deeper meaning in things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "64": {
+          "recode": "64",
+          "description": "I seldom feel blue",
+          "choiceText": "I seldom feel blue",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "65": {
+          "recode": "65",
+          "description": "I suspect hidden motives in others",
+          "choiceText": "I suspect hidden motives in others",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "66": {
+          "recode": "66",
+          "description": "I tend to vote for conservative political candidates",
+          "choiceText": "I tend to vote for conservative political candidates",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "67": {
+          "recode": "67",
+          "description": "I tend to vote for liberal political candidates",
+          "choiceText": "I tend to vote for liberal political candidates",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "68": {
+          "recode": "68",
+          "description": "I think that all will be well",
+          "choiceText": "I think that all will be well",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "69": {
+          "recode": "69",
+          "description": "I trust others",
+          "choiceText": "I trust others",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "70": {
+          "recode": "70",
+          "description": "I trust what people say",
+          "choiceText": "I trust what people say",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "71": {
+          "recode": "71",
+          "description": "I try to avoid complex people",
+          "choiceText": "I try to avoid complex people",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "72": {
+          "recode": "72",
+          "description": "I would describe my experiences as somewhat dull",
+          "choiceText": "I would describe my experiences as somewhat dull",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "18": {
+          "recode": "18",
+          "description": "Very <strong>Inaccurate</strong",
+          "choiceText": "Very <strong>Inaccurate</strong",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "19": {
+          "recode": "19",
+          "description": "Moderately Inaccurate",
+          "choiceText": "Moderately Inaccurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "20": {
+          "recode": "20",
+          "description": "Neither Accurate Nor Inaccurate",
+          "choiceText": "Neither Accurate Nor Inaccurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "21": {
+          "recode": "21",
+          "description": "Moderately Accurate",
+          "choiceText": "Moderately Accurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "22": {
+          "recode": "22",
+          "description": "Very <strong>Accurate</strong>",
+          "choiceText": "Very <strong>Accurate</strong>",
+          "imageDescription": null,
+          "analyze": true
+        }
+      },
+      "randomization": {
+        "type": "all"
+      }
+    }
+  },
+  "exportColumnMap": {
+    "Q1": {
+      "question": "QID1"
+    },
+    "Q12_1_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.1"
+    },
+    "Q12_2_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.2"
+    },
+    "Q12_3_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.3"
+    },
+    "Q12_4_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.4"
+    },
+    "Q12_5_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.5"
+    },
+    "Q12_6_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.6"
+    },
+    "Q12_7_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.7"
+    },
+    "Q8": {
+      "question": "QID6"
+    },
+    "Q9": {
+      "question": "QID7"
+    },
+    "Q5": {
+      "question": "QID4"
+    },
+    "Q7": {
+      "question": "QID5"
+    },
+    "Q16": {
+      "question": "QID16"
+    },
+    "Q32": {
+      "question": "QID32"
+    },
+    "Q31_1": {
+      "question": "QID31",
+      "choice": "QID31.choices.1"
+    },
+    "Q31_2": {
+      "question": "QID31",
+      "choice": "QID31.choices.2"
+    },
+    "Q31_3": {
+      "question": "QID31",
+      "choice": "QID31.choices.3"
+    },
+    "Q31_4": {
+      "question": "QID31",
+      "choice": "QID31.choices.4"
+    },
+    "Q22": {
+      "question": "QID21"
+    },
+    "Q23": {
+      "question": "QID22"
+    },
+    "Q24": {
+      "question": "QID23"
+    },
+    "Q25": {
+      "question": "QID24"
+    },
+    "Q26": {
+      "question": "QID25"
+    },
+    "Q27": {
+      "question": "QID26"
+    },
+    "Q28": {
+      "question": "QID27"
+    },
+    "Q21_4": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.4"
+    },
+    "Q21_5": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.5"
+    },
+    "Q21_6": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.6"
+    },
+    "Q21_7": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.7"
+    },
+    "Q21_8": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.8"
+    },
+    "Q21_9": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.9"
+    },
+    "Q21_10": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.10"
+    },
+    "Q21_11": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.11"
+    },
+    "Q21_12": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.12"
+    },
+    "Q21_13": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.13"
+    },
+    "Q21_14": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.14"
+    },
+    "Q21_15": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.15"
+    },
+    "Q21_16": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.16"
+    },
+    "Q21_17": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.17"
+    },
+    "Q21_18": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.18"
+    },
+    "Q21_19": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.19"
+    },
+    "Q21_20": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.20"
+    },
+    "Q21_21": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.21"
+    },
+    "Q21_22": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.22"
+    },
+    "Q21_23": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.23"
+    },
+    "Q21_24": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.24"
+    },
+    "Q21_25": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.25"
+    },
+    "Q21_26": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.26"
+    },
+    "Q21_27": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.27"
+    },
+    "Q21_28": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.28"
+    },
+    "Q21_29": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.29"
+    },
+    "Q21_30": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.30"
+    },
+    "Q21_31": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.31"
+    },
+    "Q21_32": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.32"
+    },
+    "Q21_33": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.33"
+    },
+    "Q21_34": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.34"
+    },
+    "Q21_35": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.35"
+    },
+    "Q21_36": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.36"
+    },
+    "Q21_37": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.37"
+    },
+    "Q21_38": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.38"
+    },
+    "Q21_39": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.39"
+    },
+    "Q21_40": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.40"
+    },
+    "Q21_41": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.41"
+    },
+    "Q21_42": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.42"
+    },
+    "Q21_43": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.43"
+    },
+    "Q21_44": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.44"
+    },
+    "Q21_45": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.45"
+    },
+    "Q21_46": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.46"
+    },
+    "Q21_47": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.47"
+    },
+    "Q21_48": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.48"
+    },
+    "Q21_49": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.49"
+    },
+    "Q21_50": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.50"
+    },
+    "Q21_51": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.51"
+    },
+    "Q21_52": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.52"
+    },
+    "Q21_53": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.53"
+    },
+    "Q21_54": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.54"
+    },
+    "Q21_55": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.55"
+    },
+    "Q21_56": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.56"
+    },
+    "Q21_57": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.57"
+    },
+    "Q21_58": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.58"
+    },
+    "Q21_59": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.59"
+    },
+    "Q21_60": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.60"
+    },
+    "Q21_61": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.61"
+    },
+    "Q21_62": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.62"
+    },
+    "Q21_63": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.63"
+    },
+    "Q21_64": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.64"
+    },
+    "Q21_65": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.65"
+    },
+    "Q21_66": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.66"
+    },
+    "Q21_67": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.67"
+    },
+    "Q21_68": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.68"
+    },
+    "Q21_69": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.69"
+    },
+    "Q21_70": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.70"
+    },
+    "Q21_71": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.71"
+    },
+    "Q21_72": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.72"
+    }
+  },
+  "blocks": {
+    "BL_cIR1YYomzsRNa1n": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        }
+      ]
+    },
+    "BL_8IF8DosshSEGAGp": {
+      "description": "Demographics",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID6"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID7"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID4"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID5"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID16"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID32"
+        }
+      ]
+    },
+    "BL_3guXKxRgvRWWjyt": {
+      "description": "Style",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID31"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID21"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID22"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID23"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID24"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID25"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID26"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID27"
+        }
+      ]
+    },
+    "BL_d5NMwqtF7M323FX": {
+      "description": "Block 3",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID20"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "id": "BL_cIR1YYomzsRNa1n",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "id": "BL_8IF8DosshSEGAGp",
+      "type": "Block"
+    },
+    {
+      "id": "BL_3guXKxRgvRWWjyt",
+      "type": "Block"
+    },
+    {
+      "id": "BL_d5NMwqtF7M323FX",
+      "type": "Block"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_URL"
+    }
+  ],
+  "comments": {
+    "QID9": {
+      "commentList": [
+        {
+          "userId": "UR_789p4qOsBfCeHqZ",
+          "message": "From http://www.pearsoned.com/wp-content/uploads/Pearson-K12-Student-Mobile-Device-Survey-050914-PUBLIC-Report.pdf",
+          "timestamp": 1481845779
+        }
+      ]
+    }
+  },
+  "loopAndMerge": {}
+}

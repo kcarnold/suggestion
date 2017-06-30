@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-06-12T15:33:14Z",
-  "lastModifiedDate": "2017-06-20T14:27:30Z",
+  "lastModifiedDate": "2017-06-29T14:33:13Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -320,7 +320,8 @@
       "questionText": "How would you describe your thought process while writing?",
       "questionLabel": null,
       "validation": {
-        "doesForceResponse": true
+        "doesForceResponse": false,
+        "doesRequestResponse": true
       },
       "questionName": "Q10"
     },
@@ -333,7 +334,8 @@
       "questionText": "How would you describe the words or phrases that the keyboard gave -- what they were and how you used them (or didn't use them)?",
       "questionLabel": null,
       "validation": {
-        "doesForceResponse": true
+        "doesForceResponse": false,
+        "doesRequestResponse": true
       },
       "questionName": "Q11"
     },
@@ -460,6 +462,54 @@
       },
       "randomization": {
         "type": "all"
+      }
+    },
+    "QID25": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "Compared with the experience you were writing about, the phrases that the keyboard gave were usually...",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q25",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "More negative",
+          "choiceText": "More negative",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "More positive",
+          "choiceText": "More positive",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Mixed",
+          "choiceText": "Mixed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Not clearly negative or positive",
+          "choiceText": "Not clearly negative or positive",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
       }
     },
     "QID22": {
@@ -710,6 +760,9 @@
       "question": "QID3",
       "subQuestion": "QID3.subQuestions.9"
     },
+    "Q25": {
+      "question": "QID25"
+    },
     "Q22_10": {
       "question": "QID22",
       "subQuestion": "QID22.subQuestions.10"
@@ -771,6 +824,10 @@
         {
           "type": "Question",
           "questionId": "QID3"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID25"
         },
         {
           "type": "Question",

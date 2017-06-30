@@ -22,6 +22,8 @@ from suggestion.analysis_util import (
 from suggestion.analyzers import WordFreqAnalyzer
 analyzer = WordFreqAnalyzer.build()
 
+ALL_SURVEY_NAMES = ['intro', 'intro2', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
+
 
 STUDY_COLUMNS = '''
 experiment_name
@@ -96,13 +98,12 @@ sugg_sentiment_group_std_mean
 
 @mem.cache
 def get_survey_data_raw():
-    survey_names = ['intro', 'postTask', 'postTask3', 'postExp', 'postExp3']
     # TODO: use the prewrites too?
     # .iloc[1:] is to skip the ImportID row.
     return {name: pd.read_csv(
         os.path.join(root_path, 'surveys', name+'_responses.csv'),
         header=1, parse_dates=['StartDate', 'EndDate']).iloc[1:]
-        for name in survey_names}
+        for name in ALL_SURVEY_NAMES}
 
 
 def process_survey_data(survey, survey_data_raw):
@@ -130,20 +131,24 @@ def process_survey_data(survey, survey_data_raw):
     data = data.applymap(lambda x: decode_scales.get(x, x))
 
     # Specific renames
-    renames = {}
-    renames['intro'] = {
-        "How old are you?": ("age", 'numeric'),
-        "What is your gender?": ("gender", None),
-        "How proficient would you say you are in English?": ("english_proficiency", None),
-        "What is the highest level of school you have completed or the highest degree you have received? ": ("education", None),
-    }
-    renames['postTask'] = renames['postTask3'] = {
-        "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
-    }
-    renames['postExp'] = renames['postExp3'] = {
-        "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
-    }
-    for orig, new in renames[survey].items():
+    if survey in ['intro', 'intro2']:
+        renames = {
+            "How old are you?": ("age", 'numeric'),
+            "What is your gender?": ("gender", None),
+            "How proficient would you say you are in English?": ("english_proficiency", None),
+            "What is the highest level of school you have completed or the highest degree you have received? ": ("education", None),
+            "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?": ("reviewing_experience", None),
+        }
+    if survey in ['postTask', 'postTask3']:
+        renames = {
+            "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
+            "Compared with the experience you were writing about, the phrases that the keyboard gave were usua...": ("sentiment_manipcheck_posttask", None),
+        }
+    if survey.startswith('postExp'):
+        renames = {
+            "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
+        }
+    for orig, new in renames.items():
         if orig not in data.columns:
             continue
         col_data = data.pop(orig)
@@ -284,8 +289,12 @@ def get_all_data():
 
     survey_data = {'participant': None, 'trial': None}
     raw_survey_data = get_survey_data_raw()
-    raw_survey_data['postTask'] = pd.concat([raw_survey_data.pop('postTask'), raw_survey_data.pop('postTask3')], axis=0)
-    raw_survey_data['postExp'] = pd.concat([raw_survey_data.pop('postExp'), raw_survey_data.pop('postExp3')], axis=0)
+    def pop_and_concat(names):
+        return pd.concat([raw_survey_data.pop(name) for name in names], axis=0)
+    raw_survey_data['intro'] = pop_and_concat(['intro', 'intro2'])
+    raw_survey_data['postTask'] = pop_and_concat(['postTask', 'postTask3'])
+    raw_survey_data['postExp'] = pop_and_concat(['postExp', 'postExp3', 'postExp4'])
+
     for survey_name, survey_data_raw in raw_survey_data.items():
         processed_survey_data = process_survey_data(survey_name, survey_data_raw)
         is_participant_level = 'block' not in processed_survey_data.columns
