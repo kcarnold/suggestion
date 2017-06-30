@@ -320,7 +320,7 @@ def clean_merge(*a, **kw):
 
 def get_all_data():
     participants_by_study = get_participants_by_study()
-    # [participants_by_study.study == 'sent3_2']
+    #[participants_by_study.study == 'sent4_0']
     participants = list(participants_by_study.participant_id)
 
     survey_data = {'participant': None, 'trial': None}
@@ -448,4 +448,60 @@ def get_all_data():
     return full_data
 
 all_data = get_all_data()
+if False:
+    all_data.to_csv('all_data.csv', index=False)
+##%%
+#all_data.drop(['git_rev'],axis=1).to_csv('all_data_post_fix.csv',index=False)
+##%%
+#pd.read_csv('all_data.csv').drop(['git_rev'], axis=1).to_csv('all_data_earlier_without_git_rev.csv',index=False)
+##%%
+#old_data = pd.read_csv('all_data.csv')
+#merged = pd.merge(old_data, all_data, how='outer', on=['participant_id', 'block'])
+##%%
+#for col in merged.columns:
+#    if not col.endswith('_x'):
+#        continue
+#    col = col[:-2]
+#    this_data = merged[col+"_x"]
+#    other_data = merged[col+"_y"]
+#    if not np.all(this_data.values == other_data.values):
+#        print("Mismatch", col)
+#        assert False
+##%%
+#old_text = old_data.set_index(['participant_id', 'block']).final_text.fillna("MISSING")
+#new_text = all_data.set_index(['participant_id', 'block']).final_text.fillna("MISSING")
+#pd.merge(old_data, old_text[old_text != new_text].to_frame('equal'), left_on=['participant_id', 'block'], right_index=True).study
+##%%
 
+#%%
+
+def summarize_freetexts(all_data):
+    stacked = all_data.stack().to_frame('value')
+    text_lens = stacked.groupby(level=-1).value.apply(lambda x: x.str.len().max())
+    answers_to_summarize = text_lens[text_lens > 20].index.tolist()
+    return all_data.loc[:, ['participant_id', 'block'] + answers_to_summarize]
+#for (participant_id, block), data in summarize_freetexts(all_data[all_data.config == 'sent4']).groupby(['participant_id','block']):
+#    print(participant_id, block)
+#    print(data.to_dict(orient='records'))
+#by_question = stacked.reset_index(level=-1).rename(columns={'level_1': 'question'})
+#relevant
+#%%
+#    for (participant_id, block, value), other_data in
+#    for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_frame('mrl').reset_index(), left_on=['survey', 'name'], right_on=['survey', 'name']).groupby('participant_id'):
+#        print(pid)
+#        for (survey, idx), this_survey_data in data_to_summarize.groupby(['survey', 'idx']):
+#            if survey == 'intro':
+#                continue
+#            print(survey, idx)
+#            for row in this_survey_data.itertuples():
+#                print(row.condition, row.name, '===', row.value)
+#            print()
+#        print()
+
+
+#%%
+#%%
+#%%
+
+#%%
+#ambiguous = revs_and_timestamps.groupby(['participant_id', 'git_rev']).size().groupby(level=0).size() > 1
