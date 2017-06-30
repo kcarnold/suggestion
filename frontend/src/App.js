@@ -72,6 +72,7 @@ function updateBacklog() {
     participantId: clientId,
     kind: clientKind,
     browserMeta,
+    git_rev: process.env.REACT_APP_GIT_REV,
     messageCount: _.mapValues(logs, v => v.length),
     masterConfig: state.masterConfig,
   }]);
