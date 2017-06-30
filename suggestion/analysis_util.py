@@ -134,16 +134,17 @@ def get_analyzer(git_rev):
 
 
 @mem.cache
-def get_log_analysis_raw(participant):
+def get_log_analysis_raw(participant, git_rev=None):
     logpath = paths.parent / 'logs' / (participant+'.jsonl')
-    git_rev = get_rev(participant)
+    if git_rev is None:
+        git_rev = get_rev(participant)
     analyzer_path = get_analyzer(git_rev)
     with open(logpath) as logfile:
         return subprocess.check_output([analyzer_path], stdin=logfile), git_rev
 
 
-def get_log_analysis(participant):
-    result, git_rev = get_log_analysis_raw(participant)
+def get_log_analysis(participant, git_rev=None):
+    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev)
     bundled_participants = json.loads(result)
     assert len(bundled_participants) == 1
     pid, analyzed = bundled_participants[0]

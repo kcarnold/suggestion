@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
-import re
+import json
+import subprocess
 from collections import Counter
 import nltk
 
@@ -168,9 +169,44 @@ def get_participants_by_study():
     return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
 
 
-def get_log_analysis_data(participant):
+def get_correct_git_revs():
+    '''
+    Logs prior to 2017-06-30 had the git revision of the last time the server
+    restarted, not actually the revision of the code.
+
+    Let's assume that, while I may have continued coding after launching the study,
+    that at least the _first_ log in the batch has the right date. So get that date, and the corresponding commit.
+
+    Now, what if we had a collision, but I didn't notice because only one of the people continued the study?
+    Then we'd have a really wrong date based on looking at the first one. But maybe there's few enough that I can spot-check them.
+
+    I do know that all of the studies that are in 'participants' have completed writings.
+    But they may have been sitting there reconnecting on the page for a long time afterwards.
+    '''
+
+    participants_by_study = get_participants_by_study()
+    data = []
+    for participant in participants_by_study.itertuples():
+        participant_id = participant.participant_id
+        logpath = paths.parent / 'logs' / (participant_id+'.jsonl')
+        with open(logpath) as logfile:
+            for line in logfile:
+                line = json.loads(line)
+                if line['type'] == 'connected':
+                    data.append((participant_id, participant.study, line['rev'], line['timestamp']))
+                    break
+    revs_and_timestamps = pd.DataFrame(data, columns=['participant_id', 'study', 'git_rev', 'timestamp'])
+    revs_and_timestamps['timestamp'] = pd.to_datetime(revs_and_timestamps['timestamp'])
+    min_timestamps = revs_and_timestamps.drop_duplicates(subset=['participant_id']).groupby(['study']).timestamp.min()
+    def get_commit_at_timestamp(ts):
+        return subprocess.check_output(['git', 'describe', '--always', 'master@{'+ str(ts) + '}']).decode('latin1').strip()
+    commits_at_timestamps = min_timestamps.apply(get_commit_at_timestamp)
+    return pd.merge(revs_and_timestamps, commits_at_timestamps.to_frame('correct_git_rev'), left_on='study', right_index=True, how='left')
+
+
+def get_log_analysis_data(participant, git_rev_corrections):
     participant_level_data_raw = []
-    log_analyses = get_log_analysis(participant)
+    log_analyses = get_log_analysis(participant, git_rev=git_rev_corrections.get(participant))
     conditions = log_analyses['conditions']
     base_datum = dict(participant_id=participant,
                  conditions=','.join(conditions),
@@ -313,7 +349,9 @@ def get_all_data():
             survey_data['participant'], participants_by_study,
             left_on='participant_id', right_on='participant_id', how='outer').set_index('participant_id')
 
-    log_analysis_data_raw = {participant: get_log_analysis_data(participant)
+    correct_git_revs = get_correct_git_revs().set_index('participant_id').correct_git_rev.to_dict()
+
+    log_analysis_data_raw = {participant: get_log_analysis_data(participant, correct_git_revs)
         for participant in participants}
     log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
