@@ -96,7 +96,22 @@ sugg_sentiment_std
 sugg_sentiment_group_std_mean
 '''.strip().split()
 
+###
+### Metadata
+###
+def get_participants_by_study():
+    import yaml
+    participants_table = []
+    for study_name, participants in yaml.load(open(root_path / 'participants.yaml')).items():
+        for participant in participants.split():
+            participants_table.append((participant, study_name))
+    return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
 
+
+
+###
+### Survey data
+###
 @mem.cache
 def get_survey_data_raw():
     # TODO: use the prewrites too?
@@ -160,14 +175,36 @@ def process_survey_data(survey, survey_data_raw):
     return data
 
 
-def get_participants_by_study():
-    import yaml
-    participants_table = []
-    for study_name, participants in yaml.load(open(root_path / 'participants.yaml')).items():
-        for participant in participants.split():
-            participants_table.append((participant, study_name))
-    return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
 
+
+def get_survey_data_processed():
+    survey_data = {'participant': None, 'trial': None}
+    raw_survey_data = get_survey_data_raw()
+    def pop_and_concat(names):
+        return pd.concat([raw_survey_data.pop(name) for name in names], axis=0)
+    raw_survey_data['intro'] = pop_and_concat(['intro', 'intro2'])
+    raw_survey_data['postTask'] = pop_and_concat(['postTask', 'postTask3'])
+    raw_survey_data['postExp'] = pop_and_concat(['postExp', 'postExp3', 'postExp4'])
+
+    for survey_name, survey_data_raw in raw_survey_data.items():
+        processed_survey_data = process_survey_data(survey_name, survey_data_raw)
+        is_participant_level = 'block' not in processed_survey_data.columns
+        subname = 'participant' if is_participant_level else 'trial'
+        merge_on = ['participant_id']
+        if not is_participant_level:
+            merge_on = merge_on + ['block']
+        if survey_data[subname] is None:
+            survey_data[subname] = processed_survey_data
+        else:
+            survey_data[subname] = clean_merge(
+                    survey_data[subname], processed_survey_data,
+                    left_on=merge_on, right_on=merge_on, how='outer')
+
+    return survey_data
+
+###
+### Log analysis
+###
 
 def get_correct_git_revs():
     '''
@@ -205,14 +242,14 @@ def get_correct_git_revs():
 
 
 def get_log_analysis_data(participant, git_rev_corrections):
-    participant_level_data_raw = []
-    log_analyses = get_log_analysis(participant, git_rev=git_rev_corrections.get(participant))
-    conditions = log_analyses['conditions']
+    data = []
+    log_analysis = get_log_analysis(participant, git_rev=git_rev_corrections.get(participant))
+    conditions = log_analysis['conditions']
     base_datum = dict(participant_id=participant,
                  conditions=','.join(conditions),
-                 config=log_analyses['config'],
-                 git_rev=log_analyses['git_rev'])
-    for page, page_data in log_analyses['byExpPage'].items():
+                 config=log_analysis['config'],
+                 git_rev=log_analysis['git_rev'])
+    for page, page_data in log_analysis['byExpPage'].items():
         datum = base_datum.copy()
         if '-' in page:
             kind, num = page.split('-')
@@ -225,7 +262,7 @@ def get_log_analysis_data(participant, git_rev_corrections):
             # FIXME: maybe in the future we'll want to look at practice and prewrite data too?
             continue
         datum['block'] = num
-        datum.update(flatten_dict(log_analyses['blocks'][num]))
+        datum.update(flatten_dict(log_analysis['blocks'][num]))
         renames = {
             'finalText': 'final_text',
             'place_knowWhatToWrite': 'know_what_to_write',
@@ -240,8 +277,8 @@ def get_log_analysis_data(participant, git_rev_corrections):
         for typ, count in Counter(classified_events).items():
             if typ is not None:
                 datum[f'num_{typ}'] = count
-        participant_level_data_raw.append(datum)
-    return participant_level_data_raw
+        data.append(datum)
+    return data
 
 
 
@@ -307,43 +344,21 @@ def get_latencies(participants):
     suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
-#%%
-def unclean_merge_columns(df):
-    return [col for col in df.columns if col.endswith('_x') or col.endswith('_y')]
+
 
 def clean_merge(*a, **kw):
     res = pd.merge(*a, **kw)
-    unclean = unclean_merge_columns(res)
+    unclean = [col for col in res.columns if col.endswith('_x') or col.endswith('_y')]
     assert len(unclean) == 0, unclean
     return res
 
 
-def get_all_data():
+def get_all_data_pre_annotation():
     participants_by_study = get_participants_by_study()
     #[participants_by_study.study == 'sent4_0']
     participants = list(participants_by_study.participant_id)
 
-    survey_data = {'participant': None, 'trial': None}
-    raw_survey_data = get_survey_data_raw()
-    def pop_and_concat(names):
-        return pd.concat([raw_survey_data.pop(name) for name in names], axis=0)
-    raw_survey_data['intro'] = pop_and_concat(['intro', 'intro2'])
-    raw_survey_data['postTask'] = pop_and_concat(['postTask', 'postTask3'])
-    raw_survey_data['postExp'] = pop_and_concat(['postExp', 'postExp3', 'postExp4'])
-
-    for survey_name, survey_data_raw in raw_survey_data.items():
-        processed_survey_data = process_survey_data(survey_name, survey_data_raw)
-        is_participant_level = 'block' not in processed_survey_data.columns
-        subname = 'participant' if is_participant_level else 'trial'
-        merge_on = ['participant_id']
-        if not is_participant_level:
-            merge_on = merge_on + ['block']
-        if survey_data[subname] is None:
-            survey_data[subname] = processed_survey_data
-        else:
-            survey_data[subname] = clean_merge(
-                    survey_data[subname], processed_survey_data,
-                    left_on=merge_on, right_on=merge_on, how='outer')
+    survey_data = get_survey_data_processed()
 
     participant_level_data = clean_merge(
             survey_data['participant'], participants_by_study,
@@ -360,8 +375,39 @@ def get_all_data():
             log_analysis_data,
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
-    assert not unclean_merge_columns(trial_level_data)
-#    trial_level_data['final_len]
+    trial_level_data['final_length_chars'] = trial_level_data.final_text.str.len()
+
+    # Calculate latency.
+    participant_level_data = clean_merge(
+            participant_level_data, get_latencies(participants),
+            left_index=True, right_index=True, how='left')
+
+    # Aggregate behavioral stats
+    trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap')]]
+    taps_agg = trial_level_counts.groupby('participant_id').sum()
+    participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
+    participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
+    participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
+    participant_level_data['rec_frac'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
+
+    too_much_latency = (participant_level_data['latency_75'] > 500)
+    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
+    too_few_actions = (
+    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
+        (participant_level_data.rec_frac < .01) | (participant_level_data.rec_frac > .99)
+        )
+    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
+    exclude = too_few_actions | too_much_latency
+    print(f"Excluding {np.sum(exclude)} total")
+    participant_level_data = clean_merge(
+            participant_level_data, exclude.to_frame('is_excluded'),
+            left_index=True, right_index=True, how='left')
+
+    return participant_level_data, trial_level_data
+
+
+def get_all_data_with_annotations():
+    participant_level_data, trial_level_data = get_all_data_pre_annotation()
 
     # Manual text corrections
     trial_level_data = clean_merge(
@@ -402,32 +448,6 @@ def get_all_data():
 
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
-    # Calculate latency.
-    participant_level_data = clean_merge(
-            participant_level_data, get_latencies(participants),
-            left_index=True, right_index=True, how='left')
-
-    # Aggregate behavioral stats
-    trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap')]]
-    taps_agg = trial_level_counts.groupby('participant_id').sum()
-    participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
-    participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
-    participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
-    participant_level_data['rec_frac'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
-
-    too_much_latency = (participant_level_data['latency_75'] > 500)
-    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
-    too_few_actions = (
-    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (participant_level_data.rec_frac < .01) | (participant_level_data.rec_frac > .99)
-        )
-    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
-    exclude = too_few_actions | too_much_latency
-    print(f"Excluding {np.sum(exclude)} total")
-    participant_level_data = clean_merge(
-            participant_level_data, exclude.to_frame('is_excluded'),
-            left_index=True, right_index=True, how='left')
-
     full_data = clean_merge(
             participant_level_data,
             trial_level_data,
@@ -447,7 +467,7 @@ def get_all_data():
     print(f"{len(extra_cols)} extra cols", extra_cols)
     return full_data
 
-all_data = get_all_data()
+all_data = get_all_data_with_annotations()
 if False:
     all_data.to_csv('all_data.csv', index=False)
 ##%%
