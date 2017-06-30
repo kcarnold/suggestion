@@ -10,7 +10,7 @@ env.hosts = [
 
 def deploy():
     local('git push')
-    git_rev = subprocess.check_output(['git', 'describe', '--always'])
+    git_rev = subprocess.check_output(['git', 'describe', '--always']).decode('utf-8').strip()
     with cd('~/code/suggestion'):
         run('git pull')
     with lcd('frontend'):
