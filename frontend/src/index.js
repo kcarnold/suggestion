@@ -2,6 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+import Raven from 'raven-js';
+Raven
+    .config('https://c0c96b3696f14e4eb2fe4f35f4da3176@sentry.io/186354')
+    .install();
+
 let topLevel;
 if (window.location.search.slice(1, 7) === 'panopt') {
   let Panopticon = require('./Panopticon').default;

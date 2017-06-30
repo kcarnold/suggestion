@@ -5,6 +5,7 @@ import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
 import {MasterView} from './MasterView';
+import Raven from 'raven-js';
 import * as WSPinger from './WSPinger';
 
 const MAX_PING_TIME = 200;
@@ -106,23 +107,28 @@ function registerHandler(fn) {
 }
 
 function dispatch(event) {
-  console.log(event);
-  event.jsTimestamp = +new Date();
-  event.kind = clientKind;
-  log(event);
-  let sideEffects = [];
-  eventHandlers.forEach(fn => {
-    let res = fn(event);
-    if (res.length) {
-      sideEffects = sideEffects.concat(res);
-    }
-  });
-  // Run side-effects after all handlers have had at it.
-  sideEffects.forEach(sideEffect => {
-    if (sideEffect.type !== 'suggestion_context_changed') {
-      setTimeout(() => dispatch(sideEffect), 0);
-    }
-  });
+  try {
+    console.log(event);
+    event.jsTimestamp = +new Date();
+    event.kind = clientKind;
+    log(event);
+    let sideEffects = [];
+    eventHandlers.forEach(fn => {
+      let res = fn(event);
+      if (res.length) {
+        sideEffects = sideEffects.concat(res);
+      }
+    });
+    // Run side-effects after all handlers have had at it.
+    sideEffects.forEach(sideEffect => {
+      if (sideEffect.type !== 'suggestion_context_changed') {
+        setTimeout(() => dispatch(sideEffect), 0);
+      }
+    });
+  } catch (e) {
+    Raven.captureException(e);
+    throw e;
+  }
 }
 
 // Every event gets logged to the server. Keep events small!
@@ -182,8 +188,13 @@ ws.onmessage = function(msg) {
     let firstTime = !didInit;
     state.replaying = true;
     msg.body.forEach(msg => {
-      state.handleEvent(msg);
-      addLogEntry(msg.kind, msg);
+      try {
+        state.handleEvent(msg);
+        addLogEntry(msg.kind, msg);
+      } catch (e) {
+        Raven.captureException(e)
+        throw e;
+      }
     });
     // This needs to happen here so that we don't temporarily display the redirect page.
     if (externalAction) {
