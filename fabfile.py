@@ -14,7 +14,7 @@ def deploy():
     with cd('~/code/suggestion'):
         run('git pull')
     with lcd('frontend'):
-        open('.env', 'w').write(f'GIT_REV={git_rev}')
+        open('.env', 'w').write(f'REACT_APP_GIT_REV={git_rev}')
         local('npm run build')
         local(f'sentry-cli releases -o kenneth-arnold -p suggestionfrontend new {git_rev}')
         local(f'sentry-cli releases -o kenneth-arnold -p suggestionfrontend files {git_rev} upload-sourcemaps src build')
