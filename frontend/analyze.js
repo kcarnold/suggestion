@@ -41,14 +41,12 @@ readStdin(function(err, res) {
       if (!pageData) {
         pageData = {
           annotated: [],
-          requests: [],
           displayedSuggs: [],
         };
         byExpPage[page] = pageData;
       }
       if (expState.curText !== lastText) {
         pageData.annotated.push({...entry, curText: lastText});
-        pageData.requests.push({...state.suggestionRequest});
         lastText = state.curText;
         if (pageData.displayedSuggs.length > 0) {
           let lastDisplayedSugg = pageData.displayedSuggs[pageData.displayedSuggs.length - 1];
