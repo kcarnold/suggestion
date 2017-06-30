@@ -2,6 +2,7 @@ var MasterStateStore = require('./src/MasterStateStore').MasterStateStore;
 var fs = require('fs');
 
 console.log = console.warn;
+global.alert = () => {};
 
 // see https://gist.github.com/kristopherjohnson/5065599
 function readStdin(callback) {
