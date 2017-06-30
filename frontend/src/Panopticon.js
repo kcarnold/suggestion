@@ -145,7 +145,12 @@ const ScreenTimesTable = ({state}) => {
 
 const Panopticon = observer(class Panopticon extends Component {
   render() {
-    return <div>{store.showingIds.map(participantId => {
+    return <div>
+      <div><input ref={elt => {this.viewerInput = elt;}} /><button onClick={evt => {
+        store.addViewer(this.viewerInput.value);
+        this.viewerInput.value = '';
+      }}>Add</button></div>
+      {store.showingIds.map(participantId => {
       let state = store.states.get(participantId);
       if (!state.masterConfig) return null;
       return <div key={participantId}>
