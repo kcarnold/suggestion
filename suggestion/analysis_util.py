@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from suggestion.util import mem, flatten_dict
+from suggestion.util import mem
 from suggestion.paths import paths
 import subprocess
 
@@ -20,7 +20,6 @@ prefix_subs = {
     "Think about when you were typing out your ${e://Field/revisionDesc}. How much do you agree with t...-": "final-",
     "How Accurately Can You Describe Yourself? Describe yourself as you generally are now, not as you...-": "pers-",
     "Describe yourself as you generally are now, not as you wish to be in the future. Describe yoursel...-": "pers-",
-
 }
 
 decode_scales = {

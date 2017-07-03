@@ -525,10 +525,8 @@ def get_bos_suggs(sofar, sug_state, *, bos_sugg_flag, constraints, verbose=False
         print(f"seq={topic_seq} flag={bos_sugg_flag} suggesting={topics_to_suggest}")
 
     if bos_sugg_flag == 'continue':
-        scores_by_cluster = clizer.topic_continuation_scores
         argsort_scores_for_topic = clizer.topic_continuation_scores_argsort
     else:
-        scores_by_cluster = clizer.scores_by_cluster
         argsort_scores_for_topic = clizer.scores_by_cluster_argsort
 
     avoid_letter = constraints.get('avoidLetter')

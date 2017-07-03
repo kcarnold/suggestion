@@ -6,7 +6,6 @@ import string
 import datrie
 import nltk
 import itertools
-from scipy.special import expit
 from scipy.misc import logsumexp
 LOG10 = np.log(10)
 
