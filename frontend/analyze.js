@@ -67,12 +67,16 @@ readStdin(function(err, res) {
     byExpPage,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
-    blocks: state.conditions.map((condition, block) => ({
-      condition: condition,
-      prewriteText: (state.experiments.get(`pre-${block}`) || {}).curText,
-      finalText: (state.experiments.get(`final-${block}`) || {}).curText,
-      place: state.places[block],
-    }))
+    blocks: state.conditions.map((condition, block) => {
+      let expState = state.experiments.get(`final-${block}`) || {};
+      return {
+        condition: condition,
+        prewriteText: (state.experiments.get(`pre-${block}`) || {}).curText,
+        finalText: expState.curText,
+        place: state.places[block],
+        attentionCheckStats: expState.attentionCheckStats,
+      };
+    }),
   }]));
 
   process.stdout.write(JSON.stringify(participants));
