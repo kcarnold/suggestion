@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import re
 import json
 import subprocess
 from collections import Counter
@@ -112,7 +113,6 @@ def get_participants_by_study():
 ###
 ### Survey data
 ###
-@mem.cache
 def get_survey_data_raw():
     # TODO: use the prewrites too?
     # .iloc[1:] is to skip the ImportID row.
@@ -281,23 +281,72 @@ def get_log_analysis_data(participant, git_rev_corrections):
     return data
 
 
-
+#%% Human tasks
 # Correction task:
-# Step 1: run get_correction_task.to_csv('correction_task.csv', index=False)
-# Step 2: load that into Excel -> Copy to Word -> correct all typos and obvious misspellings
-# Step 2.5: replace newlines with spaces, remove double-spaces. Copy back into Excel.
-# Step 3: Save the result as all_writings_corrected.xlsx.
-
-def get_correction_task(all_data):
-    return all_data.query('kind == "final"').loc[:, 'final_text'].drop_duplicates().reset_index()
+# Step 1: run corrections_todo.to_csv('corrections_todo.csv', index=False)
+# Step 2: load that into Excel -> Copy to Word -> correct all typos and obvious misspellings.
+# Step 3: Save the result as gruntwork/correction_batch_N.csv, IN UTF-8
 
 
-@mem.cache
-def get_correction_task_results():
-    with_corrections = pd.read_excel(str(paths.parent / 'all_writings_corrected.xlsx')).rename(columns={'finalText': 'final_text', 'corrected': 'corrected_text'})
-    # Fix smartquotes.
-    with_corrections['corrected_text'] = with_corrections.corrected_text.apply(lambda s: s.replace('\u2019', "'").lower())
-    return with_corrections
+def get_corrected_text(trial_level_data):
+    trial_level_data['final_text_for_correction'] = trial_level_data['final_text'].str.replace(re.compile(r'\s+'), ' ')
+    result_files = list(paths.parent.joinpath('gruntwork').glob("corrections_batch*.csv"))
+    if result_files:
+        correction_results = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True)
+        assert correction_results.columns.tolist() == ['final_text', 'corrected_text']
+        correction_results['final_text_for_correction'] = correction_results['final_text'].str.replace(re.compile(r'\s+'), ' ')
+        correction_results['corrected_text'] = correction_results.corrected_text.apply(lambda s: s.replace('\u2019', "'").lower())
+        trial_level_data = clean_merge(
+            trial_level_data, correction_results.drop(['final_text'], axis=1),
+            on='final_text_for_correction', how='left')
+    else:
+        trial_level_data['corrected_text'] = None
+
+    corrections_todo = trial_level_data[trial_level_data.corrected_text.isnull()].final_text_for_correction.dropna().drop_duplicates().to_frame('final_text')
+    corrections_todo['corrected_text'] = None
+
+    return trial_level_data, corrections_todo
+
+#%%
+# Annotation task:
+# Step 1: run get_annotation_task(all_data).to_csv('by_sentence_to_annotate2.csv', index=False)
+# Step 2: spend a long time annotating
+# Step 3: store as... some CSV file.
+
+
+def get_annotations_task(trial_level_data):
+    by_sentence = []
+    for (participant_id, config, condition, block), text in trial_level_data.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected_text.dropna().items():
+        by_sentence.append((participant_id, config, condition, block, -1, text))
+        for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
+            by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
+    res = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
+    res['pos'] = None
+    res['neg'] = None
+    res['topics'] = None
+    return res
+
+#%%
+def get_sentiment_and_topic_annotations(trial_level_data, annotator):
+    task = get_annotations_task(trial_level_data).set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx'])
+
+    result_files = list(paths.parent.joinpath('gruntwork').glob(f"annotations_{annotator}_*.csv"))
+    if result_files:
+        annotation_results = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True).dropna(how='all', subset=['pos', 'neg', 'topics'])
+        task = task.combine_first(annotation_results.set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx']))
+
+    task = task.reset_index()
+    topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
+    sentiment_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).pos.apply(lambda group: np.all(group.isnull()))
+    todo = clean_merge(task, (topics_todo | sentiment_todo).to_frame('todo'), left_on=['participant_id', 'block'], right_index=True, how='left')
+    todo = todo[todo.todo].drop(['todo'], axis=1)
+
+    annos = task.query('sent_idx >= 0').copy()
+    annos['pos'] = pd.to_numeric(annos['pos'])
+    return annos, todo
+#%%
+
+
 
 
 MIN_WORD_COUNT = 5
@@ -319,29 +368,10 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
+get_existing_reqs_cached = mem.cache(get_existing_requests)
 
-#%%
-def get_annotation_task(all_data):
-    by_sentence = []
-    for (participant_id, config, condition, block), text in all_data.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected_text.items():
-        by_sentence.append((participant_id, config, condition, block, -1, text))
-        for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
-            by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
-    return pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
-
-# Annotation task:
-# Step 1: run get_annotation_task(all_data).to_csv('by_sentence_to_annotate.csv', index=False)
-# Step 2: spend a long time annotating
-# Step 3: store as... some CSV file.
-
-
-def get_all_annotation_results():
-    return pd.read_csv('/Users/kcarnold/Downloads/by_sentence_to_annotate_allsentiment.csv')
-
-#%%
-@mem.cache
 def get_latencies(participants):
-    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
+    suggestion_data_raw = {participant: get_existing_reqs_cached(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
 
@@ -350,9 +380,11 @@ def clean_merge(*a, **kw):
     res = pd.merge(*a, **kw)
     unclean = [col for col in res.columns if col.endswith('_x') or col.endswith('_y')]
     assert len(unclean) == 0, unclean
+    assert 'index' not in res
     return res
 
 
+#%%
 def get_all_data_pre_annotation():
     participants_by_study = get_participants_by_study()
     #[participants_by_study.study == 'sent4_0']
@@ -410,10 +442,7 @@ def get_all_data_with_annotations():
     participant_level_data, trial_level_data = get_all_data_pre_annotation()
 
     # Manual text corrections
-    trial_level_data = clean_merge(
-        trial_level_data, get_correction_task_results(),
-        left_on='final_text', right_on='final_text', how='left')
-
+    trial_level_data, corrections_todo = get_corrected_text(trial_level_data)
 
     # Compute likelihoods
     trial_level_data = clean_merge(
@@ -422,8 +451,8 @@ def get_all_data_with_annotations():
         left_index=True, right_index=True, how='left')
 
     # Pull in annotations.
-    annotation_results = get_all_annotation_results().query('sent_idx >= 0')#.drop('sent_idx sentence'.split(), axis=1)
-    annotation_results['pos'] = pd.to_numeric(annotation_results['pos'])
+    annotation_results, annotation_todo = get_sentiment_and_topic_annotations(trial_level_data, annotator='kca')
+    #.drop('sent_idx sentence'.split(), axis=1)
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
     total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
     sentiments = clean_merge(
@@ -433,25 +462,32 @@ def get_all_data_with_annotations():
     trial_level_data = clean_merge(
             trial_level_data, sentiments.reset_index(),
             left_on=['participant_id', 'config', 'block', 'condition'], right_on=['participant_id', 'config', 'block', 'condition'], how='left')
+    trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
+    trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
 
-    topic_diversity = (
+    def has_any_nonsense(group):
+        return any(x for tlist in group if isinstance(tlist, str) for x in tlist.split() if x == 'nonsense')
+    def num_topics(group):
+        return len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))
+
+    topic_data = (
             annotation_results
             .dropna(subset=['topics'])
             .groupby(['participant_id', 'block', 'condition'])
             .topics
-            .agg(lambda group:
-                len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))))
+            .agg([has_any_nonsense, num_topics]))
+
     trial_level_data = clean_merge(
-        trial_level_data, topic_diversity.to_frame('num_topics').reset_index(),
+        trial_level_data, topic_data.reset_index(),
         left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
 
 
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
     full_data = clean_merge(
-            participant_level_data,
+            participant_level_data.reset_index(),
             trial_level_data,
-            left_index=True, right_on='participant_id', how='right').reset_index()
+            on='participant_id', how='right')
 
 #    assert participant_level_data.participant_id.value_counts().max() == 1
 
@@ -465,11 +501,19 @@ def get_all_data_with_annotations():
     extra_cols = sorted(set(full_data.columns) - desired_cols)
     print(f"Missing {len(missing_cols)} cols", missing_cols)
     print(f"{len(extra_cols)} extra cols", extra_cols)
-    return full_data
+    return full_data, corrections_todo, annotation_todo
 
-all_data = get_all_data_with_annotations()
-if False:
-    all_data.to_csv('all_data.csv', index=False)
+#%%
+def main(write_output=False):
+    all_data, corrections_todo, annotations_todo = get_all_data_with_annotations()
+    if write_output:
+        all_data.to_csv('all_data_2017-07-03.csv', index=False)
+        corrections_todo.to_csv('gruntwork/corrections_todo.csv', index=False)
+        annotations_todo.to_csv('gruntwork/annotations_todo_kca.csv', index=False)
+    return all_data, corrections_todo, annotations_todo
+#%%
+all_data, corrections_todo, annotations_todo = main(write_output=True)
+    #%%
 ##%%
 #all_data.drop(['git_rev'],axis=1).to_csv('all_data_post_fix.csv',index=False)
 ##%%
