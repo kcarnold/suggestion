@@ -45,6 +45,8 @@ total_actions_nobackspace
 total_key_taps
 total_rec_taps
 rec_frac
+attention_check_fullword
+attention_check_partword
 Neuroticism
 NeedForCognition
 OpennessToExperience
@@ -52,7 +54,7 @@ Creativity
 Extraversion
 Trust
 LocusOfControl
-CognitiveStyle
+CognitiveReflection
 '''.strip().split()
 
 TRIAL_COLUMNS = '''
@@ -142,6 +144,15 @@ trait_names = {
 #from collections import Counter
 #sorted(Counter(v for trait in traits_key.key for v in trait.split(',')).most_common())
 #%%
+cogstyle_answers = {
+ 'A bat and a ball cost $1.10 in total. The bat costs a dollar more than the ball. How much does th...': ['5', '05', '.05', '0.05'],
+ 'A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. H...': ['20'],
+ 'If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 day...': ['4'],
+ 'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 1...': ['5'],
+ 'In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 da...': ['47'],
+ 'Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are...': ['29'],
+ 'Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he inv...': ['has lost money']}
+#%%
 def decode_traits(data):
     data = data.copy()
     for item, key in traits_key.items():
@@ -153,6 +164,9 @@ def decode_traits(data):
                 data[name] += datum * val
             else:
                 data[name] = datum.copy() * val
+
+    if any(it in data.columns for it in cogstyle_answers.keys()):
+        data['CognitiveReflection'] = sum([data.pop(it).isin(correct) for it, correct in cogstyle_answers.items()])
     return data
 
 #%%
@@ -208,7 +222,7 @@ def process_survey_data(survey, survey_data_raw):
             col_data = pd.to_numeric(col_data)
         data[new_name] = col_data
 
-    if survey in ['intro2']:
+    if survey in ['intro']:
         data = decode_traits(data)
     return data
 
@@ -218,28 +232,19 @@ def process_survey_data(survey, survey_data_raw):
 def get_survey_data_processed():
     survey_data = {'participant': None, 'trial': None}
     raw_survey_data = get_survey_data_raw()
-    def pop_and_concat(names):
-        return pd.concat([raw_survey_data.pop(name) for name in names], axis=0)
-    raw_survey_data['intro'] = pop_and_concat(['intro', 'intro2'])
-    raw_survey_data['postTask'] = pop_and_concat(['postTask', 'postTask3'])
-    raw_survey_data['postExp'] = pop_and_concat(['postExp', 'postExp3', 'postExp4'])
+    def get_and_concat(names):
+        return pd.concat([raw_survey_data[name] for name in names], axis=0, ignore_index=True)
+    intro_data = process_survey_data('intro', get_and_concat(['intro', 'intro2']))
+    postTask_data = process_survey_data('postTask', get_and_concat(['postTask', 'postTask3']))
+    postExp_data = process_survey_data('postExp', get_and_concat(['postExp', 'postExp3', 'postExp4']))
 
-    for survey_name, survey_data_raw in raw_survey_data.items():
-        processed_survey_data = process_survey_data(survey_name, survey_data_raw)
-        is_participant_level = 'block' not in processed_survey_data.columns
-        subname = 'participant' if is_participant_level else 'trial'
-        merge_on = ['participant_id']
-        if not is_participant_level:
-            merge_on = merge_on + ['block']
-        if survey_data[subname] is None:
-            survey_data[subname] = processed_survey_data
-        else:
-            survey_data[subname] = clean_merge(
-                    survey_data[subname], processed_survey_data,
-                    left_on=merge_on, right_on=merge_on, how='outer')
+    survey_data['trial'] = postTask_data
+    survey_data['participant'] = clean_merge(
+            intro_data, postExp_data, on=['participant_id'], how='outer')
 
     return survey_data
-
+asd = get_survey_data_processed()
+#%%
 ###
 ### Log analysis
 ###
@@ -550,7 +555,10 @@ def main(write_output=False):
         annotations_todo.to_csv('gruntwork/annotations_todo_kca.csv', index=False)
     return all_data, corrections_todo, annotations_todo
 #%%
-all_data, corrections_todo, annotations_todo = main(write_output=True)
+def only_for_interactive():
+    # global vars are a source of errors, so do this outside of global scope so that the linter can catch misuses.
+    #%%
+    all_data, corrections_todo, annotations_todo = main(write_output=True)
     #%%
 ##%%
 #all_data.drop(['git_rev'],axis=1).to_csv('all_data_post_fix.csv',index=False)
