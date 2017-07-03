@@ -27,10 +27,11 @@ readStdin(function(err, res) {
       experiment = {
         state: new MasterStateStore(participant_id),
         byExpPage: {},
+        pageSeq: [],
       };
       participants.set(participant_id, experiment);
     }
-    let {state, byExpPage} = experiment;
+    let {state, byExpPage, pageSeq} = experiment;
     let lastText = (state.experimentState || {}).curText;
     let isValidSugUpdate = entry.request_id === (state.experimentState || {}).contextSequenceNum;
     state.handleEvent(entry);
@@ -42,8 +43,10 @@ readStdin(function(err, res) {
         pageData = {
           annotated: [],
           displayedSuggs: [],
+          condition: state.conditionName,
         };
         byExpPage[page] = pageData;
+        pageSeq.push(page);
       }
       if (expState.curText !== lastText) {
         pageData.annotated.push({...entry, curText: lastText});
@@ -62,9 +65,10 @@ readStdin(function(err, res) {
     }
   });
   // Summarize the sub-experiments.
-  participants = [...participants].map(([participant_id, {state, byExpPage}]) => ([participant_id, {
+  participants = [...participants].map(([participant_id, {state, byExpPage, pageSeq}]) => ([participant_id, {
     config: state.masterConfigName,
     byExpPage,
+    pageSeq,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
     blocks: state.conditions.map((condition, block) => {

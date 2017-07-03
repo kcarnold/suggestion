@@ -50,8 +50,7 @@ total_actions_nobackspace
 total_key_taps
 total_rec_taps
 rec_frac
-attention_check_fullword
-attention_check_partword
+attention_check_frac_passed
 Neuroticism
 NeedForCognition
 OpennessToExperience
@@ -61,6 +60,11 @@ Trust
 LocusOfControl
 CognitiveReflection
 '''.strip().split()
+
+# Can't do these two without manual history editing:
+#attention_check_fullword
+#attention_check_partword
+
 
 TRIAL_COLUMNS = '''
 block
@@ -106,10 +110,10 @@ pairdist_sentences_std
 
 VALIDATION_COLUMNS = '''
 sugg_unigram_llk_mean
-sugg_unigram_llk_std
 sugg_sentiment_mean
 sugg_sentiment_std
 sugg_sentiment_group_std_mean
+sugg_contextual_llk_mean
 '''.strip().split()
 
 ###
@@ -288,14 +292,15 @@ def get_correct_git_revs():
     return pd.merge(revs_and_timestamps, commits_at_timestamps.to_frame('correct_git_rev'), left_on='study', right_index=True, how='left')
 
 
-def get_log_analysis_data(participant, git_rev_corrections):
+def get_log_analysis_data(participant, git_rev):
     data = []
-    log_analysis = get_log_analysis(participant, git_rev=git_rev_corrections.get(participant))
+    log_analysis = get_log_analysis(participant, git_rev=git_rev)
     conditions = log_analysis['conditions']
     base_datum = dict(participant_id=participant,
                  conditions=','.join(conditions),
                  config=log_analysis['config'],
                  git_rev=log_analysis['git_rev'])
+    all_page_conditions = [log_analysis['byExpPage'][page]['condition'] for page in log_analysis['pageSeq']]
     for page, page_data in log_analysis['byExpPage'].items():
         datum = base_datum.copy()
         if '-' in page:
@@ -325,7 +330,7 @@ def get_log_analysis_data(participant, git_rev_corrections):
             if typ is not None:
                 datum[f'num_{typ}'] = count
         data.append(datum)
-    return data
+    return data, all_page_conditions
 
 
 #%% Human tasks
@@ -413,7 +418,8 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
             continue
         filtered.append(tok)
         freqs.append(analyzer.log_freqs[vocab_idx])
-    print("Skipped tokens:", ' '.join(sorted(skipped)))
+    if skipped:
+        print("Skipped tokens:", ' '.join(sorted(skipped)))
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
@@ -430,6 +436,82 @@ def clean_merge(*a, **kw):
     assert 'index' not in res
     return res
 
+#%%
+def name_condition(meta, config):
+    if meta['domain'] == 'sotu':
+        return 'sotu'
+    if meta['sentiment'] == 1:
+        return 'sentneg'
+    if meta['sentiment'] == 5:
+        return 'sentpos'
+    assert meta
+#%%
+@mem.cache
+def get_suggestion_content_stats(participant_id, page_conditions):
+    from suggestion import suggestion_generator
+    suggestion_data_raw = get_existing_reqs_cached(paths.parent / 'logs' / f'{participant_id}.jsonl')
+    prev_request_id = None
+    res = []
+    cur_block = []
+    for sugg in suggestion_data_raw:
+        meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
+        request_id = sugg['request_id']
+        if prev_request_id is not None:
+            if request_id == prev_request_id:
+                # skip duplicate
+                continue
+            if request_id == 0 and prev_request_id is not None:
+                res.append(cur_block)
+                cur_block = []
+            if abs(request_id - prev_request_id) > 10:
+                print(f"\n\nPROBABLY BAD LOG FILE {participant_id}\n\n")
+                return {}
+        prev_request_id = request_id
+        if not meta['domain'].startswith('yelp'):
+            continue
+
+        model = suggestion_generator.get_or_load_model(meta['domain'])
+        toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
+        cur_word = sugg['cur_word']
+        if cur_word:
+            continue
+        state = model.get_state(toks[-10:])[0]
+        clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks[-10:])
+        phrases = [sugg[f'p{idx+1}'].split() for idx in range(3)]
+        for sugg_slot, phrase in enumerate(phrases):
+            sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
+            sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
+            cur_block.append(dict(
+                request_id=sugg['request_id'],
+                sugg_slot=sugg_slot,
+                sugg_contextual_llk=model.score_seq(state, phrase)[0],
+                sugg_unigram_llk=np.mean([analyzer.log_freqs[analyzer.word2idx[tok]] for tok in phrase]),
+                sugg_sentiment=sentiment))
+
+    res.append(cur_block)
+
+    assert len(res) == len(page_conditions)
+
+    by_trial = []
+    for condition, block in zip(page_conditions, res):
+        if condition in ['sotu', 'tweeterinchief']:
+            continue
+        block_df = pd.DataFrame(block)
+        block_df = block_df.drop_duplicates(['request_id', 'sugg_slot'])
+        by_trial.append(dict(
+            condition=condition,
+            sugg_unigram_llk_mean=block_df.sugg_unigram_llk.mean(),
+#            sugg_unigram_llk_std=block_df.sugg_unigram_llk.std(), # not clearly meaningful, since it's already a mean
+            sugg_sentiment_mean=block_df.sugg_sentiment.mean(),
+            sugg_sentiment_std=block_df.sugg_sentiment.std(),
+            sugg_sentiment_group_std_mean=block_df.groupby('request_id').sugg_sentiment.std().mean(),
+            sugg_contextual_llk_mean=block_df.sugg_contextual_llk.mean()))
+    for i, trial in enumerate(by_trial):
+        trial['block'] = i
+    return by_trial
+#get_suggestion_content_stats('55a1db', ['sotu', 'sentpos', 'sentneg', 'sentpos', 'sentneg'])
+get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
+#%%
 
 #%%
 def get_all_data_pre_annotation():
@@ -445,9 +527,9 @@ def get_all_data_pre_annotation():
 
     correct_git_revs = get_correct_git_revs().set_index('participant_id').correct_git_rev.to_dict()
 
-    log_analysis_data_raw = {participant: get_log_analysis_data(participant, correct_git_revs)
+    log_analysis_data_raw = {participant: get_log_analysis_data(participant, correct_git_revs.get(participant))
         for participant in participants}
-    log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
+    log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, (data, page_conditions) in log_analysis_data_raw.items()}).reset_index(drop=True)
 
     trial_level_data = clean_merge(
             survey_data['trial'],
@@ -461,13 +543,22 @@ def get_all_data_pre_annotation():
             participant_level_data, get_latencies(participants),
             left_index=True, right_index=True, how='left')
 
+    # Get suggestion content stats by trial.
+    content_stats = pd.concat({
+            participant_id: get_suggestion_content_stats(participant_id, page_conditions)
+            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}).reset_index(drop=True)
+    trial_level_data = clean_merge(
+            trial_level_data, content_stats, on=['participant_id', 'block'], how='outer')
+
+
     # Aggregate behavioral stats
-    trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap')]]
+    trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap') or col.startswith('attentionCheckStats')]]
     taps_agg = trial_level_counts.groupby('participant_id').sum()
     participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
     participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
     participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
     participant_level_data['rec_frac'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
+    participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
 
     too_much_latency = (participant_level_data['latency_75'] > 500)
     print(f"Excluding {np.sum(too_much_latency)} for too much latency")
@@ -481,6 +572,8 @@ def get_all_data_pre_annotation():
     participant_level_data = clean_merge(
             participant_level_data, exclude.to_frame('is_excluded'),
             left_index=True, right_index=True, how='left')
+
+    trial_level_data['attention_check_frac_passed'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
 
     return participant_level_data, trial_level_data
 

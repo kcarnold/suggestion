@@ -33,8 +33,13 @@ yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
 sotu'''.split()
-[Model.preload_model(name, paths.model_basename(name)) for name in PRELOAD_MODELS]
+def get_or_load_model(name):
+    if name not in Model.preloaded:
+        Model.preload_model(name, paths.model_basename(name))
+    return Model.get_model(name)
+[get_or_load_model(name) for name in PRELOAD_MODELS]
 get_model = Model.get_model
+
 
 import json
 star_prior_counts = np.array(json.load(open(paths.models / 'star_counts.json')))

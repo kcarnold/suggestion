@@ -79,7 +79,7 @@ def get_existing_requests(logfile):
         phrases = response['next_word']
         phrases = [' '.join(phrase['one_word']['words'] + phrase['continuation'][0]['words']) for phrase in phrases]
         while len(phrases) < 3:
-            phrases.append([''])
+            phrases.append('')
         if len(phrases) > 3:
             weird_counter += 1
             phrases = phrases[:3]
