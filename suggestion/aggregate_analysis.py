@@ -45,6 +45,14 @@ total_actions_nobackspace
 total_key_taps
 total_rec_taps
 rec_frac
+Neuroticism
+NeedForCognition
+OpennessToExperience
+Creativity
+Extraversion
+Trust
+LocusOfControl
+CognitiveStyle
 '''.strip().split()
 
 TRIAL_COLUMNS = '''
@@ -121,6 +129,33 @@ def get_survey_data_raw():
         header=1, parse_dates=['StartDate', 'EndDate']).iloc[1:]
         for name in ALL_SURVEY_NAMES}
 
+#%%
+traits_key = pd.read_csv('traits.csv').set_index('item').key.reset_index().dropna().set_index('item').key.to_dict()
+trait_names = {
+        "N": "Neuroticism",
+        "NfC": "NeedForCognition",
+        "OtE": "OpennessToExperience",
+        "C": "Creativity",
+        "E": "Extraversion",
+        "T": "Trust",
+        "LoC": "LocusOfControl"}
+#from collections import Counter
+#sorted(Counter(v for trait in traits_key.key for v in trait.split(',')).most_common())
+#%%
+def decode_traits(data):
+    data = data.copy()
+    for item, key in traits_key.items():
+        datum = data.pop(f'pers-{item}')
+        for trait in key.split(','):
+            val = {'+': 1, '-': -1}[trait[-1]]
+            name = trait_names[trait[:-1]]
+            if name in data:
+                data[name] += datum * val
+            else:
+                data[name] = datum.copy() * val
+    return data
+
+#%%
 
 def process_survey_data(survey, survey_data_raw):
     is_repeated = survey in ['postTask', 'postTask3', 'postFreewrite']
@@ -172,6 +207,9 @@ def process_survey_data(survey, survey_data_raw):
         if new[1] == 'numeric':
             col_data = pd.to_numeric(col_data)
         data[new_name] = col_data
+
+    if survey in ['intro2']:
+        data = decode_traits(data)
     return data
 
 
