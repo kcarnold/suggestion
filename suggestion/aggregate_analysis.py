@@ -14,6 +14,7 @@ from suggestion.util import mem, flatten_dict
 from suggestion import tokenization
 import string
 
+
 from suggestion.analysis_util import (
         # survey stuff
         skip_col_re, prefix_subs, decode_scales,
@@ -247,7 +248,6 @@ def get_survey_data_processed():
             intro_data, postExp_data, on=['participant_id'], how='outer')
 
     return survey_data
-asd = get_survey_data_processed()
 #%%
 ###
 ### Log analysis
@@ -403,15 +403,17 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
     toks = tokenization.tokenize(doc.lower())[0]
     filtered = []
     freqs = []
+    skipped = set()
     for tok in toks:
         if tok[0] not in string.ascii_letters:
             continue
         vocab_idx = analyzer.word2idx.get(tok)
         if vocab_idx is None or analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
-            print("Skipping", tok)
+            skipped.add(tok)
             continue
         filtered.append(tok)
         freqs.append(analyzer.log_freqs[vocab_idx])
+    print("Skipped tokens:", ' '.join(sorted(skipped)))
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
