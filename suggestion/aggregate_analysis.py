@@ -24,6 +24,10 @@ from suggestion.analysis_util import (
 from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
 analyzer = WordFreqAnalyzer.build()
 
+get_existing_reqs_cached = mem.cache(get_existing_requests)
+analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
+
+
 ALL_SURVEY_NAMES = ['intro', 'intro2', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
 
 
@@ -411,8 +415,6 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
-get_existing_reqs_cached = mem.cache(get_existing_requests)
-
 def get_latencies(participants):
     suggestion_data_raw = {participant: get_existing_reqs_cached(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
@@ -496,7 +498,7 @@ def get_all_data_with_annotations():
     # Compute other readability measures
     trial_level_data = clean_merge(
         trial_level_data,
-        trial_level_data.corrected_text.dropna().apply(analyze_readability_measures).rename(columns={'words': 'final_length_words'}),
+        trial_level_data.corrected_text.dropna().apply(analyze_readability_measures_cached).rename(columns={'words': 'final_length_words'}),
         left_index=True, right_index=True, how='left')
 
 
