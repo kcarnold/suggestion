@@ -21,7 +21,7 @@ from suggestion.analysis_util import (
         get_existing_requests, classify_annotated_event, get_log_analysis)
 
 
-from suggestion.analyzers import WordFreqAnalyzer
+from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
 analyzer = WordFreqAnalyzer.build()
 
 ALL_SURVEY_NAMES = ['intro', 'intro2', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
@@ -493,6 +493,13 @@ def get_all_data_with_annotations():
         trial_level_data.corrected_text.dropna().apply(analyze_llks),
         left_index=True, right_index=True, how='left')
 
+    # Compute other readability measures
+    trial_level_data = clean_merge(
+        trial_level_data,
+        trial_level_data.corrected_text.dropna().apply(analyze_readability_measures).rename(columns={'words': 'final_length_words'}),
+        left_index=True, right_index=True, how='left')
+
+
     # Pull in annotations.
     annotation_results, annotation_todo = get_sentiment_and_topic_annotations(trial_level_data, annotator='kca')
     #.drop('sent_idx sentence'.split(), axis=1)
@@ -547,6 +554,8 @@ def get_all_data_with_annotations():
     return full_data, corrections_todo, annotation_todo
 
 #%%
+
+#%%
 def main(write_output=False):
     all_data, corrections_todo, annotations_todo = get_all_data_with_annotations()
     if write_output:
@@ -559,29 +568,6 @@ def only_for_interactive():
     # global vars are a source of errors, so do this outside of global scope so that the linter can catch misuses.
     #%%
     all_data, corrections_todo, annotations_todo = main(write_output=True)
-    #%%
-##%%
-#all_data.drop(['git_rev'],axis=1).to_csv('all_data_post_fix.csv',index=False)
-##%%
-#pd.read_csv('all_data.csv').drop(['git_rev'], axis=1).to_csv('all_data_earlier_without_git_rev.csv',index=False)
-##%%
-#old_data = pd.read_csv('all_data.csv')
-#merged = pd.merge(old_data, all_data, how='outer', on=['participant_id', 'block'])
-##%%
-#for col in merged.columns:
-#    if not col.endswith('_x'):
-#        continue
-#    col = col[:-2]
-#    this_data = merged[col+"_x"]
-#    other_data = merged[col+"_y"]
-#    if not np.all(this_data.values == other_data.values):
-#        print("Mismatch", col)
-#        assert False
-##%%
-#old_text = old_data.set_index(['participant_id', 'block']).final_text.fillna("MISSING")
-#new_text = all_data.set_index(['participant_id', 'block']).final_text.fillna("MISSING")
-#pd.merge(old_data, old_text[old_text != new_text].to_frame('equal'), left_on=['participant_id', 'block'], right_index=True).study
-##%%
 
 #%%
 
@@ -608,10 +594,3 @@ def summarize_freetexts(all_data):
 #            print()
 #        print()
 
-
-#%%
-#%%
-#%%
-
-#%%
-#ambiguous = revs_and_timestamps.groupby(['participant_id', 'git_rev']).size().groupby(level=0).size() > 1

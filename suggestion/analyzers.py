@@ -1,9 +1,9 @@
-import os
-import pickle
+import re
 import numpy as np
 import tqdm
 from scipy.spatial.distance import pdist
 from .paths import paths
+from suggestion.tokenization import sentence_per_line_tokenize
 import pandas as pd
 
 
@@ -134,3 +134,75 @@ class WordPairAnalyzer:
 def smooth_ecdf(x, samples):
     return np.interp(samples, np.sort(x), np.linspace(0,1,len(x)))
 
+
+
+def _mtld(tokens, threshold=0.72):
+    # Roughly based on http://cpansearch.perl.org/src/AXANTHOS/Lingua-Diversity-0.06/lib/Lingua/Diversity/MTLD.pm
+    # TODO: this is such an ugly heuristic measure. Validate it somehow??
+    word_re = re.compile(r'\w+|\w+[^\s]+\w+')
+    factor_lengths = []
+    factor_weights = []
+    cur_token_count = 0
+    cur_types = set()
+    type_token_ratio = 1. # initialize just in case no tokens
+    for token in tokens:
+        if word_re.match(token) is None:
+            continue
+        token = token.lower()
+        cur_token_count += 1
+        cur_types.add(token)
+        type_token_ratio = len(cur_types) / cur_token_count
+        if type_token_ratio <= threshold:
+            factor_lengths.append(cur_token_count)
+            factor_weights.append(1.)
+            cur_token_count = 0
+            cur_types = set()
+            type_token_ratio = 1.
+    # Handle partial factors
+    if cur_token_count > 0:
+        if type_token_ratio == 1. and len(factor_lengths) == 0:
+            factor_lengths.append(0)
+            factor_weights.append(1.)
+        elif type_token_ratio < 1:
+            proportion = (1 - type_token_ratio) / (1 - threshold)
+            assert 0 <= proportion < 1
+            factor_lengths.append(cur_token_count / proportion)
+            factor_weights.append(proportion)
+    if len(factor_lengths) == 0:
+        return 0.
+    return sum(length * weight for length, weight in zip(factor_lengths, factor_weights)) / sum(factor_weights)
+
+
+def mtld(tokens, threshold=0.72):
+    return (_mtld(tokens, threshold=threshold) + _mtld(reversed(tokens), threshold=threshold)) / 2
+
+
+def analyze_readability_measures(text, include_word_types=False):
+    import readability
+    import traceback
+    from collections import OrderedDict
+    tokenized = sentence_per_line_tokenize(text)
+    res = pd.Series()
+    tokenized_sentences = [sent.split() for sent in tokenized.lower().split('\n')]
+    toks_flat = [w for sent in tokenized_sentences for w in sent]
+    if len(toks_flat) == 0:
+        return {}  # invalid...
+    res['mtld'] = mtld(toks_flat)
+    try:
+        readability_measures = readability.getmeasures(tokenized)
+    except Exception:
+        traceback.print_exc()
+    else:
+        for k, v in readability_measures.pop('sentence info').items():
+            res[k] = v
+        num_words = res['words']
+        num_sents = res['sentences']
+        if include_word_types:
+            for word_type, count in readability_measures.pop('sentence beginnings').items():
+                res[f'word_type_sent_startswith_{word_type}'] = count / num_sents
+            for typ, count in readability_measures.pop('word usage').items():
+                res[f'word_type_overall_{typ}'] = count / num_words
+        for k in 'wordtypes long_words complex_words'.split():
+            res[k] = res[k] / num_words
+        # res.update(readability_measures.pop('readability grades'))
+    return res

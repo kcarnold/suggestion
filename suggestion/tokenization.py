@@ -86,11 +86,10 @@ def tokenize_mid_document(doc_so_far):
     return tok_list, afters
 
 
-def untokenize(toks, afters):
-    assert len(toks) == len(afters)
-    res = ''
-    for tok, after in zip(toks, afters):
-        if tok not in SPECIAL_TOKENS:
-            res += tok
-        res += after
-    return res
+def sentence_per_line_tokenize(text):
+    res = []
+    for sent in sentence_tokenizer.tokenize(text):
+        toks = ' '.join(sent[tok_start:tok_end] for tok_start, tok_end in token_spans(sent))
+        if toks:
+            res.append(toks)
+    return '\n'.join(res)
