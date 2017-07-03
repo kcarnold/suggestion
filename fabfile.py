@@ -1,6 +1,7 @@
 from fabric.api import local, lcd, env, cd, run
 from fabric.contrib.project import rsync_project
 import subprocess
+import os
 
 env.use_ssh_config = True
 env.hosts = [
@@ -20,3 +21,7 @@ def deploy():
     with lcd('frontend'):
         local(f'sentry-cli releases -o kenneth-arnold -p suggestionfrontend new {git_rev}')
         local(f'sentry-cli releases -o kenneth-arnold -p suggestionfrontend files {git_rev} upload-sourcemaps src build')
+
+def get_data():
+    subprocess.run(['./pull-logs'], env=dict(os.environ, SERVER='megacomplete-aws'))
+    subprocess.run(['python', 'scripts/get_surveys.py'])
