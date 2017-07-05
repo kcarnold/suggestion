@@ -12,7 +12,7 @@ env.hosts = [
 def deploy():
     local('git push')
     git_rev = subprocess.check_output(['git', 'describe', '--always']).decode('utf-8').strip()
-    open('frontend/.env', 'w').write(f'REACT_APP_GIT_REV={git_rev}')
+    open('frontend/.env', 'w').write(f'REACT_APP_GIT_REV={git_rev}\n')
     with cd('~/code/suggestion'):
         run('git pull')
     with lcd('frontend'):
