@@ -478,6 +478,7 @@ def get_suggestion_content_stats(participant_id, page_conditions):
         toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
         cur_word = sugg['cur_word']
         if cur_word:
+            # Skip partial words.
             continue
         state = model.get_state(toks[-10:])[0]
         clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks[-10:])
@@ -518,8 +519,6 @@ def get_suggestion_content_stats(participant_id, page_conditions):
             sugg_sentiment_std=block_df.sugg_sentiment.std(),
             sugg_sentiment_group_std_mean=block_df.groupby('request_id').sugg_sentiment.std().mean(),
             sugg_contextual_llk_mean=block_df.sugg_contextual_llk.mean()))
-    for i, trial in enumerate(by_trial):
-        trial['block'] = i
     return by_trial
 #get_suggestion_content_stats('55a1db', ['sotu', 'sentpos', 'sentneg', 'sentpos', 'sentneg'])
 #get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
@@ -558,7 +557,7 @@ def get_all_data_pre_annotation():
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
             participant_id: pd.DataFrame(get_suggestion_content_stats(participant_id, page_conditions))
-            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}, names=['participant_id', 'block2']).reset_index()
+            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}, names=['participant_id', 'block']).reset_index()
     trial_level_data = clean_merge(
             trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
 
@@ -653,7 +652,7 @@ def get_all_data_with_annotations():
     omit_cols_prefixes = ['How much did you say about each topic', 'Roughly how many lines of each', 'brainstorm']
     drop_cols = [col for col in full_data.columns if any(col.startswith(x) for x in omit_cols_prefixes)]
     full_data = full_data.drop(drop_cols, axis=1)
-
+    full_data = full_data.sort_values(['config', 'participant_id', 'block'])
 
     desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
     missing_cols = sorted(desired_cols - set(full_data.columns))
@@ -668,7 +667,7 @@ def get_all_data_with_annotations():
 def main(write_output=False):
     all_data, corrections_todo, annotations_todo = get_all_data_with_annotations()
     if write_output:
-        all_data.to_csv('all_data_2017-07-03.csv', index=False)
+        all_data.to_csv('all_data.csv', index=False)
         corrections_todo.to_csv('gruntwork/corrections_todo.csv', index=False)
         annotations_todo.to_csv('gruntwork/annotations_todo_kca.csv', index=False)
     return all_data, corrections_todo, annotations_todo
