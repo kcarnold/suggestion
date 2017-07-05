@@ -42,6 +42,7 @@ def tokenize(doc):
             sent = para[sent_start:sent_end]
             tspans = list(token_spans(sent))
             if not tspans:
+                assert all(c == ' ' or c in END_PUNCT for c in sent)
                 continue
             afters.append(para[end_of_prev_sentence:sent_start])
             end_of_prev_sentence = sent_end
@@ -69,7 +70,8 @@ def tokenize_mid_document(doc_so_far):
         tok_list += [START_PARA, START_SENT, '']
         afters += ['', '', '']
     else:
-        assert tok_list[-1] == END_SENT
+        if tok_list[-1] != END_SENT:
+            assert set(doc_so_far) <= set(END_PUNCT)
         if tok_list[-2] in '.?!':
             # Real EOS
             tok_list += [START_SENT, '']
