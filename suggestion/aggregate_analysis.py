@@ -429,8 +429,12 @@ def get_latencies(participants):
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
 
 
-def clean_merge(*a, **kw):
+def clean_merge(*a, must_match=[], **kw):
     res = pd.merge(*a, **kw)
+    for col in must_match:
+        assert res[f'{col}_x'].equals(res[f'{col}_y']), f"{col} doesn't match"
+        res[col] = res.pop(f'{col}_x')
+        del res[f'{col}_y']
     unclean = [col for col in res.columns if col.endswith('_x') or col.endswith('_y')]
     assert len(unclean) == 0, unclean
     assert 'index' not in res
@@ -553,10 +557,10 @@ def get_all_data_pre_annotation():
 
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
-            participant_id: get_suggestion_content_stats(participant_id, page_conditions)
-            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}).reset_index(drop=True)
+            participant_id: pd.DataFrame(get_suggestion_content_stats(participant_id, page_conditions))
+            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}, names=['participant_id', 'block2']).reset_index()
     trial_level_data = clean_merge(
-            trial_level_data, content_stats, on=['participant_id', 'block'], how='outer')
+            trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
 
 
     # Aggregate behavioral stats
@@ -634,7 +638,7 @@ def get_all_data_with_annotations():
 
     trial_level_data = clean_merge(
         trial_level_data, topic_data.reset_index(),
-        left_on=['participant_id', 'block', 'condition'], right_on=['participant_id', 'block', 'condition'], how='left')
+        on=['participant_id', 'block', 'condition'], how='left')
 
 
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
