@@ -460,12 +460,12 @@ def get_suggestion_content_stats(participant_id, page_conditions):
             if request_id == prev_request_id:
                 # skip duplicate
                 continue
-            if request_id == 0 and prev_request_id is not None:
+            if request_id == 0:
+                # Finished a block.
                 res.append(cur_block)
                 cur_block = []
-            if abs(request_id - prev_request_id) > 10:
-                print(f"\n\nPROBABLY BAD LOG FILE {participant_id}\n\n")
-                return {}
+            elif abs(request_id - prev_request_id) > 10:
+                print(f"Warning: big skip in request ids for {participant_id}: {prev_request_id} to {request_id}")
         prev_request_id = request_id
         if not meta['domain'].startswith('yelp'):
             continue
@@ -479,23 +479,31 @@ def get_suggestion_content_stats(participant_id, page_conditions):
         clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks[-10:])
         phrases = [sugg[f'p{idx+1}'].split() for idx in range(3)]
         for sugg_slot, phrase in enumerate(phrases):
-            sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
-            sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
+            if phrase:
+                sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
+                sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
+            else:
+                sentiment = None
+            analyzer_indices = [analyzer.word2idx.get(tok) for tok in phrase]
             cur_block.append(dict(
                 request_id=sugg['request_id'],
                 sugg_slot=sugg_slot,
                 sugg_contextual_llk=model.score_seq(state, phrase)[0],
-                sugg_unigram_llk=np.mean([analyzer.log_freqs[analyzer.word2idx[tok]] for tok in phrase]),
+                sugg_unigram_llk=np.nanmean(np.array([analyzer.log_freqs[idx] if idx is not None else np.nan for idx in analyzer_indices])),
                 sugg_sentiment=sentiment))
 
     res.append(cur_block)
 
-    assert len(res) == len(page_conditions)
+
+    if len(res) != len(page_conditions):
+        print(f"Failed to get content stats for logfile {participant_id}")
+        return {}
 
     by_trial = []
     for condition, block in zip(page_conditions, res):
-        if condition in ['sotu', 'tweeterinchief']:
+        if condition in ['sotu', 'tweeterinchief', 'trump']:
             continue
+        assert len(block) > 0
         block_df = pd.DataFrame(block)
         block_df = block_df.drop_duplicates(['request_id', 'sugg_slot'])
         by_trial.append(dict(
@@ -510,7 +518,7 @@ def get_suggestion_content_stats(participant_id, page_conditions):
         trial['block'] = i
     return by_trial
 #get_suggestion_content_stats('55a1db', ['sotu', 'sentpos', 'sentneg', 'sentpos', 'sentneg'])
-get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
+#get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
 #%%
 
 #%%
