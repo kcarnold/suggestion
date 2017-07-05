@@ -564,6 +564,9 @@ def get_all_data_pre_annotation():
     trial_level_data = clean_merge(
             trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
 
+    trial_level_data['num_taps_on_recs'] = trial_level_data.num_tapSugg_bos + trial_level_data.num_tapSugg_full + trial_level_data.num_tapSugg_part
+    trial_level_data['num_nonbackspace_actions'] = trial_level_data.num_taps_on_recs + trial_level_data.num_tapKey
+    trial_level_data['rec_frac'] = trial_level_data.num_taps_on_recs / trial_level_data.num_nonbackspace_actions
 
     # Aggregate behavioral stats
     trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap') or col.startswith('attentionCheckStats')]]
@@ -571,14 +574,14 @@ def get_all_data_pre_annotation():
     participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
     participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
     participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
-    participant_level_data['rec_frac'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
+    participant_level_data['rec_frac_overall'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
     participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
 
     too_much_latency = (participant_level_data['latency_75'] > 500)
     print(f"Excluding {np.sum(too_much_latency)} for too much latency")
     too_few_actions = (
     #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (participant_level_data.rec_frac < .01) | (participant_level_data.rec_frac > .99)
+        (participant_level_data.rec_frac_overall < .01) | (participant_level_data.rec_frac_overall > .99)
         )
     print(f"Excluding {np.sum(too_few_actions)} for too few actions")
     exclude = too_few_actions | too_much_latency
@@ -649,6 +652,9 @@ def get_all_data_with_annotations():
             participant_level_data.reset_index(),
             trial_level_data,
             on='participant_id', how='right')
+
+    full_data['stars_before_rank'] = full_data.groupby('participant_id').stars_before.rank(method='average')
+    full_data['stars_after_rank'] = full_data.groupby('participant_id').stars_after.rank(method='average')
 
 #    assert participant_level_data.participant_id.value_counts().max() == 1
 
