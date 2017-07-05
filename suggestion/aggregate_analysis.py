@@ -536,8 +536,8 @@ def get_all_data_pre_annotation():
     survey_data = get_survey_data_processed()
 
     participant_level_data = clean_merge(
-            survey_data['participant'], participants_by_study,
-            left_on='participant_id', right_on='participant_id', how='outer').set_index('participant_id')
+            survey_data['participant'].drop_duplicates('participant_id'), participants_by_study,
+            on='participant_id', how='outer').set_index('participant_id')
 
     correct_git_revs = get_correct_git_revs().set_index('participant_id').correct_git_rev.to_dict()
 
