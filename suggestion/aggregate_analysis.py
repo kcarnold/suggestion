@@ -475,7 +475,10 @@ def get_suggestion_content_stats(participant_id, page_conditions):
             continue
 
         model = suggestion_generator.get_or_load_model(meta['domain'])
-        toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
+        try:
+            toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
+        except:
+            continue
         cur_word = sugg['cur_word']
         if cur_word:
             # Skip partial words.

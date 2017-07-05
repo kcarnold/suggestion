@@ -4,6 +4,7 @@ from nltk.tokenize import RegexpTokenizer, PunktSentenceTokenizer
 
 WORD_RE = re.compile(r'\w+(?:[\',:]\w+)*')
 END_PUNCT = set('.,?!:')
+END_PUNCT_OR_SPACE = set('.,?!: ')
 URL_RE = re.compile(r'\bhttp[s]?://[^\s]*[^\s.]')
 
 
@@ -71,7 +72,7 @@ def tokenize_mid_document(doc_so_far):
         afters += ['', '', '']
     else:
         if tok_list[-1] != END_SENT:
-            assert set(doc_so_far) <= set(END_PUNCT)
+            assert set(doc_so_far) <= END_PUNCT_OR_SPACE
         if tok_list[-2] in '.?!':
             # Real EOS
             tok_list += [START_SENT, '']
