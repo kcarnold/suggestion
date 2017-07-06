@@ -421,16 +421,6 @@ export class MasterStateStore {
       passedQuiz: false,
       phoneSize: {width: 360, height: 500},
       pingTime: null,
-      get blockName() {
-        switch (this.block) {
-        case 0:
-          return 'A';
-        case 1:
-          return 'B';
-        default:
-          return null;
-        }
-      },
       get screens() {
         if (isDemo) {
           return [{
