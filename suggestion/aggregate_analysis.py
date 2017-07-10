@@ -552,6 +552,11 @@ def get_all_data_pre_annotation():
 
     trial_level_data['final_length_chars'] = trial_level_data.final_text.str.len()
 
+    # Fill missing data in tap counts with zeros
+    for col in trial_level_data.columns:
+        if col.startswith('num_tap'):
+            trial_level_data[col] = trial_level_data[col].fillna(0)
+
     # Calculate latency.
     participant_level_data = clean_merge(
             participant_level_data, get_latencies(participants),
