@@ -165,7 +165,7 @@ cogstyle_answers = {
 def decode_traits(data):
     data = data.copy()
     for item, key in traits_key.items():
-        datum = data.pop(f'pers-{item}')
+        datum = (data.pop(f'pers-{item}') - 3) / 4
         for trait in key.split(','):
             val = {'+': 1, '-': -1}[trait[-1]]
             name = trait_names[trait[:-1]]
