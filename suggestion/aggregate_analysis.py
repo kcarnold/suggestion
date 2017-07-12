@@ -50,7 +50,7 @@ verbalized_during
 total_actions_nobackspace
 total_key_taps
 total_rec_taps
-rec_frac
+rec_frac_overall
 attention_check_frac_passed
 Neuroticism
 NeedForCognition
@@ -60,6 +60,8 @@ Extraversion
 Trust
 LocusOfControl
 CognitiveReflection
+Imagination
+Agreeableness
 '''.strip().split()
 
 # Can't do these two without manual history editing:
@@ -74,8 +76,11 @@ latency_75
 know_what_to_write
 stars_before
 stars_after
+stars_before_rank
+stars_after_rank
 self_report_accuracy
 final_text
+rec_frac_trial
 num_tapBackspace
 num_tapKey
 num_tapSugg_bos
@@ -101,6 +106,8 @@ total_positive
 total_negative
 max_positive
 max_negative
+mean_positive
+mean_negative
 num_topics
 mtld
 pairdist_words_mean
@@ -157,17 +164,18 @@ trait_names = {
 #sorted(Counter(v for trait in traits_key.key for v in trait.split(',')).most_common())
 #%%
 cogstyle_answers = {
- 'A bat and a ball cost $1.10 in total. The bat costs a dollar more than the ball. How much does th...': ['5', '05', '.05', '0.05'],
- 'A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. H...': ['20'],
- 'If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 day...': ['4'],
- 'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 1...': ['5'],
- 'In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 da...': ['47'],
- 'Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are...': ['29'],
- 'Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he inv...': ['has lost money']}
+ 'A bat and a ball cost $1.10 in total. The bat costs a dollar more than the ball. How much does th': ['5', '05', '.05', '0.05'],
+ 'A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. H': ['20'],
+ 'If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 day': ['4'],
+ 'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 1': ['5'],
+ 'In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 da': ['47'],
+ 'Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are': ['29'],
+ 'Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he inv': ['has lost money']}
 #%%
 def decode_traits(data):
     data = data.copy()
     for item, key in traits_key.items():
+        item = item.rstrip('. ')
         col_name = f'pers-{item}'
         if col_name not in data.columns:
             continue
@@ -202,10 +210,13 @@ def process_survey_data(survey, survey_data_raw):
     # Bulk renames
     cols_to_rename = {}
     for col in data.columns:
+        new_name = col
         for x, y in prefix_subs.items():
             if col.startswith(x):
-                cols_to_rename[col] = col.replace(x, y, 1)
+                new_name = col.replace(x, y, 1)
                 break
+        new_name = new_name.rstrip('. ')
+        cols_to_rename[col] = new_name
     data = data.rename(columns=cols_to_rename)
 
     data = data.applymap(lambda x: decode_scales.get(x, x))
@@ -253,7 +264,7 @@ def get_survey_data_processed():
     postExp_data = process_survey_data('postExp', get_and_concat(['postExp', 'postExp3', 'postExp4']))
 
     survey_data['trial'] = postTask_data
-    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion']
+    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion', 'OpennessToExperience']
     survey_data['participant'] = clean_merge(
             intro_data, postExp_data, on=['participant_id'], how='outer', combine_cols=traits_that_overlap)
 
@@ -528,7 +539,7 @@ def get_all_data_pre_annotation():
 
     trial_level_data['num_taps_on_recs'] = trial_level_data.num_tapSugg_bos + trial_level_data.num_tapSugg_full + trial_level_data.num_tapSugg_part
     trial_level_data['num_nonbackspace_actions'] = trial_level_data.num_taps_on_recs + trial_level_data.num_tapKey
-    trial_level_data['rec_frac'] = trial_level_data.num_taps_on_recs / trial_level_data.num_nonbackspace_actions
+    trial_level_data['rec_frac_trial'] = trial_level_data.num_taps_on_recs / trial_level_data.num_nonbackspace_actions
 
     # Aggregate behavioral stats
     trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap') or col.startswith('attentionCheckStats')]]

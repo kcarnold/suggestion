@@ -14,7 +14,7 @@ import subprocess
 #
 
 skip_col_re = re.compile(
-    r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order|Demographic Questions|Closing Survey.+')
+    r'Great.job|Q_\w+|nextURL|clientId|Timing.*|Browser.*|Location.*|Recipient.*|Response.+|ExternalDataReference|Finished|Status|IPAddress|StartDate|EndDate|Welcome.+|Display Order|Demographic Questions|Closing Survey.+|revisionDesc|prewrite')
 
 prefix_subs = {
     "How much do you agree with the following statements about the suggestions that the system gave?-They ": "suggs-",
