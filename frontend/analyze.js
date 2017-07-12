@@ -16,9 +16,9 @@ function readStdin(callback) {
   });
 }
 
-readStdin(function(err, res) {
+function processLog(log) {
   var participants = new Map();
-  var log = res.split('\n').filter(line => line.length > 0).map(line => JSON.parse(line));
+
   log.forEach((entry) => {
     if (entry.kind === 'meta') return;
     let {participant_id} = entry;
@@ -64,8 +64,9 @@ readStdin(function(err, res) {
       }
     }
   });
+
   // Summarize the sub-experiments.
-  participants = [...participants].map(([participant_id, {state, byExpPage, pageSeq}]) => ([participant_id, {
+  return [...participants].map(([participant_id, {state, byExpPage, pageSeq}]) => ([participant_id, {
     config: state.masterConfigName,
     byExpPage,
     pageSeq,
@@ -82,6 +83,9 @@ readStdin(function(err, res) {
       };
     }),
   }]));
+}
 
-  process.stdout.write(JSON.stringify(participants));
+readStdin(function(err, res) {
+  var log = res.split('\n').filter(line => line.length > 0).map(line => JSON.parse(line));
+  process.stdout.write(JSON.stringify(processLog(log)));
 });
