@@ -452,24 +452,12 @@ def clean_merge(*a, must_match=[], combine_cols=[], **kw):
     return res
 
 #%%
-def name_condition(meta, config):
-    if meta['domain'] == 'sotu':
-        return 'sotu'
-    if meta['sentiment'] == 1:
-        return 'sentneg'
-    if meta['sentiment'] == 5:
-        return 'sentpos'
-    assert meta
-#%%
-@mem.cache
-def get_suggestion_content_stats(participant_id, page_conditions):
-    from suggestion import suggestion_generator
-    suggestion_data_raw = get_existing_reqs_cached(paths.parent / 'logs' / f'{participant_id}.jsonl')
+def group_requests_by_session(suggestion_data_raw, participant_id):
+    '''Given a set of raw suggestions, group them by experiment page.'''
     prev_request_id = None
     res = []
     cur_block = []
     for sugg in suggestion_data_raw:
-        meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
         request_id = sugg['request_id']
         if prev_request_id is not None:
             if request_id == prev_request_id:
@@ -482,37 +470,51 @@ def get_suggestion_content_stats(participant_id, page_conditions):
             elif abs(request_id - prev_request_id) > 10:
                 print(f"Warning: big skip in request ids for {participant_id}: {prev_request_id} to {request_id}")
         prev_request_id = request_id
-        if not meta['domain'].startswith('yelp'):
-            continue
-
-        model = suggestion_generator.get_or_load_model(meta['domain'])
-        try:
-            toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
-        except:
-            continue
-        cur_word = sugg['cur_word']
-        if cur_word:
-            # Skip partial words.
-            continue
-        state = model.get_state(toks[-10:])[0]
-        clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks[-10:])
-        phrases = [sugg[f'p{idx+1}'].split() for idx in range(3)]
-        for sugg_slot, phrase in enumerate(phrases):
-            if phrase:
-                sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
-                sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
-            else:
-                sentiment = None
-            analyzer_indices = [analyzer.word2idx.get(tok) for tok in phrase]
-            cur_block.append(dict(
-                request_id=sugg['request_id'],
-                sugg_slot=sugg_slot,
-                sugg_contextual_llk=model.score_seq(state, phrase)[0],
-                sugg_unigram_llk=np.nanmean(np.array([analyzer.log_freqs[idx] if idx is not None else np.nan for idx in analyzer_indices])),
-                sugg_sentiment=sentiment))
-
+        cur_block.append(dict(sugg))
     res.append(cur_block)
+    return res
 
+def get_content_stats_single_suggestion(sugg):
+    from suggestion import suggestion_generator
+    meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
+
+    if not meta['domain'].startswith('yelp'):
+        return
+
+    if sugg['cur_word']:
+        # Skip partial words.
+        return
+
+    model = suggestion_generator.get_or_load_model(meta['domain'])
+    try:
+        toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
+    except:
+        # Tokenization failed.
+        return
+    # Optimization: trim context to the n-gram level, plus some padding.
+    toks = toks[-10:]
+    state = model.get_state(toks)[0]
+    clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks)
+    res = []
+    for sugg_slot, phrase in enumerate(sugg['phrases']):
+        if phrase:
+            sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
+            sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
+        else:
+            sentiment = None
+        analyzer_indices = [analyzer.word2idx.get(tok) for tok in phrase]
+        res.append(dict(
+            request_id=sugg['request_id'],
+            sugg_slot=sugg_slot,
+            sugg_contextual_llk=model.score_seq(state, phrase)[0],
+            sugg_unigram_llk=np.nanmean(np.array([analyzer.log_freqs[idx] if idx is not None else np.nan for idx in analyzer_indices])),
+            sugg_sentiment=sentiment))
+    return res
+
+@mem.cache
+def get_suggestion_content_stats(participant_id, page_conditions):
+    suggestion_data_raw = get_existing_reqs_cached(paths.parent / 'logs' / f'{participant_id}.jsonl')
+    res = group_requests_by_session(suggestion_data_raw, participant_id)
 
     if len(res) != len(page_conditions):
         print(f"Failed to get content stats for logfile {participant_id}")
@@ -523,7 +525,13 @@ def get_suggestion_content_stats(participant_id, page_conditions):
         if condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg']:
             continue
         assert len(block) > 0
-        block_df = pd.DataFrame(block)
+
+        block_data = []
+        for sugg in block:
+            for datum in get_content_stats_single_suggestion(sugg) or []:
+                block_data.append(datum)
+
+        block_df = pd.DataFrame(block_data)
         block_df = block_df.drop_duplicates(['request_id', 'sugg_slot'])
         by_trial.append(dict(
             condition=condition,
