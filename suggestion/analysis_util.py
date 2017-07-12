@@ -4,6 +4,7 @@ try:
 except ImportError:
     import json
 import re
+import numpy as np
 from suggestion.util import mem
 from suggestion.paths import paths
 import subprocess
@@ -41,7 +42,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-def get_existing_requests(logfile):
+def get_existing_requests_raw(logfile):
     # Each request has a timestamp, which is effectively its unique id.
     weird_counter = 0
     dupe_counter = 0
@@ -114,6 +115,14 @@ def get_existing_requests(logfile):
 
     return suggestions
 
+@mem.cache()
+def get_existing_reqs_cached_raw(*a, **kw):
+    return json.dumps(get_existing_requests_raw(*a, **kw))
+
+def get_existing_requests(*a, **kw):
+    return json.loads(get_existing_reqs_cached_raw(*a, **kw))
+
+
 
 def get_rev(participant):
     logpath = paths.parent / 'logs' / (participant+'.jsonl')
@@ -179,3 +188,65 @@ def classify_annotated_event(evt):
             sugg_mode = 'part'
         return 'tapSugg_' + sugg_mode
     assert False, typ
+
+
+
+def group_requests_by_session(suggestion_data_raw, participant_id):
+    '''Given a set of raw suggestions, group them by experiment page.'''
+    prev_request_id = None
+    res = []
+    cur_block = []
+    for sugg in suggestion_data_raw:
+        request_id = sugg['request_id']
+        if prev_request_id is not None:
+            if request_id == prev_request_id:
+                # skip duplicate
+                continue
+            if request_id == 0:
+                # Finished a block.
+                res.append(cur_block)
+                cur_block = []
+            elif abs(request_id - prev_request_id) > 10:
+                print(f"Warning: big skip in request ids for {participant_id}: {prev_request_id} to {request_id}")
+        prev_request_id = request_id
+        cur_block.append(dict(sugg))
+    res.append(cur_block)
+    return res
+
+def get_content_stats_single_suggestion(sugg, word_freq_analyzer):
+    from suggestion import suggestion_generator
+    meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
+
+    if not meta['domain'].startswith('yelp'):
+        return
+
+    if sugg['cur_word']:
+        # Skip partial words.
+        return
+
+    model = suggestion_generator.get_or_load_model(meta['domain'])
+    try:
+        toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
+    except:
+        # Tokenization failed.
+        return
+    # Optimization: trim context to the n-gram level, plus some padding.
+    toks = toks[-10:]
+    state = model.get_state(toks)[0]
+    clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks)
+    res = []
+    for sugg_slot, phrase in enumerate(sugg['phrases']):
+        if phrase:
+            sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
+            sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
+        else:
+            sentiment = None
+        analyzer_indices = [word_freq_analyzer.word2idx.get(tok) for tok in phrase]
+        res.append(dict(
+            request_id=sugg['request_id'],
+            sugg_slot=sugg_slot,
+            sugg_contextual_llk=model.score_seq(state, phrase)[0],
+            sugg_unigram_llk=np.nanmean(np.array([word_freq_analyzer.log_freqs[idx] if idx is not None else np.nan for idx in analyzer_indices])),
+            sugg_sentiment=sentiment))
+    return res
+

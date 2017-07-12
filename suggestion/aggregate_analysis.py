@@ -19,17 +19,14 @@ from suggestion.analysis_util import (
         # survey stuff
         skip_col_re, prefix_subs, decode_scales,
         # log analysis stuff
-        get_existing_requests, classify_annotated_event, get_log_analysis)
+        get_existing_requests, classify_annotated_event, get_log_analysis,
+        group_requests_by_session,
+        get_content_stats_single_suggestion)
 
 
 from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
-analyzer = WordFreqAnalyzer.build()
+word_freq_analyzer = WordFreqAnalyzer.build()
 
-@mem.cache()
-def get_existing_reqs_cached_raw(*a, **kw):
-    return json.dumps(get_existing_requests(*a, **kw))
-def get_existing_reqs_cached(*a, **kw):
-    return json.loads(get_existing_reqs_cached_raw(*a, **kw))
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 
 
@@ -421,19 +418,19 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
     for tok in toks:
         if tok[0] not in string.ascii_letters:
             continue
-        vocab_idx = analyzer.word2idx.get(tok)
-        if vocab_idx is None or analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
+        vocab_idx = word_freq_analyzer.word2idx.get(tok)
+        if vocab_idx is None or word_freq_analyzer.counts[vocab_idx] < MIN_WORD_COUNT:
             skipped.add(tok)
             continue
         filtered.append(tok)
-        freqs.append(analyzer.log_freqs[vocab_idx])
+        freqs.append(word_freq_analyzer.log_freqs[vocab_idx])
     if skipped:
         print("Skipped tokens:", ' '.join(sorted(skipped)))
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
 def get_latencies(participants):
-    suggestion_data_raw = {participant: get_existing_reqs_cached(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
+    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
     suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
 
@@ -452,68 +449,9 @@ def clean_merge(*a, must_match=[], combine_cols=[], **kw):
     return res
 
 #%%
-def group_requests_by_session(suggestion_data_raw, participant_id):
-    '''Given a set of raw suggestions, group them by experiment page.'''
-    prev_request_id = None
-    res = []
-    cur_block = []
-    for sugg in suggestion_data_raw:
-        request_id = sugg['request_id']
-        if prev_request_id is not None:
-            if request_id == prev_request_id:
-                # skip duplicate
-                continue
-            if request_id == 0:
-                # Finished a block.
-                res.append(cur_block)
-                cur_block = []
-            elif abs(request_id - prev_request_id) > 10:
-                print(f"Warning: big skip in request ids for {participant_id}: {prev_request_id} to {request_id}")
-        prev_request_id = request_id
-        cur_block.append(dict(sugg))
-    res.append(cur_block)
-    return res
-
-def get_content_stats_single_suggestion(sugg):
-    from suggestion import suggestion_generator
-    meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
-
-    if not meta['domain'].startswith('yelp'):
-        return
-
-    if sugg['cur_word']:
-        # Skip partial words.
-        return
-
-    model = suggestion_generator.get_or_load_model(meta['domain'])
-    try:
-        toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
-    except:
-        # Tokenization failed.
-        return
-    # Optimization: trim context to the n-gram level, plus some padding.
-    toks = toks[-10:]
-    state = model.get_state(toks)[0]
-    clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks)
-    res = []
-    for sugg_slot, phrase in enumerate(sugg['phrases']):
-        if phrase:
-            sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
-            sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights
-        else:
-            sentiment = None
-        analyzer_indices = [analyzer.word2idx.get(tok) for tok in phrase]
-        res.append(dict(
-            request_id=sugg['request_id'],
-            sugg_slot=sugg_slot,
-            sugg_contextual_llk=model.score_seq(state, phrase)[0],
-            sugg_unigram_llk=np.nanmean(np.array([analyzer.log_freqs[idx] if idx is not None else np.nan for idx in analyzer_indices])),
-            sugg_sentiment=sentiment))
-    return res
-
 @mem.cache
 def get_suggestion_content_stats(participant_id, page_conditions):
-    suggestion_data_raw = get_existing_reqs_cached(paths.parent / 'logs' / f'{participant_id}.jsonl')
+    suggestion_data_raw = get_existing_requests(paths.parent / 'logs' / f'{participant_id}.jsonl')
     res = group_requests_by_session(suggestion_data_raw, participant_id)
 
     if len(res) != len(page_conditions):
@@ -528,7 +466,7 @@ def get_suggestion_content_stats(participant_id, page_conditions):
 
         block_data = []
         for sugg in block:
-            for datum in get_content_stats_single_suggestion(sugg) or []:
+            for datum in get_content_stats_single_suggestion(sugg, word_freq_analyzer=word_freq_analyzer) or []:
                 block_data.append(datum)
 
         block_df = pd.DataFrame(block_data)
