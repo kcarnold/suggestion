@@ -509,7 +509,7 @@ def get_suggestion_content_stats(participant_id, page_conditions):
 
     by_trial = []
     for condition, block in zip(page_conditions, res):
-        if condition in ['sotu', 'tweeterinchief', 'trump']:
+        if condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg']:
             continue
         assert len(block) > 0
         block_df = pd.DataFrame(block)
