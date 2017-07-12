@@ -693,10 +693,10 @@ def main(write_output=False):
         annotations_todo.to_csv('gruntwork/annotations_todo_kca.csv', index=False)
     return all_data, corrections_todo, annotations_todo
 #%%
-def only_for_interactive():
-    # global vars are a source of errors, so do this outside of global scope so that the linter can catch misuses.
-    #%%
-    all_data, corrections_todo, annotations_todo = main(write_output=True)
+if __name__ == '__main__':
+    # global vars are a source of errors, so we do this convoluted thing so the linter doesn't think they're valid globals.
+    for name, val in zip(['all_data', 'corrections_todo', 'annotations_todo'], main(write_output=True)):
+        globals()[name] = val
 
 #%%
 
