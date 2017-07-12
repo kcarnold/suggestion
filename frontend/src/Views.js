@@ -113,7 +113,7 @@ function advance(state, dispatch) {
 }
 
 const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
-  if (!props.confirm || confirm("Are you sure?")) {
+  if (!props.confirm || window.confirm("Are you sure?")) {
     advance(props.state, props.dispatch);
   }
   }} disabled={props.disabled}>{props.children || "Next"}</button>);
@@ -416,7 +416,7 @@ export const SetupPairingComputer = inject('clientId')(({clientId}) => {
     <ul>
       <li>On your phone's web browser, go to <tt>{hostname}</tt> and enter <tt>{clientId}-p</tt>.</li>
       <li>Send this link to yourself: <input readOnly={true} style={{fontFamily: 'monospace', width: '25em'}} value={url} /></li>
-      <li>Scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent(url)} role="presentation"/></li>
+      <li>Scan this:<br/><img src={"https://zxing.org/w/chart?cht=qr&chs=350x350&chld=L&choe=UTF-8&chl=" + encodeURIComponent(url)} alt=""/></li>
     </ul>
     <p>Once your phone is paired, there will be a button on that page to continue.</p>
   </div>;

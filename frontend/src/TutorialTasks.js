@@ -47,7 +47,7 @@ export default class TutorialTasks {
     case 'tapKey':
       if (event.key.match(/[a-z]/)) {
         this.tasks.typeKeyboard = true;
-      } else if (event.key.match(/[-.,!'\?]/)) {
+      } else if (event.key.match(/[-.,!'?]/)) {
         this.tasks.specialChars = true;
       }
       this.consectutiveTaps = {};

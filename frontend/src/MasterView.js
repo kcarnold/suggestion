@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'lodash';
 import {observer, inject} from 'mobx-react';
 import * as Views from './Views';
 

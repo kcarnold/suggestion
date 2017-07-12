@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import _ from 'lodash';
 import M from 'mobx';
 import moment from 'moment';
 import {observer, Provider} from 'mobx-react';

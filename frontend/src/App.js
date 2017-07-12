@@ -55,7 +55,7 @@ window.logs = logs;
 
 var browserMeta = {
   userAgent: navigator.userAgent,
-  screen: _.fromPairs(_.map('height availHeight width availWidth'.split(' '), x => [x, screen[x]])),
+  screen: _.fromPairs(_.map('height availHeight width availWidth'.split(' '), x => [x, window.screen[x]])),
   window: {
     devicePixelRatio: window.devicePixelRatio,
   },
@@ -230,8 +230,8 @@ function init() {
 }
 
 function setSize() {
-  let width = Math.min(document.documentElement.clientWidth, screen.availWidth);
-  let height = Math.min(document.documentElement.clientHeight, screen.availHeight);
+  let width = Math.min(document.documentElement.clientWidth, window.screen.availWidth);
+  let height = Math.min(document.documentElement.clientHeight, window.screen.availHeight);
   if (height < 450) {
     if (width > height) {
       // alert('Please rotate your phone to be in the portrait orientation.');
