@@ -149,7 +149,9 @@ trait_names = {
         "C": "Creativity",
         "E": "Extraversion",
         "T": "Trust",
-        "LoC": "LocusOfControl"}
+        "LoC": "LocusOfControl",
+        "I": "Imagination",
+        "A": "Agreeableness"}
 #from collections import Counter
 #sorted(Counter(v for trait in traits_key.key for v in trait.split(',')).most_common())
 #%%
@@ -165,7 +167,10 @@ cogstyle_answers = {
 def decode_traits(data):
     data = data.copy()
     for item, key in traits_key.items():
-        datum = (data.pop(f'pers-{item}') - 3) / 4
+        col_name = f'pers-{item}'
+        if col_name not in data.columns:
+            continue
+        datum = (data.pop(col_name) - 3) / 4
         for trait in key.split(','):
             val = {'+': 1, '-': -1}[trait[-1]]
             name = trait_names[trait[:-1]]
@@ -231,10 +236,9 @@ def process_survey_data(survey, survey_data_raw):
             col_data = pd.to_numeric(col_data)
         data[new_name] = col_data
 
-    if survey in ['intro']:
+    if survey in ['intro', 'postExp']:
         data = decode_traits(data)
     return data
-
 
 
 
@@ -248,8 +252,9 @@ def get_survey_data_processed():
     postExp_data = process_survey_data('postExp', get_and_concat(['postExp', 'postExp3', 'postExp4']))
 
     survey_data['trial'] = postTask_data
+    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion']
     survey_data['participant'] = clean_merge(
-            intro_data, postExp_data, on=['participant_id'], how='outer')
+            intro_data, postExp_data, on=['participant_id'], how='outer', combine_cols=traits_that_overlap)
 
     return survey_data
 #%%
@@ -429,12 +434,14 @@ def get_latencies(participants):
     return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
 
 
-def clean_merge(*a, must_match=[], **kw):
+def clean_merge(*a, must_match=[], combine_cols=[], **kw):
     res = pd.merge(*a, **kw)
     for col in must_match:
         assert res[f'{col}_x'].equals(res[f'{col}_y']), f"{col} doesn't match"
         res[col] = res.pop(f'{col}_x')
         del res[f'{col}_y']
+    for col in combine_cols:
+        res[col] = res.pop(f'{col}_x').combine_first(res.pop(f'{col}_y'))
     unclean = [col for col in res.columns if col.endswith('_x') or col.endswith('_y')]
     assert len(unclean) == 0, unclean
     assert 'index' not in res
