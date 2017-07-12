@@ -1,5 +1,8 @@
 import os
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
 import re
 from suggestion.util import mem
 from suggestion.paths import paths
@@ -96,6 +99,7 @@ def get_existing_requests(logfile):
         entry = dict(
             **request,
             ctx=ctx,
+            phrases=phrases,
             p1=p1, p2=p2, p3=p3,
             server_dur=response['dur'] * 1000,
             latency=latency,

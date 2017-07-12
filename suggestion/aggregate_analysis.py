@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import re
-import json
+import ujson as json
 import subprocess
 from collections import Counter
 import nltk
@@ -25,7 +25,11 @@ from suggestion.analysis_util import (
 from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
 analyzer = WordFreqAnalyzer.build()
 
-get_existing_reqs_cached = mem.cache(get_existing_requests)
+@mem.cache()
+def get_existing_reqs_cached_raw(*a, **kw):
+    return json.dumps(get_existing_requests(*a, **kw))
+def get_existing_reqs_cached(*a, **kw):
+    return json.loads(get_existing_reqs_cached_raw(*a, **kw))
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 
 
