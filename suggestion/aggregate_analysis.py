@@ -312,6 +312,8 @@ def get_correct_git_revs():
 def get_log_analysis_data(participant, git_rev):
     data = []
     log_analysis = get_log_analysis(participant, git_rev=git_rev)
+    if participant.endswith('_real'):
+        participant = participant[:-len('_real')]
     conditions = log_analysis['conditions']
     base_datum = dict(participant_id=participant,
                  conditions=','.join(conditions),
@@ -495,6 +497,10 @@ def get_suggestion_content_stats(participant_id, page_conditions):
 #get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
 #%%
 
+def drop_cols_by_prefix(df, prefixes):
+    drop_cols = [col for col in df.columns if any(col.startswith(x) for x in prefixes)]
+    return df.drop(drop_cols, axis=1)
+
 #%%
 def get_all_data_pre_annotation():
     participants_by_study = get_participants_by_study()
@@ -544,10 +550,10 @@ def get_all_data_pre_annotation():
     # Aggregate behavioral stats
     trial_level_counts = trial_level_data.loc[:, ['participant_id', 'block'] + [col for col in trial_level_data.columns if col.startswith('num_tap') or col.startswith('attentionCheckStats')]]
     taps_agg = trial_level_counts.groupby('participant_id').sum()
-    participant_level_data['total_key_taps'] = taps_agg['num_tapKey']
-    participant_level_data['total_rec_taps'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
-    participant_level_data['total_actions_nobackspace'] = participant_level_data['total_key_taps'] + participant_level_data['total_rec_taps']
-    participant_level_data['rec_frac_overall'] = participant_level_data['total_rec_taps'] / participant_level_data['total_actions_nobackspace']
+    participant_level_data['total_key_taps_overall'] = taps_agg['num_tapKey']
+    participant_level_data['total_rec_taps_overall'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
+    participant_level_data['total_actions_nobackspace_overall'] = participant_level_data['total_key_taps_overall'] + participant_level_data['total_rec_taps_overall']
+    participant_level_data['rec_frac_overall'] = participant_level_data['total_rec_taps_overall'] / participant_level_data['total_actions_nobackspace_overall']
     participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
 
     too_much_latency = (participant_level_data['latency_75'] > 500)
@@ -562,8 +568,28 @@ def get_all_data_pre_annotation():
     participant_level_data = clean_merge(
             participant_level_data, exclude.to_frame('is_excluded'),
             left_index=True, right_index=True, how='left')
+    participant_level_data = participant_level_data.reset_index()
 
     trial_level_data['attention_check_frac_passed'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
+
+    # Filter for valid data.
+    trial_level_data = trial_level_data[~trial_level_data.final_text.isnull()]
+    participant_level_data = participant_level_data[participant_level_data.participant_id.isin(trial_level_data[~trial_level_data.final_text.isnull()].participant_id.unique())]
+
+    def group_standardize(group):
+        x = group.loc[:, ['stars_before', 'stars_after']]
+
+        if np.any(x.isnull()):
+            print("Oops, found a null star rating for", group.participant_id.unique().tolist()[0])
+        return (x - (x.mean())) / x.std()
+    starz = trial_level_data.loc[:,['participant_id', 'stars_before', 'stars_after']].groupby('participant_id',as_index=False).apply(group_standardize).dropna()
+    trial_level_data['stars_before_groupz'] = starz.stars_before
+    trial_level_data['stars_after_z'] = starz.stars_after
+    trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+
+
+    # For a summary of how many trials there are each:
+    # trial_level_data.groupby(['config', 'participant_id']).size().groupby(level=0).value_counts()
 
     return participant_level_data, trial_level_data
 
@@ -590,11 +616,16 @@ def get_all_data_with_annotations():
     # Pull in annotations.
     annotation_results, annotation_todo = get_sentiment_and_topic_annotations(trial_level_data, annotator='kca')
     #.drop('sent_idx sentence'.split(), axis=1)
+    annotation_results['is_mixed'] = (annotation_results['pos'] > 0) & (annotation_results['neg'] > 0)
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
     total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
     sentiments = clean_merge(
         max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'}),
         total_sentiments.rename(columns={'pos': 'total_positive', 'neg': 'total_negative'}),
+        left_index=True, right_index=True)
+    sentiments = clean_merge(
+        sentiments,
+        annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).is_mixed.mean().to_frame('mean_sentiment_mixture'),
         left_index=True, right_index=True)
     trial_level_data = clean_merge(
             trial_level_data, sentiments.reset_index(),
@@ -621,19 +652,19 @@ def get_all_data_with_annotations():
 
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
+    trial_level_data['stars_before_rank'] = trial_level_data.groupby('participant_id').stars_before.rank(method='average')
+    trial_level_data['stars_after_rank'] = trial_level_data.groupby('participant_id').stars_after.rank(method='average')
+
+    omit_cols_prefixes = ['How much did you say about each topic', 'Roughly how many lines of each', 'brainstorm']
+
+    participant_level_data = drop_cols_by_prefix(participant_level_data, omit_cols_prefixes)
+    trial_level_data = drop_cols_by_prefix(trial_level_data, omit_cols_prefixes)
+
     full_data = clean_merge(
-            participant_level_data.reset_index(),
+            participant_level_data,
             trial_level_data,
             on='participant_id', how='right')
 
-    full_data['stars_before_rank'] = full_data.groupby('participant_id').stars_before.rank(method='average')
-    full_data['stars_after_rank'] = full_data.groupby('participant_id').stars_after.rank(method='average')
-
-#    assert participant_level_data.participant_id.value_counts().max() == 1
-
-    omit_cols_prefixes = ['How much did you say about each topic', 'Roughly how many lines of each', 'brainstorm']
-    drop_cols = [col for col in full_data.columns if any(col.startswith(x) for x in omit_cols_prefixes)]
-    full_data = full_data.drop(drop_cols, axis=1)
     full_data = full_data.sort_values(['config', 'participant_id', 'block'])
 
     desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
@@ -641,23 +672,30 @@ def get_all_data_with_annotations():
     extra_cols = sorted(set(full_data.columns) - desired_cols)
     print(f"Missing {len(missing_cols)} cols", missing_cols)
     print(f"{len(extra_cols)} extra cols", extra_cols)
-    return full_data, corrections_todo, annotation_todo
+    return dict(
+            all_data=full_data,
+            participant_level_data=participant_level_data,
+            trial_level_data=trial_level_data,
+            corrections_todo=corrections_todo,
+            annotations_todo=annotation_todo)
 
 #%%
 
 #%%
 def main(write_output=False):
-    all_data, corrections_todo, annotations_todo = get_all_data_with_annotations()
+    x = get_all_data_with_annotations()
     if write_output:
-        all_data.to_csv('all_data.csv', index=False)
-        corrections_todo.to_csv('gruntwork/corrections_todo.csv', index=False)
-        annotations_todo.to_csv('gruntwork/annotations_todo_kca.csv', index=False)
-    return all_data, corrections_todo, annotations_todo
+        x['all_data'].to_csv('all_data.csv', index=False)
+        x['participant_level_data'].to_csv('participant_level_data.csv', index=False)
+        x['trial_level_data'].to_csv('trial_level_data.csv', index=False)
+        x['corrections_todo'].to_csv('gruntwork/corrections_todo.csv', index=False)
+        x['annotations_todo'].to_csv('gruntwork/annotations_todo_kca.csv', index=False)
+        x['participant_level_data'].query('study=="sent4_0"').drop(['Imagination', 'Agreeableness'], axis=1).dropna(axis=1).to_csv('participant_level_sent4.csv', index=False)
+    return x
 #%%
 if __name__ == '__main__':
     # global vars are a source of errors, so we do this convoluted thing so the linter doesn't think they're valid globals.
-    for name, val in zip(['all_data', 'corrections_todo', 'annotations_todo'], main(write_output=True)):
-        globals()[name] = val
+    globals().update(main(write_output=True))
 
 #%%
 
