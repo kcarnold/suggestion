@@ -160,7 +160,7 @@ const Panopticon = observer(class Panopticon extends Component {
               <MasterView kind={'p'}/>
             </Provider>
           </div>
-          <div style={{overflow: 'hidden', width: 450, height: 500, border: '1px solid black', flex: '0 0 auto'}}>
+          <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black', flex: '0 0 auto'}}>
             <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'c'} spying={true}>
               <MasterView kind={'c'} />
             </Provider>
