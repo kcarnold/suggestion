@@ -21,7 +21,10 @@ from . import suffix_array, clustering, manual_bos
 LOG10 = np.log(10)
 
 
+# Sentiment global flags
 SHOW_SENTIMENT_OPTIONS = False
+SENTIMENT_METHOD = 'simple'
+MAX_LOGPROB_PENALTY = -1.
 
 
 PRELOAD_MODELS = '''
@@ -31,6 +34,8 @@ yelp_train-2star
 yelp_train-3star
 yelp_train-4star
 yelp_train-5star
+yelp_train-stars12
+yelp_train-stars45
 yelp_topic_seqs
 sotu'''.split()
 def get_or_load_model(name):
@@ -605,6 +610,18 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     sentiment=None,
     **kw):
 
+    if SENTIMENT_METHOD == 'simple':
+        if sentiment == 1:
+            sentiment = None
+            assert domain == 'yelp_train-balanced'
+            domain = 'yelp_train-stars12'
+        elif sentiment == 5:
+            sentiment = None
+            assert domain == 'yelp_train-balanced'
+            domain = 'yelp_train-stars45'
+
+
+
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
@@ -706,13 +723,14 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
 
             beam_search_kwargs = dict(constraints=constraints)
 
+
             if sentiment:
                 clf_startstate = sentiment_classifier.get_state(toks)
 
             # Include a broader range of first words if we may need to diversify by sentiment after the fact.
             num_first_words = 3 - len(sentence_enders) if sentiment is None else 20
             num_intermediates = 20
-            max_logprob_penalty = -1.
+            max_logprob_penalty = MAX_LOGPROB_PENALTY
 
             # Launch a job to get first words.
             if num_first_words:

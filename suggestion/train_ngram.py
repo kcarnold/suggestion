@@ -106,6 +106,17 @@ if __name__ == '__main__':
              for idx in np.random.choice(np.flatnonzero(reviews.stars_review == stars), bucket_size, replace=False)),
             order=args.order)
 
+        for stars_group in ['12', '45']:
+            indices = []
+            for stars in stars_group:
+                stars = int(stars)
+                indices.extend(np.flatnonzero(reviews.stars_review == stars).tolist())
+
+            dump_kenlm(
+                f"{args.model_name}-stars{stars_group}",
+                (' '.join(tokenized_reviews[idx]) for idx in tqdm.tqdm(indices, desc=f"Writing {args.model_name}-stars{stars_group}")),
+                order=args.order)
+
     print("Saving reviews")
     with open(f'models/{args.model_name}_tokenized.pkl', 'wb') as f:
         pickle.dump(tokenized_reviews, f, -1)
