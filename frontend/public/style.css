@@ -50,11 +50,11 @@ html, body {
 }
 
 .ExperimentScreen .header {
-    overflow: scroll;
+    overflow-y: scroll;
     background-color: #ccc;
     color: black;
     flex: 0 0 auto;
-    max-height: 140px;
+    /* max-height: 140px; */
 }
 
 /*** TEXT ***/
@@ -226,4 +226,45 @@ span.word {
 
 .OutlineSelector .cur {
     background: yellow;
+}
+
+.missed-attn-check {
+    color: red;
+    padding: 0 10px;
+    text-align: center;
+    transform: scale(.5);
+  transition: transform 1s, opacity 1s;
+  transition-timing-function: cubic-bezier(0, 2, 0.76, 1.28);, ease
+}
+
+.missed-attn-check.inactive {
+  opacity: 0;
+}
+
+.missed-attn-check:not(.inactive) {
+  transform: scale(1);
+  opacity: 1;
+}
+
+@keyframes shake {
+  from, to {
+    transform: translate3d(0, 0, 0);
+  }
+
+  10%, 30%, 50%, 70%, 90% {
+    transform: translate3d(-10px, 0, 0);
+  }
+
+  20%, 40%, 60%, 80% {
+    transform: translate3d(10px, 0, 0);
+  }
+}
+
+@keyframes fadeout {
+  from {
+    opacity: 100%;
+  }
+  to {
+    opacity: 0%
+  }
 }

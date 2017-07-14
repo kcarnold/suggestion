@@ -419,6 +419,10 @@ export class MasterStateStore {
       tutorialTasks: null,
       screenTimes: [],
       passedQuiz: false,
+      lastFailedAttnCheck: 0,
+      get showAttnCheckFailedMsg() {
+        return this.lastEventTimestamp - this.lastFailedAttnCheck < 3000;
+      },
       phoneSize: {width: 360, height: 500},
       pingTime: null,
       get screens() {
@@ -601,7 +605,7 @@ export class MasterStateStore {
       break;
     case 'failedAttnCheck':
       if (!this.replaying && (event.stats || {}).passed === 0) {
-        alert("You just missed an æ. Next time, remember to tap any box that has æ in it.\n\n(Sorry if you get this message multiple times.)");
+        this.lastFailedAttnCheck = event.jsTimestamp;
       }
       break;
 
