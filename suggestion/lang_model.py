@@ -67,7 +67,7 @@ class Model:
         cls.preloaded[name] = cls.from_basename(name, basename)
 
     @classmethod
-    def get_model(cls, name):
+    def get_model(cls, name: str) -> 'Model':
         try:
             return cls.preloaded[name]
         except IndexError:
