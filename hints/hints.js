@@ -1,4 +1,7 @@
-var condition = _.sample(['examples', 'full', 'selected']);
+var condition = window.localStorage.hintsCondition;
+if (!condition) {
+    condition = window.localStorage.hintsCondition = _.sample(['examples', 'full', 'selected']);
+}
 var showSuggs = condition !== 'examples';
 $('.expzone').addClass('cond-'+(showSuggs ? 'suggs' : 'examples'));
 
