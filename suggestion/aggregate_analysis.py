@@ -569,7 +569,7 @@ def get_all_data_pre_annotation():
     print(f"Excluding {np.sum(too_much_latency)} for too much latency")
     too_few_actions = (
     #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (participant_level_data.rec_frac_overall < .01) | (participant_level_data.rec_frac_overall > .99)
+        (participant_level_data.rec_frac_overall < .05) | (participant_level_data.rec_frac_overall > .95)
         )
     print(f"Excluding {np.sum(too_few_actions)} for too few actions")
     exclude = too_few_actions | too_much_latency
