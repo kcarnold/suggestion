@@ -38,7 +38,6 @@ vecs_1 = vectorizer.fit_transform(sents_1)
 # Note: The vectorizer normalized the vectors.
 
 #%%
-n_clusters = 128
 random_state = 0
 from sklearn.cluster import MiniBatchKMeans
 from suggestion import clustering
@@ -75,7 +74,7 @@ dists_to_centers = mbk_wordvecs.transform(dense_vecs_2)
 def show_cluster(idx):
     close_indices = np.argsort(dists_to_centers[:,idx])[:10]
     for idx in close_indices:
-        print(sents_2[idx])
+        print(sents_2[idx][:100])
 #%%
 for i in range(dists_to_centers.shape[1]):
     print()
@@ -100,7 +99,7 @@ vecs_2 = vecs_1[indices_2]
 #%%
 indices_3 = np.flatnonzero(is_close)
 sents_3 = [sents_2[idx] for idx in indices_3]
-#%%
+#%% Prepare a classifier for sentence beginning -> cluster
 vectorizer2 = TfidfVectorizer(min_df=5, max_df=.75, ngram_range=(1,2), stop_words=None)
 vecs_2 = vectorizer2.fit_transform([' '.join(sent.split()[:5]) for sent in sents_3])
 #%%
@@ -126,6 +125,16 @@ with open('airbnb_clusters.txt', 'w') as f, contextlib.redirect_stdout(f):
 #%%
 sentnum_y = np.array([sent_indices[sent][0] for sent in sents_3])
 sentnum_y_enc = np.where(sentnum_y > 2, 2, sentnum_y)
+
+#%% Find clusters that occur first, second, and later.
+cluster_counts_by_sentnum = np.array([np.bincount(y[sentnum_y_enc == i], minlength=n_clusters) for i in range(3)])
+#%% Find clusters that clearly distinguish which sentence you're on.
+cluster_probs_by_sentnum = cluster_counts_by_sentnum / (cluster_counts_by_sentnum.sum(axis=1, keepdims=True) + 1)
+#%%
+for i in np.argsort(cluster_probs_by_sentnum[0])[-3:]:
+    print(i)
+    show_cluster(i)
+    print()
 #%%
 sentnum_clf = BernoulliNB().fit(X, sentnum_y_enc)
 #%%
