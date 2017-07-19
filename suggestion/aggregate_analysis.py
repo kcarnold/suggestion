@@ -51,7 +51,7 @@ total_actions_nobackspace
 total_key_taps
 total_rec_taps
 rec_frac_overall
-attention_check_frac_passed
+attention_check_frac_passed_overall
 Neuroticism
 NeedForCognition
 OpennessToExperience
@@ -78,8 +78,13 @@ stars_before
 stars_after
 stars_before_rank
 stars_after_rank
+stars_before_z
+stars_after_z
+stars_before_groupz
+stars_after_groupz
 self_report_accuracy
 final_text
+attention_check_frac_passed_trial
 rec_frac_trial
 num_tapBackspace
 num_tapKey
@@ -227,17 +232,18 @@ def process_survey_data(survey, survey_data_raw):
             "How old are you?": ("age", 'numeric'),
             "What is your gender?": ("gender", None),
             "How proficient would you say you are in English?": ("english_proficiency", None),
-            "What is the highest level of school you have completed or the highest degree you have received? ": ("education", None),
+            "What is the highest level of school you have completed or the highest degree you have received?": ("education", None),
             "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?": ("reviewing_experience", None),
         }
     if survey in ['postTask', 'postTask3']:
         renames = {
             "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
-            "Compared with the experience you were writing about, the phrases that the keyboard gave were usua...": ("sentiment_manipcheck_posttask", None),
+            "Compared with the experience you were writing about, the phrases that the keyboard gave were usua": ("sentiment_manipcheck_posttask", None),
         }
     if survey.startswith('postExp'):
         renames = {
             "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
+            "Did you speak or whisper what you were writing while you were writing it?": ("verbalized_during", None)
         }
     for orig, new in renames.items():
         if orig not in data.columns:
@@ -531,6 +537,9 @@ def get_all_data_pre_annotation():
         if col.startswith('num_tap'):
             trial_level_data[col] = trial_level_data[col].fillna(0)
 
+    # Parse 'know what to write'
+    trial_level_data['know_what_to_write'] = pd.to_numeric(trial_level_data.know_what_to_write, errors='coerce')
+
     # Calculate latency.
     participant_level_data = clean_merge(
             participant_level_data, get_latencies(participants),
@@ -570,22 +579,29 @@ def get_all_data_pre_annotation():
             left_index=True, right_index=True, how='left')
     participant_level_data = participant_level_data.reset_index()
 
-    trial_level_data['attention_check_frac_passed'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
+    trial_level_data['attention_check_frac_passed_trial'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
 
     # Filter for valid data.
     trial_level_data = trial_level_data[~trial_level_data.final_text.isnull()]
     participant_level_data = participant_level_data[participant_level_data.participant_id.isin(trial_level_data[~trial_level_data.final_text.isnull()].participant_id.unique())]
 
+
+    # Standardize some measures
+    trial_level_data['know_what_to_write_z'] = trial_level_data.groupby('participant_id').know_what_to_write.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+
+    trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+    trial_level_data['stars_after_z'] = trial_level_data.groupby('participant_id').stars_after.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+
+    trial_level_data['positive_experience'] = trial_level_data['stars_after'] >= 4
+
     def group_standardize(group):
         x = group.loc[:, ['stars_before', 'stars_after']]
-
         if np.any(x.isnull()):
             print("Oops, found a null star rating for", group.participant_id.unique().tolist()[0])
         return (x - (x.mean())) / x.std()
     starz = trial_level_data.loc[:,['participant_id', 'stars_before', 'stars_after']].groupby('participant_id',as_index=False).apply(group_standardize).dropna()
     trial_level_data['stars_before_groupz'] = starz.stars_before
-    trial_level_data['stars_after_z'] = starz.stars_after
-    trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+    trial_level_data['stars_after_groupz'] = starz.stars_after
 
 
     # For a summary of how many trials there are each:
@@ -650,6 +666,11 @@ def get_all_data_with_annotations():
         on=['participant_id', 'block', 'condition'], how='left')
 
 
+    participant_level_data = clean_merge(
+            participant_level_data,
+            (trial_level_data.groupby('participant_id').has_any_nonsense.value_counts().unstack().loc[:,True].fillna(0) > 0).to_frame('participant_wrote_any_nonsense'),
+            left_on='participant_id', right_index=True, how='left')
+
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
     trial_level_data['stars_before_rank'] = trial_level_data.groupby('participant_id').stars_before.rank(method='average')
@@ -667,7 +688,12 @@ def get_all_data_with_annotations():
 
     full_data = full_data.sort_values(['config', 'participant_id', 'block'])
 
-    desired_cols = set(STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS)
+    column_order = STUDY_COLUMNS + PARTICIPANT_LEVEL_COLUMNS + TRIAL_COLUMNS + ANALYSIS_COLUMNS + VALIDATION_COLUMNS
+    full_data = reorder_columns(full_data, column_order)
+    participant_level_data = reorder_columns(participant_level_data, column_order)
+    trial_level_data = reorder_columns(trial_level_data, column_order)
+
+    desired_cols = set(column_order)
     missing_cols = sorted(desired_cols - set(full_data.columns))
     extra_cols = sorted(set(full_data.columns) - desired_cols)
     print(f"Missing {len(missing_cols)} cols", missing_cols)
@@ -680,7 +706,15 @@ def get_all_data_with_annotations():
             annotations_todo=annotation_todo)
 
 #%%
-
+def reorder_columns(df, desired_order):
+    reorder_cols = []
+    for col in desired_order:
+        if col in df.columns:
+            reorder_cols.append(col)
+    for col in df.columns:
+        if col not in reorder_cols:
+            reorder_cols.append(col)
+    return df.loc[:, reorder_cols]
 #%%
 def main(write_output=False):
     x = get_all_data_with_annotations()
