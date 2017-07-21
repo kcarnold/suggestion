@@ -212,6 +212,12 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 'match',
+  },
+  split: {
+    sugFlags: {
+      threshold_as_zipf: 4.5
+    },
+    split: true
   }
 };
 
@@ -490,9 +496,11 @@ export class MasterStateStore {
           request_id: seqNum,
           sofar: prefix,
           cur_word: curWord,
-          constraints,
-          promise,
-          ...this.suggestionRequestParams
+          flags: {
+            constraints,
+            promise,
+            ...this.suggestionRequestParams
+          }
         };
         if (this.condition.usePrewriteText && this.prewriteLines.length) {
           response['prewrite_info'] = {

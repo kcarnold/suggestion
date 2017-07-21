@@ -602,6 +602,34 @@ def map_as_jobs(executor, fn, arr, chunksize=8):
     return [executor.submit(partial(_process_chunk, fn), chunk) for chunk in _get_chunks(arr, chunksize=chunksize)]
 
 
+def get_split_recs(sofar, cur_word, flags={}):
+    domain = flags.get('domain', 'yelp_train-balanced')
+    model = get_model(domain)
+    toks = tokenize_sofar(sofar)
+    prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
+
+    threshold_as_zipf = flags.get('threshold_as_zipf', 4.5)
+    threshold_as_logprob = (threshold_as_zipf - 9) * np.log(10)
+    state = model.get_state(toks)[0]
+    next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
+
+    common = []
+    rare = []
+    for idx in np.argsort(logprobs)[::-1]:
+        word_idx = next_words[idx]
+        word = model.id2str[word_idx]
+        if len(common) < 3:
+            common.append(word)
+            continue
+
+        if not (model.unigram_probs[word_idx] < threshold_as_logprob):
+            continue
+        rare.append(word)
+        if len(rare) == 3:
+            break
+    return dict(common=common, rare=rare)
+
+
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
     rare_word_bonus, use_sufarr, temperature, use_bos_suggs,
     length_after_first=17, sug_state=None, word_bonuses=None, prewrite_info=None,

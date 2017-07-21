@@ -59,7 +59,7 @@ export class ExperimentStateStore {
       attentionCheckStats: {total: 0, passed: 0},
       tapLocations: [],
       contextSequenceNum: 0,
-      lastSuggestionsFromServer: [],
+      lastSuggestionsFromServer: {common: [], rare: []},
       activeSuggestion: null,
       lastSpaceWasAuto: false,
       get wordCount() {
@@ -69,52 +69,7 @@ export class ExperimentStateStore {
         return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
       },
       get visibleSuggestions() {
-        // The visible suggestions are:
-        // - The active ("promised") suggestion, in its corresponding slot.
-        // - Suggestions from the server, filled in as long as they're valid.
-
-        // Copy the suggestions so we can tweak them.
-        let suggestions = M.toJS(this.lastSuggestionsFromServer).map(sugg => ({
-          isValid: sugg.contextSequenceNum === this.contextSequenceNum,
-          ...sugg
-        }));
-
-        if (this.hideSuggUnlessPartialWord && !this.getSuggestionContext().curWord.length) {
-          suggestions = [];
-        }
-
-        if (!this.showSuggsAtBos) {
-          suggestions = suggestions.filter(sug => !((sug.meta || {}).bos));
-        }
-
-        // Ensure there are always at leaste 3 suggestions.
-        while (suggestions.length < 3) {
-          suggestions.push({
-            words: [''],
-            isValid: false
-          });
-        }
-
-        // Substitute the promised suggestion.
-        if (this.activeSuggestion && !suggestions[this.activeSuggestion.slot].isValid) {
-          suggestions.splice(this.activeSuggestion.slot, 1, {
-            orig: this.activeSuggestion.suggestion,
-            contextSequenceNum: this.contextSequenceNum,
-            words: this.activeSuggestionWords,
-            isValid: true,
-          });
-        }
-        suggestions = suggestions.slice(0, 3);
-
-        let {attentionCheck} = this;
-        if (attentionCheck !== null &&
-            suggestions[attentionCheck.slot].isValid &&
-            suggestions[attentionCheck.slot].words.length > attentionCheck.word + 1) {
-          let sugg = suggestions[attentionCheck.slot];
-          sugg.attentionCheck = true;
-          sugg.words[attentionCheck.word] = 'æ' + sugg.words[attentionCheck.word];
-        }
-        return suggestions;
+        return this.lastSuggestionsFromServer;
       },
       insertText: M.action((toInsert, charsToDelete, taps) => {
         let cursorPos = this.curText.length;
@@ -151,28 +106,12 @@ export class ExperimentStateStore {
         this.activeSuggestion = null;
         return [this.changedMsg()];
       }),
-      handleTapSuggestion: M.action(slot => {
-        let ac = this.validateAttnCheck(slot);
-        if (ac.length) return ac;
+      handleTapSuggestion: M.action((slot, which) => {
+        // let ac = this.validateAttnCheck(slot);
+        // if (ac.length) return ac;
 
-        let wordToInsert = null;
-        let tappedSuggestion = this.visibleSuggestions[slot];
-        if (tappedSuggestion.contextSequenceNum === this.contextSequenceNum) {
-          wordToInsert = tappedSuggestion.words[0];
-          if (tappedSuggestion.words.length > 1) {
-            this.activeSuggestion = {
-              suggestion: tappedSuggestion,
-              slot: slot,
-              wordIdx: 1
-            };
-          } else {
-            this.activeSuggestion = null;
-          }
-        } else {
-          // Invalid suggestion, ignore it.
-          return;
-        }
-        let {curWord} = this.getSuggestionContext();
+       let wordToInsert = this.visibleSuggestions[which][slot];
+       let {curWord} = this.getSuggestionContext();
         let charsToDelete = curWord.length;
         let isNonWord = wordToInsert.match(/^\W$/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
@@ -195,12 +134,8 @@ export class ExperimentStateStore {
           return;
         }
 
-        this.lastSuggestionsFromServer = msg.next_word.map(sugg => ({
-          orig: sugg,
-          contextSequenceNum: msg.request_id,
-          words: sugg.one_word.words.concat(sugg.continuation.length ? sugg.continuation[0].words : []),
-          meta: sugg.meta,
-        }));
+        let {common, rare} = msg;
+        this.lastSuggestionsFromServer = {common, rare};
       }),
     });
   }
@@ -287,7 +222,7 @@ export class ExperimentStateStore {
     case 'receivedSuggestions':
       return this.updateSuggestions(event);
     case 'tapSuggestion':
-      return this.handleTapSuggestion(event.slot);
+      return this.handleTapSuggestion(event.slot, event.which);
     default:
     }
   };

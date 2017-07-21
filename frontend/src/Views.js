@@ -88,21 +88,21 @@ class Suggestion extends Component {
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch} = this.props;
+    const {state, dispatch, which} = this.props;
     let expState = state.experimentState;
     let {showPhrase} = expState.condition;
     return <div className="SuggestionsBar">
-      {expState.visibleSuggestions.map((sugg, i) => <Suggestion
+      {expState.visibleSuggestions[which].map((sugg, i) => <Suggestion
         key={i}
         onTap={(evt) => {
-          dispatch({type: 'tapSuggestion', slot: i});
+          dispatch({type: 'tapSuggestion', slot: i, which});
           evt.preventDefault();
           evt.stopPropagation();
         }}
-        word={sugg.words[0]}
-        preview={showPhrase ? sugg.words.slice(1) : []}
-        isValid={sugg.isValid}
-        meta={sugg.meta} />
+        word={sugg}
+        preview={[]}
+        isValid={true}
+        meta={null} />
       )}
     </div>;
   }
@@ -301,7 +301,8 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} />
-        <SuggestionsBar />
+        <SuggestionsBar which="rare" />
+        <SuggestionsBar which="common" />
         <Keyboard dispatch={dispatch} />
       </div>;
     }));

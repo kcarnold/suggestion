@@ -182,19 +182,20 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 if request_id == 0:
                     self.sug_state = None
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request_id)
-                suggestion_kwargs = suggestion_generator.request_to_kwargs(request)
-                try:
-                    phrases, self.sug_state = yield get_suggestions_async(
-                        process_pool,
-                        sofar=request['sofar'], cur_word=request['cur_word'],
-                        sug_state=self.sug_state,
-                        **suggestion_kwargs)
-                except Exception:
-                    traceback.print_exc()
-                    print("Failing request:", json.dumps(request))
-                    phrases = []
-                next_word = suggestion_generator.phrases_to_suggs(phrases)
-                result['next_word'] = next_word
+                result.update(suggestion_generator.get_split_recs(request['sofar'], request['cur_word'], request['flags']))
+                # suggestion_kwargs = suggestion_generator.request_to_kwargs(request)
+                # try:
+                #     phrases, self.sug_state = yield get_suggestions_async(
+                #         process_pool,
+                #         sofar=request['sofar'], cur_word=request['cur_word'],
+                #         sug_state=self.sug_state,
+                #         **suggestion_kwargs)
+                # except Exception:
+                #     traceback.print_exc()
+                #     print("Failing request:", json.dumps(request))
+                #     phrases = []
+                # next_word = suggestion_generator.phrases_to_suggs(phrases)
+                # result['next_word'] = next_word
                 dur = time.time() - start
                 result['dur'] = dur
                 self.send_json(**result)
