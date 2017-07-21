@@ -188,10 +188,14 @@ def decode_traits(data):
         for trait in key.split(','):
             val = {'+': 1, '-': -1}[trait[-1]]
             name = trait_names[trait[:-1]]
+            num_questions = f'{name}-num-items'
+            present = 1 * (~datum.isnull())
             if name in data:
                 data[name] += datum * val
+                data[num_questions] += present
             else:
                 data[name] = datum.copy() * val
+                data[num_questions] = present
 
     if any(it in data.columns for it in cogstyle_answers.keys()):
         data['CognitiveReflection'] = sum([data.pop(it).isin(correct) for it, correct in cogstyle_answers.items()])
@@ -271,6 +275,7 @@ def get_survey_data_processed():
 
     survey_data['trial'] = postTask_data
     traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion', 'OpennessToExperience']
+    traits_that_overlap.extend([f'{trait}-num-items' for trait in traits_that_overlap])
     survey_data['participant'] = clean_merge(
             intro_data, postExp_data, on=['participant_id'], how='outer', combine_cols=traits_that_overlap)
 
@@ -518,6 +523,13 @@ def get_all_data_pre_annotation():
     participant_level_data = clean_merge(
             survey_data['participant'].drop_duplicates('participant_id'), participants_by_study,
             on='participant_id', how='outer').set_index('participant_id')
+
+    # Drop out-of-study survey responses.
+    participant_level_data = participant_level_data.dropna(subset=['study'], axis=0)
+
+    # Bin traits by percentile
+    for trait in trait_names.values():
+        participant_level_data[trait+"_hi"] = participant_level_data.groupby('study')[trait].transform(lambda x: x > np.nanpercentile(x, 50))
 
     correct_git_revs = get_correct_git_revs().set_index('participant_id').correct_git_rev.to_dict()
 
