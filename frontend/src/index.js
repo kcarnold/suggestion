@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 import Raven from 'raven-js';
-Raven
-    .config('https://c0c96b3696f14e4eb2fe4f35f4da3176@sentry.io/186354')
-    .config({
-      release: process.env.REACT_APP_GIT_REV,
-    })
-    .install();
+if (process.env.NODE_ENV === 'production') {
+  Raven
+      .config('https://c0c96b3696f14e4eb2fe4f35f4da3176@sentry.io/186354')
+      .config({
+        release: process.env.REACT_APP_GIT_REV,
+      })
+      .install();
+}
 
 let topLevel;
 if (window.location.search.slice(1, 7) === 'panopt') {

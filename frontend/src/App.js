@@ -107,29 +107,38 @@ function registerHandler(fn) {
   eventHandlers.push(fn);
 }
 
-function dispatch(event) {
-  try {
-    console.log(event);
-    event.jsTimestamp = +new Date();
-    event.kind = clientKind;
-    log(event);
-    let sideEffects = [];
-    eventHandlers.forEach(fn => {
-      let res = fn(event);
-      if (res.length) {
-        sideEffects = sideEffects.concat(res);
-      }
-    });
-    // Run side-effects after all handlers have had at it.
-    sideEffects.forEach(sideEffect => {
-      if (sideEffect.type !== 'suggestion_context_changed') {
-        setTimeout(() => dispatch(sideEffect), 0);
-      }
-    });
-  } catch (e) {
-    Raven.captureException(e);
-    throw e;
-  }
+function _dispatch(event) {
+  console.log(event);
+  event.jsTimestamp = +new Date();
+  event.kind = clientKind;
+  log(event);
+  let sideEffects = [];
+  eventHandlers.forEach(fn => {
+    let res = fn(event);
+    if (res.length) {
+      sideEffects = sideEffects.concat(res);
+    }
+  });
+  // Run side-effects after all handlers have had at it.
+  sideEffects.forEach(sideEffect => {
+    if (sideEffect.type !== 'suggestion_context_changed') {
+      setTimeout(() => dispatch(sideEffect), 0);
+    }
+  });
+}
+
+let dispatch;
+if (process.env.NODE_ENV === 'production') {
+  dispatch = (event) => {
+    try {
+      return _dispatch(event);
+    } catch (e) {
+      Raven.captureException(e);
+      throw e;
+    }
+  };
+} else {
+  dispatch = _dispatch;
 }
 
 // Every event gets logged to the server. Keep events small!
