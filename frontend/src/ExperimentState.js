@@ -59,7 +59,7 @@ export class ExperimentStateStore {
       attentionCheckStats: {total: 0, passed: 0},
       tapLocations: [],
       contextSequenceNum: 0,
-      lastSuggestionsFromServer: {common: [], rare: []},
+      lastSuggestionsFromServer: {},
       activeSuggestion: null,
       lastSpaceWasAuto: false,
       get wordCount() {
@@ -123,6 +123,20 @@ export class ExperimentStateStore {
         return [this.changedMsg()];
       }),
 
+      handleSelectAlternative: M.action(event => {
+        let wordToInsert = event.word;
+        let {curWord} = this.getSuggestionContext();
+        let charsToDelete = curWord.length;
+        let isNonWord = wordToInsert.match(/^\W$/);
+        let deleteSpace = this.lastSpaceWasAuto && isNonWord;
+        if (deleteSpace) {
+          charsToDelete++;
+        }
+        this.insertText(wordToInsert + ' ', charsToDelete, null);
+        this.lastSpaceWasAuto = true;
+        return [this.changedMsg()];
+      }),
+
       updateSuggestions: M.action(event => {
         let {msg} = event;
         // Only update suggestions if the data is valid.
@@ -133,9 +147,7 @@ export class ExperimentStateStore {
           }
           return;
         }
-
-        let {common, rare} = msg;
-        this.lastSuggestionsFromServer = {common, rare};
+        this.lastSuggestionsFromServer = msg;
       }),
     });
   }
@@ -223,6 +235,8 @@ export class ExperimentStateStore {
       return this.updateSuggestions(event);
     case 'tapSuggestion':
       return this.handleTapSuggestion(event.slot, event.which);
+    case 'selectAlternative':
+      return this.handleSelectAlternative(event);
     default:
     }
   };

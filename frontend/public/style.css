@@ -161,6 +161,7 @@ html, body {
     flex: 0 0 auto;
     display: flex;
     flex-flow: row nowrap;
+    border-top: 1px solid white;
 }
 
 .Suggestion {
@@ -267,4 +268,16 @@ span.word {
   to {
     opacity: 0%
   }
+}
+
+.AlternativesBar {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+
+.cluster {
+    display: flex;
+    flex-flow: column-reverse;
+    text-align: center;
 }

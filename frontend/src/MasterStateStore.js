@@ -215,9 +215,16 @@ const namedConditions = {
   },
   split: {
     sugFlags: {
+      split: true,
       threshold_as_zipf: 4.5
     },
     split: true
+  },
+  alternatives: {
+    sugFlags: {
+      alternatives: true,
+    },
+    alternatives: true
   }
 };
 

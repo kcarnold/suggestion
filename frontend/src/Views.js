@@ -92,7 +92,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
     let expState = state.experimentState;
     let {showPhrase} = expState.condition;
     return <div className="SuggestionsBar">
-      {expState.visibleSuggestions[which].map((sugg, i) => <Suggestion
+      {(expState.visibleSuggestions[which] || []).map((sugg, i) => <Suggestion
         key={i}
         onTap={(evt) => {
           dispatch({type: 'tapSuggestion', slot: i, which});
@@ -107,6 +107,28 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
     </div>;
   }
 }));
+
+const AlternativesBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
+  render() {
+    const {state, dispatch} = this.props;
+    let expState = state.experimentState;
+    let recs = expState.visibleSuggestions;
+    return <div className="AlternativesBar">
+      {(recs.clusters || []).map((cluster, clusterIdx) => <div
+        className="cluster"
+        key={clusterIdx}>{cluster.map(([word, relevance], wordIdx) => <div
+          className="clusterWord"
+          onTouchStart={evt => {
+            dispatch({type: 'selectAlternative', clusterIdx, wordIdx, word});
+            evt.preventDefault();
+            evt.stopPropagation();
+          }}
+          key={word}>{word}</div>)}
+        </div>)}
+    </div>;
+  }
+}));
+
 
 function advance(state, dispatch) {
   dispatch({type: 'next'})
@@ -301,8 +323,10 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} />
-        <SuggestionsBar which="rare" />
-        <SuggestionsBar which="common" />
+        {state.condition.alternatives ? <AlternativesBar /> : <div>
+          <SuggestionsBar which="rare" />
+          <SuggestionsBar which="common" />
+        </div>}
         <Keyboard dispatch={dispatch} />
       </div>;
     }));

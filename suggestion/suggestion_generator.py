@@ -56,6 +56,7 @@ sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for sta
 
 enable_sufarr = False
 enable_bos_suggs = False
+use_word_vecs = True
 
 if enable_sufarr:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
@@ -100,6 +101,19 @@ if enable_bos_suggs:
     topic_seq_model = get_model('yelp_topic_seqs')
     topic_word_indices = [topic_seq_model.model.vocab_index(tag) for tag in topic_tags]
     print("Done.", file=sys.stderr)
+
+if use_word_vecs:
+    cnnb = clustering.ConceptNetNumberBatch.load()
+    def get_vecs_for_words(cnnb, words):
+        res = np.zeros((len(words), cnnb.ndim))
+        for i, word in enumerate(words):
+            try:
+                res[i] = cnnb[word]
+            except KeyError:
+                pass
+        return res
+    yelp_word_vecs = get_vecs_for_words(cnnb, get_model('yelp_train-balanced').id2str)
+
 
 
 sentiment_starters_by_stars_and_sentnum = json.load(open(paths.models / 'yelp_sentiment_starters.json'))
@@ -603,6 +617,8 @@ def map_as_jobs(executor, fn, arr, chunksize=8):
 
 
 def get_split_recs(sofar, cur_word, flags={}):
+    from sklearn.metrics import pairwise
+
     domain = flags.get('domain', 'yelp_train-balanced')
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -613,21 +629,83 @@ def get_split_recs(sofar, cur_word, flags={}):
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
 
-    common = []
-    rare = []
-    for idx in np.argsort(logprobs)[::-1]:
-        word_idx = next_words[idx]
-        word = model.id2str[word_idx]
-        if len(common) < 3:
-            common.append(word)
-            continue
+    if len(cur_word) > 0:
+        # Make "common" be predictions and "rare" be uncommon synonyms of the most likely next word.
+        common = [model.id2str[next_words[idx]] for idx in np.argsort(logprobs)[-3:][::-1]]
+        if len(common) == 0:
+            return dict(common=common, rare=[])
+        likely_word_idx = next_words[np.argmax(logprobs)]
 
-        if not (model.unigram_probs[word_idx] < threshold_as_logprob):
-            continue
-        rare.append(word)
-        if len(rare) == 3:
-            break
+        # Get unconditional next words
+        next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
+
+        # Find synonyms that are less likely.
+        vec_for_likely_word = yelp_word_vecs[likely_word_idx]
+        likelihood_threshold = model.unigram_probs[likely_word_idx]
+        less_frequent_indices = [i for i, idx in enumerate(next_words) if model.unigram_probs_wordsonly[idx] < likelihood_threshold]
+        if len(less_frequent_indices) == 0:
+            rare = []
+        else:
+            next_words = np.array(next_words)[less_frequent_indices]
+            logprobs = logprobs[less_frequent_indices]
+            vecs_for_words = yelp_word_vecs[next_words]
+            sims = pairwise.cosine_similarity(vec_for_likely_word[None, :], vecs_for_words)[0]
+            candidates = np.argsort(sims)[-5:][::-1]
+            relevances = logprobs[candidates]
+            rare = [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1]]]
+    else:
+        common = []
+        rare = []
+        for idx in np.argsort(logprobs)[::-1]:
+            word_idx = next_words[idx]
+            word = model.id2str[word_idx]
+            if len(common) < 3:
+                common.append(word)
+                continue
+
+            if not (model.unigram_probs[word_idx] < threshold_as_logprob):
+                continue
+            rare.append(word)
+            if len(rare) == 3:
+                break
     return dict(common=common, rare=rare)
+
+
+def get_clustered_recs(sofar, cur_word, flags={}):
+    from sklearn.cluster import KMeans
+
+    domain = flags.get('domain', 'yelp_train-balanced')
+    n_clusters = flags.get('n_clusters', 5)
+    model = get_model(domain)
+    toks = tokenize_sofar(sofar)
+    prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
+
+    state = model.get_state(toks)[0]
+    next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
+
+    # TODO: cur_word
+
+    if len(next_words) < n_clusters:
+        return dict(clusters=[[(model.id2str[idx], logprob.item())] for idx, logprob in zip(next_words, logprobs)])
+    vecs_for_words = yelp_word_vecs[next_words]
+    vecs_for_clustering = vecs_for_words[np.argsort(logprobs)[-30:]]
+    kmeans = KMeans(n_clusters=n_clusters, max_iter=100, n_init=10)
+    kmeans.fit(vecs_for_clustering)
+    cluster_assignment = kmeans.predict(vecs_for_words)
+    relevance = logprobs# - .5 * model.unigram_probs[next_words]
+    clusters = []
+    for cluster in range(n_clusters):
+        members = np.flatnonzero(cluster_assignment == cluster)
+        relevances = relevance[members]
+        new_order = np.argsort(relevances)[::-1][:10]
+        members = members[new_order]
+        relevances = relevance[members]
+        print(cluster, ', '.join('{}[{:.2f}]'.format(model.id2str[next_words[idx]], relevance[idx]) for idx in members))
+        clusters.append([(model.id2str[next_words[idx]], relevance[idx].item()) for idx in members])
+
+    clusters.sort(key=lambda x: -x[0][1])
+
+    return dict(clusters=clusters)
 
 
 def get_suggestions_async(executor, *, sofar, cur_word, domain,
