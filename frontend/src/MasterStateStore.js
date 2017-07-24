@@ -216,7 +216,18 @@ const namedConditions = {
   split: {
     sugFlags: {
       split: true,
-      rare_word_bonus: 1.
+      rare_word_bonus: 0.,
+      num_sims: 0,
+      num_alternatives: 0,
+    },
+    split: true
+  },
+  splitrare: {
+    sugFlags: {
+      split: true,
+      rare_word_bonus: 1.,
+      num_sims: 5,
+      num_alternatives: 5,
     },
     split: true
   },

@@ -625,14 +625,22 @@ def get_split_recs(sofar, cur_word, flags={}):
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
 
     rare_word_bonus = flags.get('rare_word_bonus', 1.0)
+    num_sims = flags.get('num_sims', 5)
+    num_alternatives = flags.get('num_alternatives', 5)
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
+    logprob_argsort = np.argsort(logprobs)
 
     if len(cur_word) > 0:
         # Make "common" be predictions and "rare" be uncommon synonyms of the most likely next word.
-        common = [model.id2str[next_words[idx]] for idx in np.argsort(logprobs)[-3:][::-1]]
+        common = [model.id2str[next_words[idx]] for idx in logprob_argsort[-3:][::-1]]
         if len(common) == 0:
             return dict(common=common, rare=[])
+        if not num_sims:
+            # Don't do the alternatives thing, just let the second row be more of the same.
+            rare = [model.id2str[next_words[idx]] for idx in logprob_argsort[:-3][-3:][::-1]]
+            return dict(common=common, rare=rare)
+
         likely_word_idx = next_words[np.argmax(logprobs)]
 
         # Get unconditional next words
@@ -649,9 +657,9 @@ def get_split_recs(sofar, cur_word, flags={}):
             logprobs = logprobs[less_frequent_indices]
             vecs_for_words = yelp_word_vecs[next_words]
             sims = pairwise.cosine_similarity(vec_for_likely_word[None, :], vecs_for_words)[0]
-            candidates = np.argsort(sims)[-5:][::-1]
+            candidates = np.argsort(sims)[-num_sims:][::-1]
             relevances = logprobs[candidates]
-            rare = [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1]]]
+            rare = [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
     else:
         word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
         # Don't double-bonus words that have already been used.
@@ -659,7 +667,6 @@ def get_split_recs(sofar, cur_word, flags={}):
             word_idx = model.model.vocab_index(word)
             word_bonuses[word_idx] = 0.
 
-        logprob_argsort = np.argsort(logprobs)
         common_indices = logprob_argsort[-3:][::-1]
         common = [model.id2str[next_words[i]] for i in common_indices]
         print('common', logprobs[common_indices])
