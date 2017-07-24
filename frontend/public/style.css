@@ -289,12 +289,35 @@ span.word {
   background: white;
   padding: 10px 10px 0 2px;
 /*   box-shadow: 2px 1px 3px white; */
+  overflow: hidden;
 }
 
 .Overlay span {
   display: block;
+  width: 100%;
+}
+
+.Overlay .selected {
+  background: yellow;
 }
 
 .SuggestionsContainer {
   position: relative;
+}
+
+.shiftSpot {
+  position: absolute;
+  top: 179px;
+  left: 37px;
+  border-left: 1px dashed red;
+  height: 100%
+}
+
+.shiftSpot::before {
+  content: "+";
+  color: red;
+  position: absolute;
+  top: -9px;
+  left: -5px;
+
 }

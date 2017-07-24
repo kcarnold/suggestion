@@ -114,10 +114,15 @@ const AlternativesBar = inject('state', 'dispatch')(observer(class SuggestionsBa
     let expState = state.experimentState;
     let recs = expState.visibleSuggestions;
     let heldCluster = 2;
+    let selectedIdx = 9;
     let clusters = recs.clusters || [];
     let suggOffset = (idx) => Math.floor(idx * state.phoneSize.width / 3);
+    let suggWidth = Math.floor(state.phoneSize.width / 3);
     return <div className="SuggestionsContainer">
-      {heldCluster && <div className="Overlay" style={{left: suggOffset(heldCluster)}}>{(clusters[heldCluster] || []).reverse().map(([word, meta]) => <span key={word}>{word}</span>)}</div>}
+      {heldCluster && <div className="Overlay" style={{left: suggOffset(heldCluster), width: suggWidth}}>
+        {(clusters[heldCluster] || []).reverse().map(([word, meta], wordIdx) => <span key={word} className={classNames(wordIdx === selectedIdx && 'selected')}>{word}</span>)}
+        <div className="shiftSpot" />
+      </div>}
       <div className="SuggestionsBar">
       {clusters.slice(0, 3).map((cluster, clusterIdx) =>
         <div className="Suggestion" key={clusterIdx}><span className="word">{cluster[0][0]}</span><span className="preview" /></div>)}</div>
