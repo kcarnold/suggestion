@@ -113,18 +113,14 @@ const AlternativesBar = inject('state', 'dispatch')(observer(class SuggestionsBa
     const {state, dispatch} = this.props;
     let expState = state.experimentState;
     let recs = expState.visibleSuggestions;
-    return <div className="AlternativesBar">
-      {(recs.clusters || []).map((cluster, clusterIdx) => <div
-        className="cluster"
-        key={clusterIdx}>{cluster.map(([word, relevance], wordIdx) => <div
-          className="clusterWord"
-          onTouchStart={evt => {
-            dispatch({type: 'selectAlternative', clusterIdx, wordIdx, word});
-            evt.preventDefault();
-            evt.stopPropagation();
-          }}
-          key={word}>{word}</div>)}
-        </div>)}
+    let heldCluster = 2;
+    let clusters = recs.clusters || [];
+    let suggOffset = (idx) => Math.floor(idx * state.phoneSize.width / 3);
+    return <div className="SuggestionsContainer">
+      {heldCluster && <div className="Overlay" style={{left: suggOffset(heldCluster)}}>{(clusters[heldCluster] || []).reverse().map(([word, meta]) => <span key={word}>{word}</span>)}</div>}
+      <div className="SuggestionsBar">
+      {clusters.slice(0, 3).map((cluster, clusterIdx) =>
+        <div className="Suggestion" key={clusterIdx}><span className="word">{cluster[0][0]}</span><span className="preview" /></div>)}</div>
     </div>;
   }
 }));

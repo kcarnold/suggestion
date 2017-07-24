@@ -281,3 +281,20 @@ span.word {
     flex-flow: column-reverse;
     text-align: center;
 }
+
+.Overlay {
+  display: block;
+  position: absolute;
+  bottom: 100%;
+  background: white;
+  padding: 10px 10px 0 2px;
+/*   box-shadow: 2px 1px 3px white; */
+}
+
+.Overlay span {
+  display: block;
+}
+
+.SuggestionsContainer {
+  position: relative;
+}

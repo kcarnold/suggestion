@@ -682,7 +682,7 @@ def get_split_recs(sofar, cur_word, flags={}):
 
 
 def get_clustered_recs(sofar, cur_word, flags={}):
-    from sklearn.cluster import KMeans
+    from sklearn.cluster import AffinityPropagation
 
     domain = flags.get('domain', 'yelp_train-balanced')
     n_clusters = flags.get('n_clusters', 5)
@@ -699,13 +699,15 @@ def get_clustered_recs(sofar, cur_word, flags={}):
         return dict(clusters=[[(model.id2str[idx], logprob.item())] for idx, logprob in zip(next_words, logprobs)])
     vecs_for_words = yelp_word_vecs[next_words]
     vecs_for_clustering = vecs_for_words[np.argsort(logprobs)[-30:]]
-    kmeans = KMeans(n_clusters=n_clusters, max_iter=100, n_init=10)
-    kmeans.fit(vecs_for_clustering)
-    cluster_assignment = kmeans.predict(vecs_for_words)
+    clusterer = AffinityPropagation(verbose=True)
+    clusterer.fit(vecs_for_clustering)
+    cluster_assignment = clusterer.predict(vecs_for_words)
     relevance = logprobs# - .5 * model.unigram_probs[next_words]
     clusters = []
-    for cluster in range(n_clusters):
+    for cluster in range(cluster_assignment.max() + 1):
         members = np.flatnonzero(cluster_assignment == cluster)
+        if len(members) == 0:
+            continue
         relevances = relevance[members]
         new_order = np.argsort(relevances)[::-1][:10]
         members = members[new_order]
