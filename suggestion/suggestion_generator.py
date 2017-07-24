@@ -624,8 +624,7 @@ def get_split_recs(sofar, cur_word, flags={}):
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
 
-    threshold_as_zipf = flags.get('threshold_as_zipf', 4.5)
-    threshold_as_logprob = (threshold_as_zipf - 9) * np.log(10)
+    rare_word_bonus = flags.get('rare_word_bonus', 1.0)
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
 
@@ -654,20 +653,24 @@ def get_split_recs(sofar, cur_word, flags={}):
             relevances = logprobs[candidates]
             rare = [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1]]]
     else:
-        common = []
-        rare = []
-        for idx in np.argsort(logprobs)[::-1]:
-            word_idx = next_words[idx]
-            word = model.id2str[word_idx]
-            if len(common) < 3:
-                common.append(word)
-                continue
+        word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
+        # Don't double-bonus words that have already been used.
+        for word in set(toks):
+            word_idx = model.model.vocab_index(word)
+            word_bonuses[word_idx] = 0.
 
-            if not (model.unigram_probs[word_idx] < threshold_as_logprob):
-                continue
-            rare.append(word)
-            if len(rare) == 3:
-                break
+        logprob_argsort = np.argsort(logprobs)
+        common_indices = logprob_argsort[-3:][::-1]
+        common = [model.id2str[next_words[i]] for i in common_indices]
+        print('common', logprobs[common_indices])
+        remaining_items = logprob_argsort[:-3]
+        remaining_words = [next_words[i] for i in remaining_items]
+        remaining_logprobs = logprobs[remaining_items]
+        relevance = remaining_logprobs + word_bonuses[remaining_words]
+        rare_indices = np.argsort(relevance)[-3:][::-1]
+        rare = [model.id2str[remaining_words[i]] for i in rare_indices]
+        print('rare', remaining_logprobs[rare_indices], relevance[rare_indices])
+
     return dict(common=common, rare=rare)
 
 
@@ -699,7 +702,6 @@ def get_clustered_recs(sofar, cur_word, flags={}):
         relevances = relevance[members]
         new_order = np.argsort(relevances)[::-1][:10]
         members = members[new_order]
-        relevances = relevance[members]
         print(cluster, ', '.join('{}[{:.2f}]'.format(model.id2str[next_words[idx]], relevance[idx]) for idx in members))
         clusters.append([(model.id2str[next_words[idx]], relevance[idx].item()) for idx in members])
 

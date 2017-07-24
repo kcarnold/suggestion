@@ -216,7 +216,7 @@ const namedConditions = {
   split: {
     sugFlags: {
       split: true,
-      threshold_as_zipf: 4.5
+      rare_word_bonus: 1.
     },
     split: true
   },
