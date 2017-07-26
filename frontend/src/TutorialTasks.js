@@ -18,6 +18,8 @@ export default class TutorialTasks {
         typeKeyboard: false,
         backspace: false,
         specialChars: false,
+        tapPrediction: false,
+        tapAlternative: false,
       },
       get allDone() {
         let {tasks} = this;
@@ -31,6 +33,11 @@ export default class TutorialTasks {
     switch(event.type) {
     case 'tapSuggestion':
       this.tasks['tapSuggestion'] = true;
+      if (event.which === 'predictions') {
+        this.tasks['tapPrediction'] = true;
+      } else if (event.which === 'synonyms') {
+        this.tasks['tapAlternative'] = true;
+      }
       if (this.consectutiveTaps.slot === event.slot && timestamp - this.consectutiveTaps.lastTimestamp < multiTapThresholdMs) {
         this.consectutiveTaps.times++;
         this.consectutiveTaps.lastTimestamp = timestamp;

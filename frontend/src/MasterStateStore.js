@@ -213,7 +213,7 @@ const namedConditions = {
     showSuggsAtBos: true,
     sentiment: 'match',
   },
-  split: {
+  yelppredict: {
     sugFlags: {
       split: true,
       num_sims: 0,
@@ -222,7 +222,7 @@ const namedConditions = {
     showSynonyms: false,
     showReplacement: false,
   },
-  splitrare: {
+  yelpalternatives: {
     sugFlags: {
       split: true,
       num_sims: 10,
@@ -241,7 +241,7 @@ const namedConditions = {
     showSynonyms: true,
     showReplacement: true,
   },
-  alternatives: {
+  pressandhold: {
     sugFlags: {
       alternatives: true,
     },
@@ -302,6 +302,10 @@ const MASTER_CONFIGS = {
   sent4: {
     baseConditions: ['sentpos', 'sentneg'],
     instructions: 'yelp',
+  },
+  synonyms: {
+    baseConditions: ['yelppredict', 'yelpalternatives'],
+    instructions: 'yelp',
   }
 };
 
@@ -312,7 +316,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
     {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
   ];
@@ -438,7 +442,7 @@ export class MasterStateStore {
       conditions: null,
       conditionName: null,
       get isPractice() {
-        return (this.conditionName || '').slice(0, 5) === 'pract';
+        return (this.curExperiment || '').slice(0, 5) === 'pract';
       },
       experiments: M.asMap({}),
       curExperiment: null,

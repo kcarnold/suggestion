@@ -72,6 +72,8 @@ const tutorialTaskDescs = {
   backspace: 'Try deleting a few letters.',
   specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
   tapSuggestion: 'Try tapping a box to insert the word.',
+  tapPrediction: 'Try tapping a grey box to insert the word.',
+  tapAlternative: "Try tapping a green box to replace the highlighted word with it."
 };
 
 class Suggestion extends Component {
@@ -356,31 +358,30 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
     </div>;
   }));
 
+      // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
+
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     // <h1>Practice with Phrase Suggestions</h1>
     // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
+    let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
+    let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p>In this <b>practice round</b>, we'll pretend to write the opening sentences to a US <b>State of the Union address</b> in an imaginary world where a <b>united Africa has become a superpower</b>.</p>
+      <p>In this <b>practice round</b>, write a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please <b>don't include any information that would identify you</b>.</p>
 
-      <p>Let's start off with a standard opening: "members of congress, my fellow americans" (we're going to not worry about capitalization). Notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on the "members" box to insert that word.</TutorialTodo>
+      <p>Above the keyboard there are two rows of boxes.
+      The bottom (gray) row is probably familiar, but the top (green) row is different.
+      Once you've started typing, the word you're typing (or just typed) will be highlighted in green. The green row will show alternatives to that word. Tap any of the alternatives to use it <em>instead of</em> the green word.</p>
 
-      <p>Sometimes the boxes above the keyboard will show a complete phrase, starting with the highlighted word.
-      Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
 
-      <p>Inevitably you'll want to write something different from the words or phrases provided. In that case, just tap the letters on the keyboard.</p>
-
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
-
+      {allTasks.map(showTask)}
 
       {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
-      <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
+
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
+      {_.every(allTasks.map(name => state.tutorialTasks.tasks[name])) ? <p>
         Now that you know how it works, <b>try writing another sentence, just for practice (have fun with it!). Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p> : <p>Complete all of the tutorial steps to move on.</p>}
     </div>;
