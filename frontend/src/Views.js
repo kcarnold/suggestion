@@ -78,19 +78,19 @@ const tutorialTaskDescs = {
 
 class Suggestion extends Component {
   render() {
-    let {onTap, word, preview, isValid, meta} = this.props;
+    let {onTap, word, preview, isValid, meta, beforeText} = this.props;
     return <div
       className={classNames("Suggestion", {invalid: !isValid, bos: isValid && (meta || {}).bos})}
       onTouchStart={isValid ? onTap : null}
       onTouchEnd={evt => {evt.preventDefault();}}>
-      <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>
+      <span className="word"><span className="beforeText">{beforeText}</span>{word}</span><span className="preview">{preview.join(' ')}</span>
     </div>;
   }
 }
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch, suggestions, which} = this.props;
+    const {state, dispatch, suggestions, which, beforeText} = this.props;
     let expState = state.experimentState;
     return <div className={"SuggestionsBar " + which}>
       {(suggestions || []).map((sugg, i) => <Suggestion
@@ -101,6 +101,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
           evt.stopPropagation();
         }}
         word={sugg}
+        beforeText={beforeText || ''}
         preview={[]}
         isValid={true}
         meta={null} />
@@ -325,6 +326,7 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState, isPractice} = state;
       let {showReplacement, showSynonyms} = state.condition;
+      let beforeText = experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
       return <div className="ExperimentScreen">
         <div className="header">
           {isPractice ? "See computer for instructions." : <span>{
@@ -337,7 +339,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         </div>
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
-          {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} />}
+          {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={beforeText} />}
           <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />
         </div>}
         <Keyboard dispatch={dispatch} />

@@ -166,6 +166,7 @@ html, body {
 
 .SuggestionsBar.synonyms {
   background: #a1c9a1;
+  font-size: 15px;
 }
 
 .Suggestion {
@@ -208,7 +209,16 @@ html, body {
 
 span.word {
     padding: 4px;
-    display: block;
+    display: inline-block;
+    position: relative;
+}
+
+.Suggestion .beforeText {
+  color: black;
+  position: absolute;
+  right: 100%;
+  font-size: 10px;
+  line-height: 20px;
 }
 
 .Suggestion.bos {
