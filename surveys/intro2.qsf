@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-06-29T10:57:44Z",
-  "lastModifiedDate": "2017-06-29T13:41:33Z",
+  "lastModifiedDate": "2017-07-26T21:02:17Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -94,7 +94,7 @@
         "selector": "TB",
         "subSelector": null
       },
-      "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>\n\n<div><br />\nPlease answer the below to the best of your ability. You will not be penalized should you decide not to answer a question. Thank you.</div>\n\n<div> </div>",
+      "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>\n\n<div><br>\nPlease answer the below to the best of your ability. You will not be penalized should you decide not to answer a question. Thank you.</div>\n\n<div> </div>",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
