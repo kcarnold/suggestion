@@ -6,6 +6,10 @@
     "/ws": {
       "target": "ws://localhost:5000/",
       "ws": true
+    },
+    "/ping": {
+      "target": "ws://localhost:5000/",
+      "ws": true
     }
   },
   "devDependencies": {
