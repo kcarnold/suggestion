@@ -231,6 +231,16 @@ const namedConditions = {
     showSynonyms: true,
     showReplacement: true,
   },
+  airbnb: {
+    sugFlags: {
+      split: true,
+      num_sims: 10,
+      num_alternatives: 5,
+      domain: 'airbnb_train'
+    },
+    showSynonyms: true,
+    showReplacement: true,
+  },
   alternatives: {
     sugFlags: {
       alternatives: true,

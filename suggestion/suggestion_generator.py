@@ -35,6 +35,7 @@ yelp_train-3star
 yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
+airbnb_train
 sotu'''.split()
 
 '''
@@ -116,8 +117,15 @@ if use_word_vecs:
             except KeyError:
                 pass
         return res
-    yelp_word_vecs = get_vecs_for_words(cnnb, get_model('yelp_train-balanced').id2str)
 
+    word_vecs_for_model = {}
+    def get_word_vecs_for_model(model_name):
+        if model_name not in word_vecs_for_model:
+            word_vecs_for_model[model_name] = get_vecs_for_words(cnnb, get_model(model_name).id2str)
+        return word_vecs_for_model[model_name]
+    print("Getting word vecs for some models", file=sys.stderr)
+    get_word_vecs_for_model('yelp_train-balanced')
+    get_word_vecs_for_model('airbnb_train')
 
 
 sentiment_starters_by_stars_and_sentnum = json.load(open(paths.models / 'yelp_sentiment_starters.json'))
@@ -622,19 +630,20 @@ def map_as_jobs(executor, fn, arr, chunksize=8):
 
 def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternatives):
     from sklearn.metrics import pairwise
+    word_vecs = get_word_vecs_for_model(model.name)
 
     # Get unconditional next words
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
 
     # Find synonyms that are less likely.
-    query_word_vec = yelp_word_vecs[query_word_idx]
+    query_word_vec = word_vecs[query_word_idx]
     likelihood_threshold = model.unigram_probs[query_word_idx]
     less_frequent_indices = [i for i, idx in enumerate(next_words) if model.unigram_probs_wordsonly[idx] < likelihood_threshold]
     if len(less_frequent_indices) == 0:
         return []
     next_words = np.array(next_words)[less_frequent_indices]
     logprobs = logprobs[less_frequent_indices]
-    vecs_for_words = yelp_word_vecs[next_words]
+    vecs_for_words = word_vecs[next_words]
     sims = pairwise.cosine_similarity(query_word_vec[None, :], vecs_for_words)[0]
     candidates = np.argsort(sims)[-num_sims:][::-1]
     relevances = logprobs[candidates]
@@ -700,6 +709,7 @@ def get_clustered_recs(sofar, cur_word, flags={}):
     domain = flags.get('domain', 'yelp_train-balanced')
     n_clusters = flags.get('n_clusters', 5)
     model = get_model(domain)
+    word_vecs = get_word_vecs_for_model(domain)
     toks = tokenize_sofar(sofar)
     prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
 
@@ -710,7 +720,7 @@ def get_clustered_recs(sofar, cur_word, flags={}):
 
     if len(next_words) < n_clusters:
         return dict(clusters=[[(model.id2str[idx], logprob.item())] for idx, logprob in zip(next_words, logprobs)])
-    vecs_for_words = yelp_word_vecs[next_words]
+    vecs_for_words = word_vecs[next_words]
     vecs_for_clustering = vecs_for_words[np.argsort(logprobs)[-30:]]
     clusterer = AffinityPropagation(verbose=True)
     clusterer.fit(vecs_for_clustering)
