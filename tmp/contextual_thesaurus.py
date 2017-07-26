@@ -58,7 +58,9 @@ for sofar in ['the service was ', 'the food was ', 'i loved the ', 'i ', 'the ',
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
     vecs_for_words = all_vecs[next_words]
-    kmeans = KMeans(n_clusters=n_clusters, max_iter=100, n_init=10).fit(vecs_for_words[logprobs > -5]) # fixme if that leaves too few?
+    vecs_for_clustering = vecs_for_words[logprobs > -5]# fixme if that leaves too few?
+    print(len(vecs_for_clustering))
+    kmeans = KMeans(n_clusters=n_clusters, max_iter=100, n_init=10).fit(vecs_for_clustering)
     cluster_assignment = kmeans.predict(vecs_for_words)
     relevance = logprobs# - .5 * model.unigram_probs[next_words]
     print("Next-word clusters:")

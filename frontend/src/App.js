@@ -47,7 +47,7 @@ var wsURL = `ws://${window.location.host}`;
 //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
 var ws = new WSClient(wsURL + '/ws');
 
-var state = new MasterStateStore(clientId);
+var state = new MasterStateStore(clientId || '');
 
 
 var logs = {};

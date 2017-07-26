@@ -5,7 +5,7 @@ class Consent extends React.Component {
     return (
 
       <section className="container" id="Other" style={{marginBottom: 15, padding: '10px 10px', fontFamily: 'Verdana, Geneva, sans-serif', color: '#333333', fontSize: '0.9em'}}>
-        <p>We are testing apps to help people write, and we need your help to try out writing with one of these apps. (It's actually just a webpage to visit on your phone, nothing to install.)</p>
+        <p>We are testing apps to help people write, and we need your help to try out writing with some of these apps. (It's actually just a webpage to visit on your phone, nothing to install.)</p>
         <p><b>Eligibility</b><br />
           Participants should have normal or corrected-to-normal vision and experience entering text on a touchscreen device. <b>You will need a smartphone with WiFi to complete this task.</b> Participants must be adults (at least 18 years old). <strong>If you have previously completed this study, please don't do it again. If you realize partway through, that's ok, finish it and leave a note.</strong></p>
         <p>Your phone will need to have a good connection with our server for this task.</p>

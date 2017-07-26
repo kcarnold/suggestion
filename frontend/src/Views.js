@@ -9,14 +9,15 @@ import Consent from './Consent';
 const hostname = window.location.host;
 
 const surveyURLs = {
-  // intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
-  intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9mGf4CUxHYIg56d', // new intro with personality
-  postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
-  // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
-  postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_7OPqWyf4iipivwp',
-  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
-  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_eQbXXnoiDBWeww5',
-  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_3K1BKZMz3O0miZT', // postExp4
+  // intro: 'SV_9GiIgGOn3Snoxwh',
+  // intro: 'SV_9mGf4CUxHYIg56d', // new intro with personality
+  intro: 'SV_aa5ZP3K39GLFSzr',
+  postFreewrite: 'SV_0OCqAQl6o7BiidT',
+  // postTask: 'SV_5yztOdf3SX8EtOl',
+  postTask: 'SV_7OPqWyf4iipivwp',
+  // postExp: 'SV_8HVnUso1f0DZExv',
+  // postExp: 'SV_eQbXXnoiDBWeww5',
+  postExp: 'SV_3K1BKZMz3O0miZT', // postExp4
 }
 
 const wordCountTarget = 75;
@@ -26,12 +27,12 @@ const texts = {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
     brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
     revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent.</span>,
-    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+    instructionsQuiz: 'SV_42ziiSrsZzOdBul',
   },
   detailedNoBrainstorm: {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
     revisionInstructions: <span>Try to make it reasonably accurate and coherent.</span>,
-    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+    instructionsQuiz: 'SV_42ziiSrsZzOdBul',
   },
   funny: {
     overallInstructions: <span>Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
@@ -72,41 +73,66 @@ const tutorialTaskDescs = {
   backspace: 'Try deleting a few letters.',
   specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
   tapSuggestion: 'Try tapping a box to insert the word.',
+  tapPrediction: 'Try tapping a grey box to insert the word.',
+  tapAlternative: "Try tapping a green box to replace the highlighted word with it."
 };
 
 class Suggestion extends Component {
   render() {
-    let {onTap, word, preview, isValid, meta} = this.props;
+    let {onTap, word, preview, isValid, meta, beforeText} = this.props;
     return <div
       className={classNames("Suggestion", {invalid: !isValid, bos: isValid && (meta || {}).bos})}
       onTouchStart={isValid ? onTap : null}
       onTouchEnd={evt => {evt.preventDefault();}}>
-      <span className="word">{word}</span><span className="preview">{preview.join(' ')}</span>
+      <span className="word"><span className="beforeText">{beforeText}</span>{word}</span><span className="preview">{preview.join(' ')}</span>
     </div>;
   }
 }
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch} = this.props;
+    const {state, dispatch, suggestions, which, beforeText} = this.props;
     let expState = state.experimentState;
-    let {showPhrase} = expState.condition;
-    return <div className="SuggestionsBar">
-      {expState.visibleSuggestions.map((sugg, i) => <Suggestion
+    return <div className={"SuggestionsBar " + which}>
+      {(suggestions || []).map((sugg, i) => <Suggestion
         key={i}
         onTap={(evt) => {
-          dispatch({type: 'tapSuggestion', slot: i});
+          dispatch({type: 'tapSuggestion', slot: i, which});
           evt.preventDefault();
           evt.stopPropagation();
         }}
-        word={sugg.words[0]}
-        preview={showPhrase ? sugg.words.slice(1) : []}
-        isValid={sugg.isValid}
-        meta={sugg.meta} />
+        word={sugg}
+        beforeText={beforeText || ''}
+        preview={[]}
+        isValid={true}
+        meta={null} />
       )}
     </div>;
   }
 }));
+
+const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesBar extends Component {
+  render() {
+    const {state, dispatch} = this.props;
+    let expState = state.experimentState;
+    let recs = expState.visibleSuggestions;
+    let heldCluster = 2;
+    let selectedIdx = 9;
+    let clusters = recs.clusters || [];
+    let suggOffset = (idx) => Math.floor(idx * state.phoneSize.width / 3);
+    let suggWidth = Math.floor(state.phoneSize.width / 3);
+    return <div className="SuggestionsContainer">
+      {heldCluster && <div className="Overlay" style={{left: suggOffset(heldCluster), width: suggWidth}}>
+        {(clusters[heldCluster] || []).reverse().map(([word, meta], wordIdx) => <span key={word} className={classNames(wordIdx === selectedIdx && 'selected')}>{word}</span>)}
+        <div className="shiftSpot" />
+      </div>}
+      <div className="SuggestionsBar">
+      {clusters.slice(0, 3).map((cluster, clusterIdx) =>
+        <div className="Suggestion" key={clusterIdx}><span className="word">{cluster[0][0]}</span><span className="preview" /></div>)}</div>
+    </div>;
+  }
+}));
+
 
 function advance(state, dispatch) {
   dispatch({type: 'next'})
@@ -130,6 +156,7 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 
+const qualtricsPrefix = 'https://harvard.az1.qualtrics.com/SE/?SID=';
 
 const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(class RedirectToSurvey extends Component {
   getRedirectURL() {
@@ -137,7 +164,7 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
     let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
     let url = nextURL;
     if (this.props.url) {
-      url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
+      url = `${qualtricsPrefix}${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
       if (this.props.extraParams) {
         url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
       }
@@ -188,7 +215,16 @@ const CurText = inject('spying')(observer(class CurText extends Component {
   }
 
   render() {
-    return <div className="CurText"><span>{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
+    let {text, replacementRange} = this.props;
+    if (!replacementRange) {
+      replacementRange = [0, 0];
+    }
+    let [hiStart, hiEnd] = replacementRange;
+    return <div className="CurText"><span>
+      <span>{text.slice(0, hiStart)}</span>
+      <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
+      <span>{text.slice(hiEnd)}</span>
+      <span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
   }
 }));
 
@@ -290,33 +326,27 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-      let {experimentState} = state;
-
+      let {experimentState, isPractice} = state;
+      let {showReplacement, showSynonyms} = state.condition;
+      let beforeText = experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
       return <div className="ExperimentScreen">
         <div className="header">
-          {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          {isPractice ? "See computer for instructions." : <span>{
+            state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          </span>}
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. Don't worry if you happen to miss a few.</p>}
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>You just missed an æ!<br/>Next time, remember to tap any box that has æ in it.</div>}
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
-        <CurText text={experimentState.curText} />
-        <SuggestionsBar />
+        <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
+        {state.condition.alternatives ? <AlternativesBar /> : <div>
+          {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={beforeText} />}
+          <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />
+        </div>}
         <Keyboard dispatch={dispatch} />
       </div>;
     }));
-
-export const PracticePhone = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let {experimentState} = state;
-    return <div className="ExperimentScreen">
-      <div className="header">See computer for instructions.
-          {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
-      </div>
-      <CurText text={experimentState.curText} />
-      <SuggestionsBar />
-      <Keyboard dispatch={dispatch} />
-    </div>;
-  }));
 
 export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let allTasksDone = _.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
@@ -332,31 +362,30 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
     </div>;
   }));
 
+      // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
+
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     // <h1>Practice with Phrase Suggestions</h1>
     // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
+    let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
+    let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p>In this <b>practice round</b>, we'll pretend to write the opening sentences to a US <b>State of the Union address</b> in an imaginary world where a <b>united Africa has become a superpower</b>.</p>
+      <p>In this <b>practice round</b>, write a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please <b>don't include any information that would identify you</b>.</p>
 
-      <p>Let's start off with a standard opening: "members of congress, my fellow americans" (we're going to not worry about capitalization). Notice the 3 boxes above the keyboard. Each one shows a word that you can insert by tapping on the box.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Try a single <b>tap</b> on the "members" box to insert that word.</TutorialTodo>
+      <p>Above the keyboard there are two rows of boxes.
+      The bottom (gray) row is probably familiar, but the top (green) row is different.
+      Once you've started typing, the word you're typing (or just typed) will be highlighted in green. The green row will show alternatives to that word. Tap any of the alternatives to use it <em>instead of</em> the green word.</p>
 
-      <p>Sometimes the boxes above the keyboard will show a complete phrase, starting with the highlighted word.
-      Tap a box to insert words from that phrase, one word per tap. So if you want the first two words, double-tap; if you want the first 4 words, tap 4 times.</p>
-      <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Now try a <b>double-tap</b> to insert two words.</TutorialTodo>
 
-      <p>Inevitably you'll want to write something different from the words or phrases provided. In that case, just tap the letters on the keyboard.</p>
-
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
-
+      {allTasks.map(showTask)}
 
       {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
-      <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
+
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
+      {_.every(allTasks.map(name => state.tutorialTasks.tasks[name])) ? <p>
         Now that you know how it works, <b>try writing another sentence, just for practice (have fun with it!). Use both the keys and the suggestions.</b><br/>
         When you're ready to move on, click here: <NextBtn />.</p> : <p>Complete all of the tutorial steps to move on.</p>}
     </div>;

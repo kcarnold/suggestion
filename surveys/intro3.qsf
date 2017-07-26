@@ -1,0 +1,619 @@
+{
+  "id": "SV_aa5ZP3K39GLFSzr",
+  "name": "Writing Study - Intro - 2017-07-26",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-07-26T21:02:17Z",
+  "lastModifiedDate": "2017-07-26T21:13:30Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span><br>\n<br>The main part of this task will be writing about each experience that you just listed. There will be a brief survey after each writing session, then a survey about the experiment overall. <div><br></div><div>If any part of this task is confusing or unclear, please don't hesitate to ask us about it!<br>\n<br>Before we get started, could you please answer a few questions about yourself?<br></div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q1"
+    },
+    "QID12": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q12",
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID6": {
+      "questionType": {
+        "type": "DB",
+        "selector": "TB",
+        "subSelector": null
+      },
+      "questionText": "<strong><span style=\"font-size:19px;\">Demographic Questions</span></strong>\n\n<div><br>\nPlease answer the below to the best of your ability. You will not be penalized should you decide not to answer a question. Thank you.</div>\n\n<div> </div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q8"
+    },
+    "QID7": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "How old are you?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 18.0,
+          "maximum": 110.0
+        }
+      },
+      "questionName": "Q9"
+    },
+    "QID4": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is the highest level of school you have completed or the highest degree you have received? ",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q5",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Less than high school degree",
+          "choiceText": "Less than high school degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "High school graduate (high school diploma or equivalent including GED)",
+          "choiceText": "High school graduate (high school diploma or equivalent including GED)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Some college but no degree",
+          "choiceText": "Some college but no degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Associate degree in college (2-year)",
+          "choiceText": "Associate degree in college (2-year)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "recode": "5",
+          "description": "Bachelor's degree in college (4-year)",
+          "choiceText": "Bachelor's degree in college (4-year)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "recode": "6",
+          "description": "Master's degree",
+          "choiceText": "Master's degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "recode": "7",
+          "description": "Doctoral degree",
+          "choiceText": "Doctoral degree",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "8": {
+          "recode": "8",
+          "description": "Professional degree (JD, MD)",
+          "choiceText": "Professional degree (JD, MD)",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID5": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "What is your gender?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q7",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Male",
+          "choiceText": "Male",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Female",
+          "choiceText": "Female",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Something else, or I'd prefer not to say",
+          "choiceText": "Something else, or I'd prefer not to say",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID16": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "How proficient would you say you are in English?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q16",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "Basic",
+          "choiceText": "Basic",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Conversational",
+          "choiceText": "Conversational",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Fluent",
+          "choiceText": "Fluent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Native or bilingual",
+          "choiceText": "Native or bilingual",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID32": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 0.0,
+          "maximum": 0.0
+        }
+      },
+      "questionName": "Q32"
+    },
+    "QID20": {
+      "questionType": {
+        "type": "Matrix",
+        "selector": "Likert",
+        "subSelector": "SingleAnswer"
+      },
+      "questionText": "<div>Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.</div><div><br></div><div><div><div><div><span class=\"user-generated notranslate\" style=\"margin: 0px; padding: 0px; border: 0px; font-style: inherit; font-variant: inherit; font-stretch: inherit; font-size: inherit; line-height: inherit; font-family: inherit;\"><b>Indicate for each statement whether it is Very Inaccurate, Moderately Inaccurate, Neither Accurate Nor Inaccurate, Moderately Accurate, or Very Accurate as a description of you.</b></span></div></div></div></div>",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q21",
+      "subQuestions": {
+        "9": {
+          "recode": "9",
+          "description": "I am quick to understand things",
+          "choiceText": "I am quick to understand things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "15": {
+          "recode": "15",
+          "description": "I avoid difficult reading material",
+          "choiceText": "I avoid difficult reading material",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "16": {
+          "recode": "16",
+          "description": "I avoid philosophical discussions",
+          "choiceText": "I avoid philosophical discussions",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "29": {
+          "recode": "29",
+          "description": "I can handle a lot of information",
+          "choiceText": "I can handle a lot of information",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "49": {
+          "recode": "49",
+          "description": "I have difficulty understanding abstract ideas",
+          "choiceText": "I have difficulty understanding abstract ideas",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "55": {
+          "recode": "55",
+          "description": "I like to solve complex problems",
+          "choiceText": "I like to solve complex problems",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "56": {
+          "recode": "56",
+          "description": "I love to read challenging material",
+          "choiceText": "I love to read challenging material",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "57": {
+          "recode": "57",
+          "description": "I love to think up new ways of doing things",
+          "choiceText": "I love to think up new ways of doing things",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "59": {
+          "recode": "59",
+          "description": "I need things explained only once",
+          "choiceText": "I need things explained only once",
+          "variableName": null,
+          "imageDescription": null
+        },
+        "71": {
+          "recode": "71",
+          "description": "I try to avoid complex people",
+          "choiceText": "I try to avoid complex people",
+          "variableName": null,
+          "imageDescription": null
+        }
+      },
+      "choices": {
+        "18": {
+          "recode": "18",
+          "description": "Very <strong>Inaccurate</strong",
+          "choiceText": "Very <strong>Inaccurate</strong",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "19": {
+          "recode": "19",
+          "description": "Moderately Inaccurate",
+          "choiceText": "Moderately Inaccurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "20": {
+          "recode": "20",
+          "description": "Neither Accurate Nor Inaccurate",
+          "choiceText": "Neither Accurate Nor Inaccurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "21": {
+          "recode": "21",
+          "description": "Moderately Accurate",
+          "choiceText": "Moderately Accurate",
+          "imageDescription": null,
+          "analyze": true
+        },
+        "22": {
+          "recode": "22",
+          "description": "Very <strong>Accurate</strong>",
+          "choiceText": "Very <strong>Accurate</strong>",
+          "imageDescription": null,
+          "analyze": true
+        }
+      },
+      "randomization": {
+        "type": "all"
+      }
+    }
+  },
+  "exportColumnMap": {
+    "Q1": {
+      "question": "QID1"
+    },
+    "Q12_1_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.1"
+    },
+    "Q12_2_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.2"
+    },
+    "Q12_3_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.3"
+    },
+    "Q12_4_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.4"
+    },
+    "Q12_5_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.5"
+    },
+    "Q12_6_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.6"
+    },
+    "Q12_7_TEXT": {
+      "question": "QID12",
+      "choice": "QID12.choices.7"
+    },
+    "Q8": {
+      "question": "QID6"
+    },
+    "Q9": {
+      "question": "QID7"
+    },
+    "Q5": {
+      "question": "QID4"
+    },
+    "Q7": {
+      "question": "QID5"
+    },
+    "Q16": {
+      "question": "QID16"
+    },
+    "Q32": {
+      "question": "QID32"
+    },
+    "Q21_9": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.9"
+    },
+    "Q21_15": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.15"
+    },
+    "Q21_16": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.16"
+    },
+    "Q21_29": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.29"
+    },
+    "Q21_49": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.49"
+    },
+    "Q21_55": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.55"
+    },
+    "Q21_56": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.56"
+    },
+    "Q21_57": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.57"
+    },
+    "Q21_59": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.59"
+    },
+    "Q21_71": {
+      "question": "QID20",
+      "subQuestion": "QID20.subQuestions.71"
+    }
+  },
+  "blocks": {
+    "BL_cIR1YYomzsRNa1n": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        }
+      ]
+    },
+    "BL_8IF8DosshSEGAGp": {
+      "description": "Demographics",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID6"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID7"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID4"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID5"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID16"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID32"
+        }
+      ]
+    },
+    "BL_d5NMwqtF7M323FX": {
+      "description": "Personality NFC",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID20"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "id": "BL_cIR1YYomzsRNa1n",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "id": "BL_8IF8DosshSEGAGp",
+      "type": "Block"
+    },
+    {
+      "id": "BL_d5NMwqtF7M323FX",
+      "type": "Block"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_URL"
+    }
+  ],
+  "comments": {
+    "QID9": {
+      "commentList": [
+        {
+          "userId": "UR_789p4qOsBfCeHqZ",
+          "message": "From http://www.pearsoned.com/wp-content/uploads/Pearson-K12-Student-Mobile-Device-Survey-050914-PUBLIC-Report.pdf",
+          "timestamp": 1481845779
+        }
+      ]
+    }
+  },
+  "loopAndMerge": {}
+}

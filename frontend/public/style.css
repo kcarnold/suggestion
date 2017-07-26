@@ -62,7 +62,7 @@ html, body {
     white-space: pre-wrap;
     flex: 1 1 auto;
     padding: 1px;
-    overflow: scroll;
+    overflow-y: scroll;
     display: flex;
     align-items: flex-end;
     background: #ccc;
@@ -161,6 +161,12 @@ html, body {
     flex: 0 0 auto;
     display: flex;
     flex-flow: row nowrap;
+    border-top: 1px solid white;
+}
+
+.SuggestionsBar.synonyms {
+  background: #a1c9a1;
+  font-size: 15px;
 }
 
 .Suggestion {
@@ -203,7 +209,16 @@ html, body {
 
 span.word {
     padding: 4px;
-    display: block;
+    display: inline-block;
+    position: relative;
+}
+
+.Suggestion .beforeText {
+  color: black;
+  position: absolute;
+  right: 100%;
+  font-size: 10px;
+  line-height: 20px;
 }
 
 .Suggestion.bos {
@@ -267,4 +282,61 @@ span.word {
   to {
     opacity: 0%
   }
+}
+
+.AlternativesBar {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+
+.cluster {
+    display: flex;
+    flex-flow: column-reverse;
+    text-align: center;
+}
+
+.Overlay {
+  display: block;
+  position: absolute;
+  bottom: 100%;
+  background: rgba(255, 255, 255, .8);
+  padding: 10px 0 0 0;
+/*   box-shadow: 2px 1px 3px white; */
+  overflow: hidden;
+}
+
+.Overlay span {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.Overlay .selected {
+  background: yellow;
+}
+
+.SuggestionsContainer {
+  position: relative;
+}
+
+.shiftSpot {
+  position: absolute;
+  top: 179px;
+  left: 37px;
+  border-left: 1px dashed red;
+  height: 100%
+}
+
+.shiftSpot::before {
+  content: "+";
+  color: red;
+  position: absolute;
+  top: -9px;
+  left: -5px;
+}
+
+
+span.replaceHighlight {
+    background: #87cc87;
 }

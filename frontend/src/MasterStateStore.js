@@ -212,6 +212,40 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 'match',
+  },
+  yelppredict: {
+    sugFlags: {
+      split: true,
+      num_sims: 0,
+      num_alternatives: 0,
+    },
+    showSynonyms: false,
+    showReplacement: false,
+  },
+  yelpalternatives: {
+    sugFlags: {
+      split: true,
+      num_sims: 10,
+      num_alternatives: 5,
+    },
+    showSynonyms: true,
+    showReplacement: true,
+  },
+  airbnb: {
+    sugFlags: {
+      split: true,
+      num_sims: 10,
+      num_alternatives: 5,
+      domain: 'airbnb_train'
+    },
+    showSynonyms: true,
+    showReplacement: true,
+  },
+  pressandhold: {
+    sugFlags: {
+      alternatives: true,
+    },
+    alternatives: true
   }
 };
 
@@ -268,6 +302,10 @@ const MASTER_CONFIGS = {
   sent4: {
     baseConditions: ['sentpos', 'sentneg'],
     instructions: 'yelp',
+  },
+  synonyms: {
+    baseConditions: ['yelppredict', 'yelpalternatives'],
+    instructions: 'yelp',
   }
 };
 
@@ -278,7 +316,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
     {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
   ];
@@ -403,6 +441,9 @@ export class MasterStateStore {
       block: null,
       conditions: null,
       conditionName: null,
+      get isPractice() {
+        return (this.curExperiment || '').slice(0, 5) === 'pract';
+      },
       experiments: M.asMap({}),
       curExperiment: null,
       get experimentState() {
@@ -490,9 +531,11 @@ export class MasterStateStore {
           request_id: seqNum,
           sofar: prefix,
           cur_word: curWord,
-          constraints,
-          promise,
-          ...this.suggestionRequestParams
+          flags: {
+            constraints,
+            promise,
+            ...this.suggestionRequestParams
+          }
         };
         if (this.condition.usePrewriteText && this.prewriteLines.length) {
           response['prewrite_info'] = {
