@@ -9,15 +9,15 @@ import Consent from './Consent';
 const hostname = window.location.host;
 
 const surveyURLs = {
-  // intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9GiIgGOn3Snoxwh',
-  // intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_9mGf4CUxHYIg56d', // new intro with personality
-  intro: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_aa5ZP3K39GLFSzr',
-  postFreewrite: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_0OCqAQl6o7BiidT',
-  // postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_5yztOdf3SX8EtOl',
-  postTask: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_7OPqWyf4iipivwp',
-  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_8HVnUso1f0DZExv',
-  // postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_eQbXXnoiDBWeww5',
-  postExp: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_3K1BKZMz3O0miZT', // postExp4
+  // intro: 'SV_9GiIgGOn3Snoxwh',
+  // intro: 'SV_9mGf4CUxHYIg56d', // new intro with personality
+  intro: 'SV_aa5ZP3K39GLFSzr',
+  postFreewrite: 'SV_0OCqAQl6o7BiidT',
+  // postTask: 'SV_5yztOdf3SX8EtOl',
+  postTask: 'SV_7OPqWyf4iipivwp',
+  // postExp: 'SV_8HVnUso1f0DZExv',
+  // postExp: 'SV_eQbXXnoiDBWeww5',
+  postExp: 'SV_3K1BKZMz3O0miZT', // postExp4
 }
 
 const wordCountTarget = 75;
@@ -27,12 +27,12 @@ const texts = {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
     brainstormingInstructions: <span><b>Brainstorm what you might want to talk about</b> by typing anything that comes to mind, even if it's not entirely accurate. Don't worry about grammar, coherence, accuracy, or anything else, this is just for you. <b>Have fun with it</b>, we'll write the real thing in step 2.</span>,
     revisionInstructions: <span>Okay, this time for real. Try to make it reasonably accurate and coherent.</span>,
-    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+    instructionsQuiz: 'SV_42ziiSrsZzOdBul',
   },
   detailedNoBrainstorm: {
     overallInstructions: <span>Write the true story of your experience. Tell your reader <b>as many vivid details as you can</b>. Don’t worry about <em>summarizing</em> or <em>giving recommendations</em>.</span>,
     revisionInstructions: <span>Try to make it reasonably accurate and coherent.</span>,
-    instructionsQuiz: 'https://harvard.az1.qualtrics.com/SE/?SID=SV_42ziiSrsZzOdBul',
+    instructionsQuiz: 'SV_42ziiSrsZzOdBul',
   },
   funny: {
     overallInstructions: <span>Write the <b>funniest</b> review you can come up with. Have fun with it!</span>,
@@ -156,6 +156,7 @@ const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispa
   renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
 
 
+const qualtricsPrefix = 'https://harvard.az1.qualtrics.com/SE/?SID=';
 
 const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(class RedirectToSurvey extends Component {
   getRedirectURL() {
@@ -163,7 +164,7 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
     let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
     let url = nextURL;
     if (this.props.url) {
-      url = `${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
+      url = `${qualtricsPrefix}${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
       if (this.props.extraParams) {
         url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
       }
