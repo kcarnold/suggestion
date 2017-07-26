@@ -34,10 +34,14 @@ yelp_train-2star
 yelp_train-3star
 yelp_train-4star
 yelp_train-5star
-yelp_train-stars12
-yelp_train-stars45
 yelp_topic_seqs
 sotu'''.split()
+
+'''
+yelp_train-stars12
+yelp_train-stars45
+'''
+
 def get_or_load_model(name):
     if name not in Model.preloaded:
         Model.preload_model(name, paths.model_basename(name))
