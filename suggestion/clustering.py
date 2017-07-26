@@ -12,7 +12,7 @@ import tqdm
 import logging
 logger = logging.getLogger(__name__)
 
-JOBLIB_FILENAME = '/Data/conceptnet-vector-ensemble/conceptnet-numberbatch-201609-en.joblib'
+JOBLIB_FILENAME = str(paths.models / 'conceptnet-numberbatch-201609-en.joblib')
 
 @attr.s
 class ConceptNetNumberBatch:
