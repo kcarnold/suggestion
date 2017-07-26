@@ -62,7 +62,7 @@ html, body {
     white-space: pre-wrap;
     flex: 1 1 auto;
     padding: 1px;
-    overflow: scroll;
+    overflow-y: scroll;
     display: flex;
     align-items: flex-end;
     background: #ccc;
