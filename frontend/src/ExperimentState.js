@@ -71,6 +71,13 @@ export class ExperimentStateStore {
       get visibleSuggestions() {
         return this.lastSuggestionsFromServer;
       },
+      spliceText: M.action((startIdx, deleteCount, toInsert, taps) => {
+        if (!taps) {
+          taps = _.map(toInsert, () => null);
+        }
+        this.curText = this.curText.slice(0, startIdx) + toInsert + this.curText.slice(startIdx + deleteCount);
+        this.tapLocations = this.tapLocations.slice(0, startIdx).concat(taps).concat(this.tapLocations.slice(startIdx + deleteCount));
+      }),
       insertText: M.action((toInsert, charsToDelete, taps) => {
         let cursorPos = this.curText.length;
         let newCursorPos = cursorPos - charsToDelete;
@@ -110,16 +117,28 @@ export class ExperimentStateStore {
         // let ac = this.validateAttnCheck(slot);
         // if (ac.length) return ac;
 
-       let wordToInsert = this.visibleSuggestions[which][slot];
-       let {curWord} = this.getSuggestionContext();
-        let charsToDelete = curWord.length;
-        let isNonWord = wordToInsert.match(/^\W$/);
-        let deleteSpace = this.lastSpaceWasAuto && isNonWord;
-        if (deleteSpace) {
-          charsToDelete++;
+        let wordToInsert = this.visibleSuggestions[which][slot];
+        if (which === 'synonyms') {
+          // Replace the _previous_ word.
+          let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];
+          let autoSpace = endIdx === this.curText.length;
+          this.spliceText(startIdx, endIdx - startIdx, wordToInsert);
+          if (autoSpace) {
+            // Add a space.
+            this.spliceText(this.curText.length, 0, ' ');
+            this.lastSpaceWasAuto = true;
+          }
+        } else {
+          let {curWord} = this.getSuggestionContext();
+          let charsToDelete = curWord.length;
+          let isNonWord = wordToInsert.match(/^\W$/);
+          let deleteSpace = this.lastSpaceWasAuto && isNonWord;
+          if (deleteSpace) {
+            charsToDelete++;
+          }
+          this.insertText(wordToInsert + ' ', charsToDelete, null);
+          this.lastSpaceWasAuto = true;
         }
-        this.insertText(wordToInsert + ' ', charsToDelete, null);
-        this.lastSpaceWasAuto = true;
         return [this.changedMsg()];
       }),
 

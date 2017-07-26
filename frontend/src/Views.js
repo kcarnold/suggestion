@@ -88,11 +88,10 @@ class Suggestion extends Component {
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch, which} = this.props;
+    const {state, dispatch, suggestions, which} = this.props;
     let expState = state.experimentState;
-    let {showPhrase} = expState.condition;
-    return <div className="SuggestionsBar">
-      {(expState.visibleSuggestions[which] || []).map((sugg, i) => <Suggestion
+    return <div className={"SuggestionsBar " + which}>
+      {(suggestions || []).map((sugg, i) => <Suggestion
         key={i}
         onTap={(evt) => {
           dispatch({type: 'tapSuggestion', slot: i, which});
@@ -108,7 +107,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
   }
 }));
 
-const AlternativesBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
+const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesBar extends Component {
   render() {
     const {state, dispatch} = this.props;
     let expState = state.experimentState;
@@ -211,7 +210,16 @@ const CurText = inject('spying')(observer(class CurText extends Component {
   }
 
   render() {
-    return <div className="CurText"><span>{this.props.text}<span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
+    let {text, replacementRange} = this.props;
+    if (!replacementRange) {
+      replacementRange = [0, 0];
+    }
+    let [hiStart, hiEnd] = replacementRange;
+    return <div className="CurText"><span>
+      <span>{text.slice(0, hiStart)}</span>
+      <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
+      <span>{text.slice(hiEnd)}</span>
+      <span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
   }
 }));
 
@@ -314,7 +322,7 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
-
+      let {showReplacement, showSynonyms} = state.condition;
       return <div className="ExperimentScreen">
         <div className="header">
           {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
@@ -323,10 +331,10 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>You just missed an æ!<br/>Next time, remember to tap any box that has æ in it.</div>}
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
-        <CurText text={experimentState.curText} />
+        <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
-          <SuggestionsBar which="rare" />
-          <SuggestionsBar which="common" />
+          {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} />}
+          <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />
         </div>}
         <Keyboard dispatch={dispatch} />
       </div>;

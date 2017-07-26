@@ -616,69 +616,78 @@ def map_as_jobs(executor, fn, arr, chunksize=8):
     return [executor.submit(partial(_process_chunk, fn), chunk) for chunk in _get_chunks(arr, chunksize=chunksize)]
 
 
-def get_split_recs(sofar, cur_word, flags={}):
+def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternatives):
     from sklearn.metrics import pairwise
 
-    domain = flags.get('domain', 'yelp_train-balanced')
-    model = get_model(domain)
-    toks = tokenize_sofar(sofar)
-    prefix_logprobs = [(0., ''.join(item['letter'] for item in cur_word))] if len(cur_word) > 0 else None
+    # Get unconditional next words
+    next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
 
-    rare_word_bonus = flags.get('rare_word_bonus', 1.0)
+    # Find synonyms that are less likely.
+    query_word_vec = yelp_word_vecs[query_word_idx]
+    likelihood_threshold = model.unigram_probs[query_word_idx]
+    less_frequent_indices = [i for i, idx in enumerate(next_words) if model.unigram_probs_wordsonly[idx] < likelihood_threshold]
+    if len(less_frequent_indices) == 0:
+        return []
+    next_words = np.array(next_words)[less_frequent_indices]
+    logprobs = logprobs[less_frequent_indices]
+    vecs_for_words = yelp_word_vecs[next_words]
+    sims = pairwise.cosine_similarity(query_word_vec[None, :], vecs_for_words)[0]
+    candidates = np.argsort(sims)[-num_sims:][::-1]
+    relevances = logprobs[candidates]
+    return [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
+
+
+def get_split_recs(sofar, cur_word, flags={}):
+    domain = flags.get('domain', 'yelp_train-balanced')
     num_sims = flags.get('num_sims', 5)
     num_alternatives = flags.get('num_alternatives', 5)
+
+    model = get_model(domain)
+    toks = tokenize_sofar(sofar)
+    cur_word_letters = ''.join(item['letter'] for item in cur_word)
+    prefix_logprobs = [(0., cur_word_letters)] if len(cur_word) > 0 else None
+
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
     logprob_argsort = np.argsort(logprobs)
+    predictions = []
+    for idx in logprob_argsort[::-1]:
+        word = model.id2str[next_words[idx]]
+        if word[0] in ',.?!<':
+            continue
+        predictions.append(word)
+        if len(predictions) == 3:
+            break
+
+    result = dict(predictions=predictions)
+
+    if len(predictions) == 0:
+        return result
 
     if len(cur_word) > 0:
-        # Make "common" be predictions and "rare" be uncommon synonyms of the most likely next word.
-        common = [model.id2str[next_words[idx]] for idx in logprob_argsort[-3:][::-1]]
-        if len(common) == 0:
-            return dict(common=common, rare=[])
-        if not num_sims:
-            # Don't do the alternatives thing, just let the second row be more of the same.
-            rare = [model.id2str[next_words[idx]] for idx in logprob_argsort[:-3][-3:][::-1]]
-            return dict(common=common, rare=rare)
-
-        likely_word_idx = next_words[np.argmax(logprobs)]
-
-        # Get unconditional next words
-        next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
-
-        # Find synonyms that are less likely.
-        vec_for_likely_word = yelp_word_vecs[likely_word_idx]
-        likelihood_threshold = model.unigram_probs[likely_word_idx]
-        less_frequent_indices = [i for i, idx in enumerate(next_words) if model.unigram_probs_wordsonly[idx] < likelihood_threshold]
-        if len(less_frequent_indices) == 0:
-            rare = []
-        else:
-            next_words = np.array(next_words)[less_frequent_indices]
-            logprobs = logprobs[less_frequent_indices]
-            vecs_for_words = yelp_word_vecs[next_words]
-            sims = pairwise.cosine_similarity(vec_for_likely_word[None, :], vecs_for_words)[0]
-            candidates = np.argsort(sims)[-num_sims:][::-1]
-            relevances = logprobs[candidates]
-            rare = [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
+        # Offer uncommon synonyms of the most likely next word
+        to_replace = cur_word_letters
+        replacement_start_idx = len(sofar)
+        query_word_idx = next_words[np.argmax(logprobs)]
+        query_state = state
+        query_toks = toks
     else:
-        word_bonuses = model.unigram_probs_wordsonly * -rare_word_bonus
-        # Don't double-bonus words that have already been used.
-        for word in set(toks):
-            word_idx = model.model.vocab_index(word)
-            word_bonuses[word_idx] = 0.
+        to_replace = toks[-1]
+        if to_replace[0] not in '.?!<' and to_replace in sofar:
+            replacement_start_idx = sofar.rindex(to_replace)
+            query_word_idx = model.model.vocab_index(to_replace)
+            query_toks = toks[:-1]
+            query_state = model.get_state(query_toks)[0]
+        else:
+            query_word_idx = 0
 
-        common_indices = logprob_argsort[-3:][::-1]
-        common = [model.id2str[next_words[i]] for i in common_indices]
-        print('common', logprobs[common_indices])
-        remaining_items = logprob_argsort[:-3]
-        remaining_words = [next_words[i] for i in remaining_items]
-        remaining_logprobs = logprobs[remaining_items]
-        relevance = remaining_logprobs + word_bonuses[remaining_words]
-        rare_indices = np.argsort(relevance)[-3:][::-1]
-        rare = [model.id2str[remaining_words[i]] for i in rare_indices]
-        print('rare', remaining_logprobs[rare_indices], relevance[rare_indices])
+    if query_word_idx != 0:
+        replacement_end_idx = replacement_start_idx + len(to_replace)
+        result['replacement_range'] = [replacement_start_idx, replacement_end_idx]
+        result['synonyms'] = get_synonyms(
+            model, query_state, query_toks, query_word_idx, num_sims=num_sims, num_alternatives=num_alternatives)
 
-    return dict(common=common, rare=rare)
+    return result
 
 
 def get_clustered_recs(sofar, cur_word, flags={}):

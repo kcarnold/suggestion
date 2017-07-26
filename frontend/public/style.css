@@ -164,6 +164,10 @@ html, body {
     border-top: 1px solid white;
 }
 
+.SuggestionsBar.synonyms {
+  background: #a1c9a1;
+}
+
 .Suggestion {
     display: block;
     color: white;
@@ -319,5 +323,9 @@ span.word {
   position: absolute;
   top: -9px;
   left: -5px;
+}
 
+
+span.replaceHighlight {
+    background: #87cc87;
 }
