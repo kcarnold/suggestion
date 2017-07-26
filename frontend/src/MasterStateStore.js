@@ -312,7 +312,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'PracticePhone', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'sotu', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
     {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
   ];
@@ -437,6 +437,9 @@ export class MasterStateStore {
       block: null,
       conditions: null,
       conditionName: null,
+      get isPractice() {
+        return (this.conditionName || '').slice(0, 5) === 'pract';
+      },
       experiments: M.asMap({}),
       curExperiment: null,
       get experimentState() {

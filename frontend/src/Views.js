@@ -321,11 +321,13 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-      let {experimentState} = state;
+      let {experimentState, isPractice} = state;
       let {showReplacement, showSynonyms} = state.condition;
       return <div className="ExperimentScreen">
         <div className="header">
-          {state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          {isPractice ? "See computer for instructions." : <span>{
+            state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
+          </span>}
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. Don't worry if you happen to miss a few.</p>}
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>You just missed an æ!<br/>Next time, remember to tap any box that has æ in it.</div>}
@@ -339,18 +341,6 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <Keyboard dispatch={dispatch} />
       </div>;
     }));
-
-export const PracticePhone = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let {experimentState} = state;
-    return <div className="ExperimentScreen">
-      <div className="header">See computer for instructions.
-          {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
-      </div>
-      <CurText text={experimentState.curText} />
-      <SuggestionsBar />
-      <Keyboard dispatch={dispatch} />
-    </div>;
-  }));
 
 export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispatch}) => {
     let allTasksDone = _.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
