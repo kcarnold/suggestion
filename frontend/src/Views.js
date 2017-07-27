@@ -371,9 +371,8 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p>Imagine you're writing a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please <b>don't include any information that would identify you</b>.</p>
-
-      <p><b>Practice task</b>: <b>Write a sentence about the interior of the residence.</b> Try to write it using <b>as few taps</b> as possible.</p>
+      <p><b>Practice task</b>:
+        Imagine you're writing a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please don't include any information that would identify you.) <b>Write a sentence about the interior of the residence.</b> Try to write it using <b>as few taps</b> as possible.</p>
 
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
 
