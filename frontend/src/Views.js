@@ -365,40 +365,42 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
       // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
 
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    // <h1>Practice with Phrase Suggestions</h1>
-    // <TutorialTodo done={state.tutorialTasks.tasks.quadTap}>Just for fun, try a <b>quadruple-tap</b> to insert 4 words.</TutorialTodo>
     let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
     let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p>In this <b>practice round</b>, write a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please <b>don't include any information that would identify you</b>.</p>
+      <p>Imagine you're writing a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please <b>don't include any information that would identify you</b>.</p>
 
-      <p>Above the keyboard there are two rows of boxes.
-      The bottom (gray) row is probably familiar, but the top (green) row is different.
-      Once you've started typing, the word you're typing (or just typed) will be highlighted in green. The green row will show alternatives to that word. Tap any of the alternatives to use it <em>instead of</em> the green word.</p>
-
-
-      {allTasks.map(showTask)}
-
-      {state.experimentState.useConstraints.letter && <p>For fun (or at least for a challenge), <b>certain letters will be unusable</b>. The letter will change each sentence. The phrases suggestions obey the constraint, so they may help you.</p>}
+      <p><b>Practice task</b>: <b>Write a sentence about the interior of the residence.</b> Try to write it using <b>as few taps</b> as possible.</p>
 
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(allTasks.map(name => state.tutorialTasks.tasks[name])) ? <p>
-        Now that you know how it works, <b>try writing another sentence, just for practice (have fun with it!). Use both the keys and the suggestions.</b><br/>
-        When you're ready to move on, click here: <NextBtn />.</p> : <p>Complete all of the tutorial steps to move on.</p>}
+
+      <p>Once you've typed a sentence, click <NextBtn />.</p>
     </div>;
   }));
 
-export const PracticeComputer2 = () => <div>
-    <h1>Practice with Session B Phrase Suggestions</h1>
+export const PracticeComputer2 = inject('state', 'dispatch')(observer(({state, dispatch}) => {
+    let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
+    let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
+    return <div>
+      <p>Now we've changed the keyboard a little.</p>
+      <ul>
+        <li>Once you've started typing, the word you're typing (or just typed) will be highlighted in green.</li>
+        <li>The green row will show alternatives to that word.</li>
+        <li>Tap any of the alternatives to use it <em>instead of</em> the green word.</li>
+      </ul>
 
-    <p>We are now starting the second of two writing sessions, Session B. In this session, <b>the suggestions will show different kinds of phrases</b>. Other than that, nothing changed.</p>
+      <p><b>Practice task</b>: Write the same sentence again, but try out some of the alternatives.</p>
 
-    <p>We put up the practice keyboard on your phone again so you can try out the different phrase suggestions. <b>Try writing a few sentences</b> to get a feel for the new suggestions. Use both the keys and the suggestions.</p>
-    <p>When you're comfortable with the new phrases, click this button to move on: <NextBtn /></p>
-  </div>;
+      {_.every(['tapAlternative'].map(name => state.tutorialTasks.tasks[name])) ? <p>
+        After you've written your sentence, click here: <NextBtn />.</p> : <p>Make sure you try out the alternatives :)</p>}
+    </div>;
+  }));
+
+
+
 
 export const TimesUpPhone = () => <div>Time is up. Follow the instructions on your computer.</div>;
 

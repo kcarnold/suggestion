@@ -241,6 +241,16 @@ const namedConditions = {
     showSynonyms: true,
     showReplacement: true,
   },
+  airbnbPlain: {
+    sugFlags: {
+      split: true,
+      num_sims: 10,
+      num_alternatives: 5,
+      domain: 'airbnb_train'
+    },
+    showSynonyms: false,
+    showReplacement: false,
+  },
   pressandhold: {
     sugFlags: {
       alternatives: true,
@@ -316,7 +326,8 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbPlain', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer2'},
     {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
   ];
