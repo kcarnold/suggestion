@@ -30,7 +30,7 @@ word_freq_analyzer = WordFreqAnalyzer.build()
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 
 
-ALL_SURVEY_NAMES = ['intro', 'intro2', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
+ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
 
 
 STUDY_COLUMNS = '''
