@@ -91,8 +91,7 @@ class Suggestion extends Component {
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {state, dispatch, suggestions, which, beforeText} = this.props;
-    let expState = state.experimentState;
+    const {dispatch, suggestions, which, beforeText} = this.props;
     return <div className={"SuggestionsBar " + which}>
       {(suggestions || []).map((sugg, i) => <Suggestion
         key={i}
@@ -101,7 +100,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
           evt.preventDefault();
           evt.stopPropagation();
         }}
-        word={sugg}
+        word={sugg.word}
         beforeText={beforeText || ''}
         preview={[]}
         isValid={true}
@@ -201,7 +200,7 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
 
-const CurText = inject('spying')(observer(class CurText extends Component {
+const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText extends Component {
   componentDidMount() {
     if (!this.props.spying) {
       this.cursor.scrollIntoView();
@@ -215,12 +214,14 @@ const CurText = inject('spying')(observer(class CurText extends Component {
   }
 
   render() {
-    let {text, replacementRange} = this.props;
+    let {text, replacementRange, state, dispatch} = this.props;
     if (!replacementRange) {
       replacementRange = [0, 0];
     }
+    if (state.experimentState.attentionCheck && state.experimentState.attentionCheck.type === 'text')
+      text = text + 'æ';
     let [hiStart, hiEnd] = replacementRange;
-    return <div className="CurText"><span>
+    return <div className="CurText" onTouchEnd={evt => {dispatch({type: 'tapText'});}}><span>
       <span>{text.slice(0, hiStart)}</span>
       <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
       <span>{text.slice(hiEnd)}</span>
@@ -336,7 +337,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
           </span>}
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If "æ" appears anywhere in one of the boxes above the keyboard, tap the box. Don't worry if you happen to miss a few.</p>}
-          {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>You just missed an æ!<br/>Next time, remember to tap any box that has æ in it.</div>}
+          {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>You just missed an æ!<br/>Look for the æ and tap it.</div>}
           {state.condition.usePrewriteText && <OutlineSelector />}
         </div>
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
@@ -365,8 +366,6 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
       // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
 
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
-    let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
@@ -381,8 +380,6 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
   }));
 
 export const PracticeComputer2 = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let showTask = (name) => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>;
-    let allTasks = ['typeKeyboard', 'backspace', 'tapPrediction', 'tapAlternative', 'specialChars'];
     return <div>
       <p>Now we've changed the keyboard a little.</p>
       <ul>

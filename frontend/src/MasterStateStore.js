@@ -190,7 +190,7 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 5,
-    useAttentionCheck: true,
+    useAttentionCheck: .1,
   },
   sentneg: {
     sugFlags: {
@@ -201,7 +201,7 @@ const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 1,
-    useAttentionCheck: true,
+    useAttentionCheck: .1,
   },
   sentmatch: {
     sugFlags: {
@@ -221,6 +221,7 @@ const namedConditions = {
     },
     showSynonyms: false,
     showReplacement: false,
+    useAttentionCheck: .1,
   },
   yelpalternatives: {
     sugFlags: {
@@ -230,6 +231,7 @@ const namedConditions = {
     },
     showSynonyms: true,
     showReplacement: true,
+    useAttentionCheck: .1,
   },
   airbnb: {
     sugFlags: {
@@ -473,7 +475,7 @@ export class MasterStateStore {
       passedQuiz: false,
       lastFailedAttnCheck: 0,
       get showAttnCheckFailedMsg() {
-        return this.lastEventTimestamp - this.lastFailedAttnCheck < 3000;
+        return this.lastEventTimestamp && this.lastEventTimestamp - this.lastFailedAttnCheck < 3000;
       },
       phoneSize: {width: 360, height: 500},
       pingTime: null,
@@ -657,10 +659,13 @@ export class MasterStateStore {
         this.pingTime = event.ping.mean;
       }
       break;
-    case 'failedAttnCheck':
-      if (!this.replaying && (event.stats || {}).passed === 0) {
+    case 'failedAttnCheckForce':
+      if (!this.replaying) {
         this.lastFailedAttnCheck = event.jsTimestamp;
       }
+      break;
+    case 'passedAttnCheck':
+      this.lastFailedAttnCheck = 0;
       break;
 
     default:

@@ -37,6 +37,14 @@ An autorun thread watches contextSequenceNum and requests suggestions when the c
 visibleSuggestions is a pure computation based on the last suggestions received from the server, the current context sequence number, and the active suggestion. It puts them all together, keeping track of what's valid.
 
 */
+
+/*
+Attention checks:
+ - type: text, predictions, synonyms
+ - the first time is forced: if it's not passed, then the participant has to tap it before moving on.
+ - after that, failing an attention check has no effect.
+*/
+
 export class ExperimentStateStore {
   constructor(condition) {
     this.__version__ = 1;
@@ -56,7 +64,12 @@ export class ExperimentStateStore {
         };
       },
       attentionCheck: null,
-      attentionCheckStats: {total: 0, passed: 0},
+      attentionCheckStats: {
+        text: {total: 0, passed: 0, force: false},
+        predictions: {total: 0, passed: 0, force: false},
+        phrases: {total: 0, passed: 0, force: false},
+        synonyms: {total: 0, passed: 0, force: false},
+      },
       tapLocations: [],
       contextSequenceNum: 0,
       lastSuggestionsFromServer: {},
@@ -69,7 +82,31 @@ export class ExperimentStateStore {
         return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
       },
       get visibleSuggestions() {
-        return this.lastSuggestionsFromServer;
+        let fromServer = this.lastSuggestionsFromServer;
+        let serverIsValid = fromServer.request_id === this.contextSequenceNum;
+        if (!serverIsValid) return {}; // TODO: restore the "promise" logic.
+
+        // Make a copy, so we can modify.
+        fromServer = M.toJS(fromServer);
+        let result = {};
+        if (fromServer.replacement_range)
+          result.replacement_range = fromServer.replacement_range;
+        ['predictions', 'synonyms'].forEach(type => {
+          result[type] = fromServer[type];
+        });
+        let {attentionCheck} = this;
+        if (attentionCheck !== null && serverIsValid) {
+          let {type: attentionCheckType} = attentionCheck;
+          if (attentionCheckType === 'predictions' || attentionCheckType === 'synonyms') {
+            let rec = result[attentionCheck.type][attentionCheck.slot];
+            if (rec) {
+              // [attentionCheck.slot].words.length > attentionCheck.word + 1) {
+              rec.word = 'æ' + rec.word;
+              result.attentionCheckType = attentionCheck.type;
+            }
+          }
+        }
+        return result;
       },
       spliceText: M.action((startIdx, deleteCount, toInsert, taps) => {
         if (!taps) {
@@ -85,7 +122,7 @@ export class ExperimentStateStore {
         this.tapLocations = this.tapLocations.slice(0, newCursorPos).concat(taps || _.map(toInsert, () => null));
       }),
       tapKey: M.action(event => {
-        let ac = this.validateAttnCheck(null);
+        let ac = this.validateAttnCheck(event);
         if (ac.length) return ac;
 
         let isNonWord = event.key.match(/\W/);
@@ -113,11 +150,12 @@ export class ExperimentStateStore {
         this.activeSuggestion = null;
         return [this.changedMsg()];
       }),
-      handleTapSuggestion: M.action((slot, which) => {
-        // let ac = this.validateAttnCheck(slot);
-        // if (ac.length) return ac;
+      handleTapSuggestion: M.action(event => {
+        let {slot, which} = event;
+        let ac = this.validateAttnCheck(event);
+        if (ac.length) return ac;
 
-        let wordToInsert = this.visibleSuggestions[which][slot];
+        let wordToInsert = this.visibleSuggestions[which][slot].word;
         if (which === 'synonyms') {
           // Replace the _previous_ word.
           let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];
@@ -143,6 +181,9 @@ export class ExperimentStateStore {
       }),
 
       handleSelectAlternative: M.action(event => {
+        let ac = this.validateAttnCheck(event);
+        if (ac.length) return ac;
+
         let wordToInsert = event.word;
         let {curWord} = this.getSuggestionContext();
         let charsToDelete = curWord.length;
@@ -154,6 +195,10 @@ export class ExperimentStateStore {
         this.insertText(wordToInsert + ' ', charsToDelete, null);
         this.lastSpaceWasAuto = true;
         return [this.changedMsg()];
+      }),
+
+      handleTapText: M.action(event => {
+        return this.validateAttnCheck(event);
       }),
 
       updateSuggestions: M.action(event => {
@@ -176,21 +221,30 @@ export class ExperimentStateStore {
 
     // Update attn check
     let rng = seedrandom(this.curText + this.contextSequenceNum);
-    if (this.condition.useAttentionCheck && rng() < .1) {
-
-      let acWord;
-      if (this.curText.slice(-1) === ' ') {
-        // Full-word suggestion -> put the AC anywhere.
-        acWord = Math.floor(rng() * 4);
+    if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
+      let ac = {};
+      if (this.condition.showSynonyms) {
+        let unif = rng();
+        ac.type = unif < 1/3 ? 'text' : (unif < 2/3 ? 'predictions' : 'synonyms');
+        let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
+        ac.slot = Math.floor(rng() * numSlots);
       } else {
-        // partial-word -- assume they're not looking at the continuations.
-        acWord = 0;
+        let acWord;
+        if (this.curText.slice(-1) === ' ') {
+          // Full-word suggestion -> put the AC anywhere.
+          acWord = Math.floor(rng() * 4);
+        } else {
+          // partial-word -- assume they're not looking at the continuations.
+          acWord = 0;
+        }
+        let acSlot = Math.floor(rng() * 3);
+        if (this.activeSuggestion !== null && this.activeSuggestion.slot === acSlot) {
+          acSlot = (acSlot + 1) % 3;
+        }
+        ac.slot = acSlot;
+        ac.word = acWord;
       }
-      let acSlot = Math.floor(rng() * 3);
-      if (this.activeSuggestion !== null && this.activeSuggestion.slot === acSlot) {
-        acSlot = (acSlot + 1) % 3;
-      }
-      this.attentionCheck = {slot: acSlot, word: acWord};
+      this.attentionCheck = ac;
     } else {
       this.attentionCheck = null;
     }
@@ -222,26 +276,42 @@ export class ExperimentStateStore {
     return result;
   }
 
-  validateAttnCheck(slot) {
-    if (this.attentionCheck !== null && this.visibleSuggestions[this.attentionCheck.slot].attentionCheck) {
-      this.attentionCheckStats.total++;
-      if (this.attentionCheck.slot === slot) {
+  validateAttnCheck(event) {
+    if (this.attentionCheck === null) return [];
+    let {type: attentionCheckType} = this.attentionCheck;
+    let passed;
+    if (attentionCheckType === 'text') {
+      passed = event.type === 'tapText';
+    } else if (attentionCheckType === 'predictions' || attentionCheckType === 'synonyms') {
+      // only valid if there was a corresponding valid rec.
+      if (!this.visibleSuggestions.attentionCheckType) return [];
+
+      passed = (attentionCheckType == event.which && this.attentionCheck.slot == event.slot);
+    }
+
+    let stat = this.attentionCheckStats[attentionCheckType];
+    if (passed) {
         this.attentionCheck = null;
-        this.attentionCheckStats.passed++;
-        return [{type: 'passedAttnCheck'}];
-      } else {
-        // Failed attn check.
-        this.attentionCheck = null;
-        if (false) {
-          // Delete stuff...
-          this.insertText('', Math.min(this.curText.length, 5));
-          this.activeSuggestion = null;
-          this.lastSpaceWasAuto = false;
+        if (!stat.force) {
+          stat.total++;
+          stat.passed++;
+        } else {
+          stat.force = false;
         }
-        return [{type: 'failedAttnCheck', stats: this.attentionCheckStats}];
+        return [{type: 'passedAttnCheck'}];
+    } else {
+      // The first time we're going to force it. Don't give them credit.
+      if (stat.total === 0) {
+        stat.force = true;
+        return [{type: 'failedAttnCheckForce'}];
+      } else {
+        // Whatever, let 'em fail.
+        console.assert(!stat.force);
+        this.attentionCheck = null;
+        stat.total++;
+        return []; // {type: 'failedAttnCheck'} -- no, just do the action anyway.
       }
     }
-    return [];
   }
 
   handleEvent = (event) => {
@@ -253,9 +323,11 @@ export class ExperimentStateStore {
     case 'receivedSuggestions':
       return this.updateSuggestions(event);
     case 'tapSuggestion':
-      return this.handleTapSuggestion(event.slot, event.which);
+      return this.handleTapSuggestion(event);
     case 'selectAlternative':
       return this.handleSelectAlternative(event);
+    case 'tapText':
+      return this.handleTapText(event);
     default:
     }
   };

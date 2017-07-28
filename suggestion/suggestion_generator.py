@@ -628,6 +628,10 @@ def map_as_jobs(executor, fn, arr, chunksize=8):
     return [executor.submit(partial(_process_chunk, fn), chunk) for chunk in _get_chunks(arr, chunksize=chunksize)]
 
 
+def Recommendation(word):
+    return dict(word=word)
+
+
 def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternatives):
     from sklearn.metrics import pairwise
     word_vecs = get_word_vecs_for_model(model.name)
@@ -647,7 +651,7 @@ def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternativ
     sims = pairwise.cosine_similarity(query_word_vec[None, :], vecs_for_words)[0]
     candidates = np.argsort(sims)[-num_sims:][::-1]
     relevances = logprobs[candidates]
-    return [model.id2str[next_words[idx]] for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
+    return [Recommendation(model.id2str[next_words[idx]]) for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
 
 
 def get_split_recs(sofar, cur_word, flags={}):
@@ -668,7 +672,7 @@ def get_split_recs(sofar, cur_word, flags={}):
         word = model.id2str[next_words[idx]]
         if word[0] in ',.?!<':
             continue
-        predictions.append(word)
+        predictions.append(Recommendation(word))
         if len(predictions) == 3:
             break
 
