@@ -328,7 +328,7 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState, isPractice} = state;
       let {showReplacement, showSynonyms} = state.condition;
-      let beforeText = experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
+      let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
       return <div className="ExperimentScreen">
         <div className="header">
           {isPractice ? "See computer for instructions." : <span>{
