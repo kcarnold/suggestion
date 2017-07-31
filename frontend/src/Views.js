@@ -22,6 +22,7 @@ const surveyURLs = {
 }
 
 const wordCountTarget = 75;
+const askKnowWhatToSay = false;
 
 const texts = {
   detailed: {
@@ -246,6 +247,7 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
   let allFields = [];
   indices.forEach(idx => {
     ['restaurant', 'visit', 'star', 'knowWhat'].forEach(kind => {
+      if (kind === 'knowWhat' && !askKnowWhatToSay) return;
       allFields.push(`${kind}${idx}`);
     });
   });
@@ -257,9 +259,9 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
     {indices.map(idx => <div key={idx} className="Restaurant">{idx}.
       Name: <ControlledInput name={`restaurant${idx}`} /><br />
       About how long ago were you there, in days? <ControlledInput name={`visit${idx}`} type="number" min="0"/>
-      <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} />
-      <br/><br />On a scale of 1 to 5, do you already know what you want to say about this experience? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
-      <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" />
+      <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} /> {state.controlledInputs.get(`star${idx}`)}
+      {askKnowWhatToSay && <span><br/><br />On a scale of 1 to 5, do you already know what you want to say about this experience? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
+      <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" /></span>}
     </div>)}
     <p>(The Next button will be enabled once all fields are filled out.)</p>
     <NextBtn disabled={!complete} />
