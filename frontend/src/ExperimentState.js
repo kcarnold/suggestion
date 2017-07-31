@@ -115,6 +115,44 @@ export class ExperimentStateStore {
         }
         return result;
       },
+
+      get suggestionContext() {
+        let sofar = this.curText, cursorPos = sofar.length;
+        let lastSpaceIdx = sofar.search(/\s\S*$/);
+        let curWord = [];
+        for (let i=lastSpaceIdx + 1; i<cursorPos; i++) {
+          let chr = {letter: sofar[i]};
+          if (this.tapLocations[i] !== null) {
+            chr.tap = this.tapLocations[i];
+          }
+          curWord.push(chr);
+        }
+        let result = {
+          prefix: sofar.slice(0, lastSpaceIdx + 1),
+          curWord,
+          constraints: this.curConstraint
+        };
+        if (this.activeSuggestion) {
+          result.promise = {
+            slot: this.activeSuggestion.slot,
+            words: this.activeSuggestionWords
+          };
+        }
+        return result;
+      },
+
+      get showSynonyms() {
+        return this.condition.showSynonyms && this.suggestionContext.curWord.length === 0;
+      },
+
+      get showPredictions() {
+        return !this.showSynonyms;
+      },
+
+      get showReplacement() {
+        return this.showSynonyms;
+      },
+
       spliceText: M.action((startIdx, deleteCount, toInsert, taps) => {
         if (!taps) {
           taps = _.map(toInsert, () => null);
@@ -245,28 +283,7 @@ export class ExperimentStateStore {
   }
 
   getSuggestionContext() {
-    let sofar = this.curText, cursorPos = sofar.length;
-    let lastSpaceIdx = sofar.search(/\s\S*$/);
-    let curWord = [];
-    for (let i=lastSpaceIdx + 1; i<cursorPos; i++) {
-      let chr = {letter: sofar[i]};
-      if (this.tapLocations[i] !== null) {
-        chr.tap = this.tapLocations[i];
-      }
-      curWord.push(chr);
-    }
-    let result = {
-      prefix: sofar.slice(0, lastSpaceIdx + 1),
-      curWord,
-      constraints: this.curConstraint
-    };
-    if (this.activeSuggestion) {
-      result.promise = {
-        slot: this.activeSuggestion.slot,
-        words: this.activeSuggestionWords
-      };
-    }
-    return result;
+    return this.suggestionContext;
   }
 
   validateAttnCheck(event) {

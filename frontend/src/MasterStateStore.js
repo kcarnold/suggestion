@@ -227,7 +227,7 @@ const namedConditions = {
     sugFlags: {
       split: true,
       num_sims: 10,
-      num_alternatives: 5,
+      num_alternatives: 3,
     },
     showSynonyms: true,
     showReplacement: true,
@@ -237,7 +237,7 @@ const namedConditions = {
     sugFlags: {
       split: true,
       num_sims: 10,
-      num_alternatives: 5,
+      num_alternatives: 3,
       domain: 'airbnb_train'
     },
     showSynonyms: true,

@@ -327,7 +327,7 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState, isPractice} = state;
-      let {showReplacement, showSynonyms} = state.condition;
+      let {showReplacement, showSynonyms, showPredictions} = state.experimentState;
       let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
       return <div className="ExperimentScreen">
         <div className="header">
@@ -342,7 +342,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
           {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={beforeText} />}
-          <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />
+          {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />}
         </div>}
         <Keyboard dispatch={dispatch} />
       </div>;
