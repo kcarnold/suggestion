@@ -3,6 +3,7 @@ import zipfile
 import json
 import io
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
@@ -29,17 +30,25 @@ def get_survey(survey_id):
         'http://{}.qualtrics.com/API/v3/surveys/{}'.format(dataCenter, survey_id),
         headers={'x-api-token': api_token}).json()['result']
 
+def save_survey(survey_id, out_path):
+    survey = get_survey(survey_id)
+    if 'responseCounts' in survey:
+        del survey['responseCounts']
+    with open(os.path.join(out_path, '{}.qsf'.format(name)), 'w') as f:
+        json.dump(survey, f, indent=2)
+
+def save_responses(name, out_path):
+    responses = get_responses(survey_id)
+    with open(os.path.join(out_path, '{}_responses.csv'.format(name)), 'w') as f:
+        f.write(responses)
+
+
 def download_surveys(out_path):
-    for name, survey_id in surveys.items():
-        print(name)
-        survey = get_survey(survey_id)
-        if 'responseCounts' in survey:
-            del survey['responseCounts']
-        with open(os.path.join(out_path, '{}.qsf'.format(name)), 'w') as f:
-            json.dump(survey, f, indent=2)
-        responses = get_responses(survey_id)
-        with open(os.path.join(out_path, '{}_responses.csv'.format(name)), 'w') as f:
-            f.write(responses)
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for name, survey_id in surveys.items():
+            print(name)
+            executor.submit(save_survey, name, out_path)
+            executor.submit(save_responses, name, out_path)
 
 def get_responses(survey_id):
     requestCheckProgress = 0
