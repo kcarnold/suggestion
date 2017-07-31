@@ -20,6 +20,8 @@ html, body {
 .App {
     height: 100%;
     position: relative;
+    max-width: 500px;
+    margin: 0 auto;
 }
 
 .App > div {
@@ -227,7 +229,8 @@ span.word {
 
 .Restaurant {
     border-bottom: 1px solid black;
-    padding-bottom: 12px;
+    padding: 12px;
+    line-height: 1.5;
 }
 
 .OutlineSelector span {
