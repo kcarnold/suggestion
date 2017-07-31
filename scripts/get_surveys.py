@@ -3,7 +3,7 @@ import zipfile
 import json
 import io
 import os
-from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
@@ -30,25 +30,28 @@ def get_survey(survey_id):
         'http://{}.qualtrics.com/API/v3/surveys/{}'.format(dataCenter, survey_id),
         headers={'x-api-token': api_token}).json()['result']
 
-def save_survey(survey_id, out_path):
+def save_survey(name, survey_id, out_path):
     survey = get_survey(survey_id)
     if 'responseCounts' in survey:
         del survey['responseCounts']
     with open(os.path.join(out_path, '{}.qsf'.format(name)), 'w') as f:
         json.dump(survey, f, indent=2)
 
-def save_responses(name, out_path):
+def save_responses(name, survey_id, out_path):
     responses = get_responses(survey_id)
     with open(os.path.join(out_path, '{}_responses.csv'.format(name)), 'w') as f:
         f.write(responses)
 
 
 def download_surveys(out_path):
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        for name, survey_id in surveys.items():
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        jobs = {}
+        jobs.update({executor.submit(save_survey, name, survey_id, out_path): f'{name}-qsf' for name, survey_id in surveys.items()})
+        jobs.update({executor.submit(save_responses, name, survey_id, out_path): f'{name}-responses' for name, survey_id in surveys.items()})
+        for future in concurrent.futures.as_completed(jobs):
+            name = jobs[future]
             print(name)
-            executor.submit(save_survey, name, out_path)
-            executor.submit(save_responses, name, out_path)
+            future.result()
 
 def get_responses(survey_id):
     requestCheckProgress = 0
@@ -69,8 +72,8 @@ def get_responses(survey_id):
       requestCheckUrl = baseUrl + progressId
       requestCheckResponse = requests.get(requestCheckUrl, headers=headers)
       requestCheckProgress = requestCheckResponse.json()["result"]["percentComplete"]
-      print("\r{:.1%}".format(requestCheckProgress/100), end='', flush=True)
-    print('\rdone    ')
+      # print("\r{:.1%}".format(requestCheckProgress/100), end='', flush=True)
+    # print('\rdone    ')
 
     # Download and unzip the export file.
     requestDownloadUrl = baseUrl + progressId + '/file'
