@@ -57,11 +57,11 @@ function replay(log, state) {
     delete toLog.kind;
     delete toLog.jsTimestamp;
     // console.log(toLog);
-    try {
-      state.handleEvent(event);
-    } catch (e) {
-      console.error("Exception while handling event", event, e.message);
-    }
+    // try {
+    state.handleEvent(event);
+    // } catch (e) {
+    //   console.error("Exception while handling event", event, e.message);
+    // }
     if (event.type === 'receivedSuggestions') {
       let rtt = event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id];
       // if (_.isNaN(rtt)) debugger;

@@ -236,7 +236,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
             elif request['type'] == 'get_logs':
                 assert self.participant.is_panopticon
                 participant_id = request['participantId']
-                assert all(x in string.hexdigits for x in participant_id)
+                assert all(x in string.ascii_letters + string.digits for x in participant_id)
                 participant = Participant.get_participant(participant_id)
                 self.send_json(type='logs', participant_id=participant_id, logs=participant.get_log_entries())
             elif request['type'] == 'log':
