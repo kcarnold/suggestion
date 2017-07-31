@@ -2,11 +2,13 @@ import Promise from 'bluebird';
 const readFile = Promise.promisify(require("fs").readFile);
 import {MasterStateStore} from './MasterStateStore';
 
-const participantIds = ['a3e338'];
+const participantIds = ['smoke0'];
 let logData = {};
 
 function readLogFile(participantId) {
-  return readFile(`../logs/${participantId}.jsonl`, 'utf8')
+  let filename = `${participantId}.jsonl`;
+  if (!participantId.slice(0, 5) === 'smoke') filename = '../logs/' + filename;
+  return readFile(filename, 'utf8')
       .then(data => [participantId, data.split('\n').filter(line => line.length > 0).map(line => JSON.parse(line))]);
 }
 

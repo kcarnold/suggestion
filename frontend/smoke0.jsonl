@@ -1,0 +1,10 @@
+{"type": "externalAction", "externalAction": "c=synonyms", "kind": "c"}
+{"type": "next", "kind": "c"}
+{"type": "next", "kind": "p"}
+{"type": "next", "kind": "c"}
+{"type": "next", "kind": "c"}
+{"type": "externalAction", "externalAction": "completeSurvey", "kind": "c"}
+{"type": "next", "kind": "p"}
+{"type": "tapKey", "key": "l", "x": 337, "y": 336, "kind": "p"}
+{"type": "tapKey", "key": "a", "x": 31, "y": 342, "kind": "p"}
+{"type": "tapKey", "key": "s", "x": 66, "y": 343, "kind": "p"}
