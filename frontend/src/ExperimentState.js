@@ -45,6 +45,13 @@ Attention checks:
  - after that, failing an attention check has no effect.
 */
 
+function randChoice(rng, choices) {
+  let unif = 1;
+  while (unif === 1)
+    unif = rng();
+  return choices[Math.floor(unif * choices.length)];
+}
+
 export class ExperimentStateStore {
   constructor(condition) {
     this.__version__ = 1;
@@ -92,7 +99,7 @@ export class ExperimentStateStore {
         if (fromServer.replacement_range)
           result.replacement_range = fromServer.replacement_range;
         ['predictions', 'synonyms'].forEach(type => {
-          result[type] = fromServer[type];
+          result[type] = fromServer[type] || [];
         });
         let {attentionCheck} = this;
         if (attentionCheck !== null && serverIsValid) {
@@ -223,27 +230,13 @@ export class ExperimentStateStore {
     let rng = seedrandom(this.curText + this.contextSequenceNum);
     if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
       let ac = {};
+      let choices = ['text', 'predictions'];
       if (this.condition.showSynonyms) {
-        let unif = rng();
-        ac.type = unif < 1/3 ? 'text' : (unif < 2/3 ? 'predictions' : 'synonyms');
-        let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
-        ac.slot = Math.floor(rng() * numSlots);
-      } else {
-        let acWord;
-        if (this.curText.slice(-1) === ' ') {
-          // Full-word suggestion -> put the AC anywhere.
-          acWord = Math.floor(rng() * 4);
-        } else {
-          // partial-word -- assume they're not looking at the continuations.
-          acWord = 0;
-        }
-        let acSlot = Math.floor(rng() * 3);
-        if (this.activeSuggestion !== null && this.activeSuggestion.slot === acSlot) {
-          acSlot = (acSlot + 1) % 3;
-        }
-        ac.slot = acSlot;
-        ac.word = acWord;
+        choices.push('synonyms');
       }
+      ac.type = randChoice(rng, choices);
+      let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
+      ac.slot = Math.floor(rng() * numSlots);
       this.attentionCheck = ac;
     } else {
       this.attentionCheck = null;
