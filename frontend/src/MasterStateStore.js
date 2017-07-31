@@ -77,7 +77,7 @@ const namedConditions = {
       continuation_length: 0,
     },
     showPhrase: false,
-    hideSuggUnlessPartialWord: true,
+    hideFullwordPredictions: true,
   },
   word: {
     sugFlags: ngramFlags,
@@ -222,6 +222,7 @@ const namedConditions = {
     showSynonyms: false,
     showReplacement: false,
     useAttentionCheck: .1,
+    hideFullwordPredictions: true,
   },
   yelpalternatives: {
     sugFlags: {
@@ -232,6 +233,7 @@ const namedConditions = {
     showSynonyms: true,
     showReplacement: true,
     useAttentionCheck: .1,
+    hideFullwordPredictions: true,
   },
   airbnb: {
     sugFlags: {
@@ -242,6 +244,7 @@ const namedConditions = {
     },
     showSynonyms: true,
     showReplacement: true,
+    hideFullwordPredictions: true,
   },
   airbnbPlain: {
     sugFlags: {
@@ -252,6 +255,7 @@ const namedConditions = {
     },
     showSynonyms: false,
     showReplacement: false,
+    hideFullwordPredictions: true,
   },
   pressandhold: {
     sugFlags: {
@@ -584,8 +588,6 @@ export class MasterStateStore {
         if (this.masterConfig.useConstraints) {
           this.experimentState.useConstraints = this.masterConfig.useConstraints;
         }
-        this.experimentState.showSuggsAtBos = this.condition.showSuggsAtBos;
-        this.experimentState.hideSuggUnlessPartialWord = this.condition.hideSuggUnlessPartialWord;
         break;
       case 'setEditFromExperiment':
         this.controlledInputs.set(this.curEditTextName, this.experimentState.curText);

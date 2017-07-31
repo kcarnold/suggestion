@@ -58,8 +58,6 @@ export class ExperimentStateStore {
     this.condition = condition;
     M.extendObservable(this, {
       curText: '',
-      showSuggsAtBos: true,
-      hideSuggUnlessPartialWord: false,
       useConstraints: {},
       constraintsBySentence: 'etaoisnrhlducyfwmgpbvkzxjq',
       get curSentenceNum() {
@@ -99,7 +97,11 @@ export class ExperimentStateStore {
         if (fromServer.replacement_range)
           result.replacement_range = fromServer.replacement_range;
         ['predictions', 'synonyms'].forEach(type => {
-          result[type] = fromServer[type] || [];
+          if (type === 'predictions' && this.condition.hideFullwordPredictions && !this.hasPartialWord) {
+            result[type] = [];
+          } else {
+            result[type] = fromServer[type] || [];
+          }
         });
         let {attentionCheck} = this;
         if (attentionCheck !== null && serverIsValid) {
@@ -141,8 +143,12 @@ export class ExperimentStateStore {
         return result;
       },
 
+      get hasPartialWord() {
+        return this.suggestionContext.curWord.length > 0;
+      },
+
       get showSynonyms() {
-        return this.condition.showSynonyms && this.suggestionContext.curWord.length === 0;
+        return this.condition.showSynonyms && this.curText.length > 0 && this.suggestionContext.curWord.length === 0;
       },
 
       get showPredictions() {
@@ -268,11 +274,14 @@ export class ExperimentStateStore {
     let rng = seedrandom(this.curText + this.contextSequenceNum);
     if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
       let ac = {};
-      let choices = ['text', 'predictions'];
-      if (this.condition.showSynonyms) {
+      let choices = ['text'];
+      if (this.showPredictions) {
+        choices.push('predictions');
+      }
+      if (this.showSynonyms) {
         choices.push('synonyms');
       }
-      ac.type = randChoice(rng, choices);
+        ac.type = randChoice(rng, choices);
       let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
       ac.slot = Math.floor(rng() * numSlots);
       this.attentionCheck = ac;

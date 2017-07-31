@@ -382,8 +382,8 @@ export const PracticeComputer2 = inject('state', 'dispatch')(observer(({state, d
     return <div>
       <p>Now we've changed the keyboard a little.</p>
       <ul>
-        <li>Once you've started typing, the word you're typing (or just typed) will be highlighted in green.</li>
-        <li>The green row will show alternatives to that word.</li>
+        <li>After you type a word, it will be highlighted in green.</li>
+        <li>Green boxes will show alternatives to that word.</li>
         <li>Tap any of the alternatives to use it <em>instead of</em> the green word.</li>
       </ul>
 
