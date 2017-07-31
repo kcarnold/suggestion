@@ -62,7 +62,9 @@ const texts = {
   },
   yelp: {
     overallInstructions: <span>
-      Write a review of your experience. &ldquo;<em>The best reviews are passionate, personal, and accurate. They offer a rich narrative, a wealth of detail, and a helpful tip or two for other consumers.</em>&rdquo; (based on Yelp's Guidelines)... and please try to avoid typos.
+      Write a review of your experience. &ldquo;<em>The best reviews are passionate, personal, and accurate.
+      They offer a rich narrative, a wealth of detail, and a helpful tip or two for other consumers.</em>&rdquo; (based on Yelp's Guidelines)...
+      and please try to avoid typos. <b>We'll bonus our favorite reviews</b>!
     </span>,
     brainstormingInstructions: null,
     revisionInstructions: null,
