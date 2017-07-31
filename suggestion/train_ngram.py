@@ -16,6 +16,7 @@ cant_type = re.compile(r'[^\-A-Za-z., !\']')
 spelled_out = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen'.split()
 
 def sub_numbers(txt):
+    txt = re.sub(r'(\d):(\d\d)', r'\1', txt)
     def number_form(match):
         num = int(match.group(0))
         if num < len(spelled_out):
