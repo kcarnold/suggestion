@@ -305,7 +305,7 @@ export class ExperimentStateStore {
       // only valid if there was a corresponding valid rec.
       if (!this.visibleSuggestions.attentionCheckType) return [];
 
-      passed = (attentionCheckType == event.which && this.attentionCheck.slot == event.slot);
+      passed = (attentionCheckType === event.which && this.attentionCheck.slot === event.slot);
     }
 
     let stat = this.attentionCheckStats[attentionCheckType];
