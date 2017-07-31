@@ -20,7 +20,7 @@ html, body {
 .App {
     height: 100%;
     position: relative;
-    max-width: 500px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -168,7 +168,7 @@ html, body {
 
 .SuggestionsBar.synonyms {
   background: #a1c9a1;
-  font-size: 14px;
+  /* font-size: 14px; */
 }
 
 .Suggestion {
