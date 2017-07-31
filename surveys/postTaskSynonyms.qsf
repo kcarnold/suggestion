@@ -1,0 +1,401 @@
+{
+  "id": "SV_2tOuIDt9pSwtKIt",
+  "name": "Writing Study - Post-Task Survey - 2017-07-31",
+  "ownerId": "UR_789p4qOsBfCeHqZ",
+  "organizationId": "harvard",
+  "isActive": true,
+  "creationDate": "2017-07-31T21:11:40Z",
+  "lastModifiedDate": "2017-07-31T21:18:11Z",
+  "expiration": {
+    "startDate": null,
+    "endDate": null
+  },
+  "questions": {
+    "QID1": {
+      "questionType": {
+        "type": "Meta",
+        "selector": "Browser",
+        "subSelector": null
+      },
+      "questionText": "Browser Meta Info",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q1",
+      "choices": {
+        "1": {
+          "description": "Browser",
+          "choiceText": "Browser",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "description": "Version",
+          "choiceText": "Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "description": "Operating System",
+          "choiceText": "Operating System",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "description": "Screen Resolution",
+          "choiceText": "Screen Resolution",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "5": {
+          "description": "Flash Version",
+          "choiceText": "Flash Version",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "6": {
+          "description": "Java Support",
+          "choiceText": "Java Support",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "7": {
+          "description": "User Agent",
+          "choiceText": "User Agent",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID2": {
+      "questionType": {
+        "type": "Timing",
+        "selector": "PageTimer",
+        "subSelector": null
+      },
+      "questionText": "Timing",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q2",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "First Click",
+          "choiceText": "First Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "Last Click",
+          "choiceText": "Last Click",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Page Submit",
+          "choiceText": "Page Submit",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Click Count",
+          "choiceText": "Click Count",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID14": {
+      "questionType": {
+        "type": "Slider",
+        "selector": "STAR",
+        "subSelector": null
+      },
+      "questionText": "Now that you've had a chance to write about it, how many stars would you give your experience at this restaurant? (It's OK if this isn't the same as what you said at first.)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": true
+      },
+      "questionName": "Q14",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "&nbsp;",
+          "choiceText": "&nbsp;",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID10": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe your thought process while writing?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q10"
+    },
+    "QID11": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "How would you describe the words that the keyboard gave -- what they were and how you used them (or didn't use them)?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q11"
+    },
+    "QID25": {
+      "questionType": {
+        "type": "MC",
+        "selector": "SAVR",
+        "subSelector": "TX"
+      },
+      "questionText": "Compared with the experience you were writing about, the phrases that the keyboard gave were usually...",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "doesRequestResponse": true
+      },
+      "questionName": "Q25",
+      "choices": {
+        "1": {
+          "recode": "1",
+          "description": "More negative",
+          "choiceText": "More negative",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "2": {
+          "recode": "2",
+          "description": "More positive",
+          "choiceText": "More positive",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "3": {
+          "recode": "3",
+          "description": "Mixed",
+          "choiceText": "Mixed",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        },
+        "4": {
+          "recode": "4",
+          "description": "Neutral",
+          "choiceText": "Neutral",
+          "imageDescription": null,
+          "variableName": null,
+          "analyze": true
+        }
+      }
+    },
+    "QID12": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Did you experience any technical difficulties that you haven't reported already?",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q12"
+    },
+    "QID13": {
+      "questionType": {
+        "type": "TE",
+        "selector": "ML",
+        "subSelector": null
+      },
+      "questionText": "Any other comments? (There will be more surveys before the end of the experiment.)",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false
+      },
+      "questionName": "Q13"
+    }
+  },
+  "exportColumnMap": {
+    "Q1_1_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.1"
+    },
+    "Q1_2_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.2"
+    },
+    "Q1_3_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.3"
+    },
+    "Q1_4_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.4"
+    },
+    "Q1_5_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.5"
+    },
+    "Q1_6_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.6"
+    },
+    "Q1_7_TEXT": {
+      "question": "QID1",
+      "choice": "QID1.choices.7"
+    },
+    "Q2_1": {
+      "question": "QID2",
+      "choice": "QID2.choices.1"
+    },
+    "Q2_2": {
+      "question": "QID2",
+      "choice": "QID2.choices.2"
+    },
+    "Q2_3": {
+      "question": "QID2",
+      "choice": "QID2.choices.3"
+    },
+    "Q2_4": {
+      "question": "QID2",
+      "choice": "QID2.choices.4"
+    },
+    "Q14_1": {
+      "question": "QID14",
+      "choice": "QID14.choices.1"
+    },
+    "Q10": {
+      "question": "QID10"
+    },
+    "Q11": {
+      "question": "QID11"
+    },
+    "Q25": {
+      "question": "QID25"
+    },
+    "Q12": {
+      "question": "QID12"
+    },
+    "Q13": {
+      "question": "QID13"
+    }
+  },
+  "blocks": {
+    "BL_abc9q0W8PfK9IP3": {
+      "description": "Default Question Block",
+      "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID1"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID2"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID14"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID10"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID11"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID25"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID13"
+        }
+      ]
+    }
+  },
+  "flow": [
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "type": "EmbeddedData"
+    },
+    {
+      "type": "Branch",
+      "flow": [
+        {
+          "type": "EmbeddedData"
+        }
+      ]
+    },
+    {
+      "id": "BL_abc9q0W8PfK9IP3",
+      "type": "Block"
+    },
+    {
+      "type": "EmbeddedData"
+    }
+  ],
+  "embeddedData": [
+    {
+      "name": "prewrite"
+    },
+    {
+      "name": "revisionDesc",
+      "defaultValue": "writing"
+    },
+    {
+      "name": "Q_URL"
+    },
+    {
+      "name": "nextURL"
+    },
+    {
+      "name": "clientId"
+    },
+    {
+      "name": "Q_TotalDuration"
+    }
+  ],
+  "comments": {},
+  "loopAndMerge": {}
+}

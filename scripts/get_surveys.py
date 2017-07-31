@@ -17,6 +17,7 @@ surveys = dict(
   # postFreewrite='SV_0OCqAQl6o7BiidT',
   postTask='SV_5yztOdf3SX8EtOl',
   postTask3="SV_7OPqWyf4iipivwp",
+  postTaskSynonyms='SV_2tOuIDt9pSwtKIt',
   postExp='SV_8HVnUso1f0DZExv',
   postExp3='SV_eQbXXnoiDBWeww5',
   postExp4='SV_3K1BKZMz3O0miZT',
