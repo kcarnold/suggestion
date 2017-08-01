@@ -215,6 +215,8 @@ export class ExperimentStateStore {
           if (autoSpace) {
             // Add a space.
             this.spliceText(this.curText.length, 0, ' ');
+          }
+          if (this.curText.slice(-1) === ' ') {
             this.lastSpaceWasAuto = true;
           }
         } else {
