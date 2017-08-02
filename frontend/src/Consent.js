@@ -184,9 +184,10 @@ class Consent extends React.Component {
           participants in this study.
         </p>
         <p>
-          The MTurk platform provides access to your worker ID, which in some
-          cases can be mapped to your name and work history. We are relying on
-          the security of that platform to maintain your confidentiality. To
+          If you are completing this study through Amazon Mechanical Turk: The
+          MTurk platform provides access to your worker ID, which in some cases
+          can be mapped to your name and work history. We are relying on the
+          security of that platform to maintain your confidentiality. To
           partially mitigate the risk of re-identification, we will assign you a
           random identifier specific to this study and delete the mapping
           between this identifier and your worker ID 6 months after the
