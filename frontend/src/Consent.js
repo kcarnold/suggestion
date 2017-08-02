@@ -25,7 +25,7 @@ class Consent extends React.Component {
           </tbody>
         </table>
         <p><b><span style={{fontSize: '14.0pt'}}>Participation is voluntary</span></b></p>
-        <p>It is your choice whether or not to participate in this research.&nbsp; If you choose to participate, you may change your mind and leave the study at any time by returning the HIT.&nbsp; Refusal to participate or stopping your participation will involve no penalty or loss of benefits to which you are otherwise entitled. Participants must be adults 18+.</p>
+        <p>It is your choice whether or not to participate in this research.&nbsp; If you choose to participate, you may change your mind and leave the study at any time.&nbsp; Refusal to participate or stopping your participation will involve no penalty or loss of benefits to which you are otherwise entitled. Participants must be adults 18+.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>What is the purpose of this research?</span></b></p>
         <p>We are studying systems that make suggestions while someone is typing to find out how the system's design affects the writing process, writing outcome, and the author's subjective experience, and how psychological factors may influence those effects.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>What can I expect if I take part in this research? What is the time commitment?</span></b></p>
@@ -37,7 +37,7 @@ class Consent extends React.Component {
         <p><b><span style={{fontSize: '14.0pt'}}>Are there any benefits from being in this research study? </span></b></p>
         <p>We cannot promise any benefits to you or others from your taking part in this research. The results of this research may inform future advances in computer systems that assist writing.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>Will I be compensated for participating in this research?</span></b></p>
-        <p>The target payment for this task is $9/hr. Your payment will in no way depend on how you use the unusual features of the app being tested, if any. The reward for a specific HIT will be determined based on the estimated time to complete the task at $9/hr.</p>
+        <p>The target payment for this task is $9/hr. Your payment will in no way depend on how you use the unusual features of the app being tested, if any. The reward for a specific study will be determined based on the estimated time to complete the task at $9/hr.</p>
         <p><b><span style={{fontSize: '14.0pt'}}>If I take part in this research, how will my privacy be protected? What happens to the information you collect? </span></b></p>
         <p>We will not record any personally identifying information. De-identified data may be shared with other researchers and other participants in this study.</p>
         <p>The MTurk platform provides access to your worker ID, which in some cases can be mapped to your name and work history. We are relying on the security of that platform to maintain your confidentiality. To partially mitigate the risk of re-identification, we will assign you a random identifier specific to this study and delete the mapping between this identifier and your worker ID 6 months after the experiment concludes. But if the security of the MTurk platform or our account is breached, it may be possible to re-identify your work, as with any MTurk task. <b>Please make sure to mark your Amazon Profile as private</b> if you do not want it to be found from your Mechanical Turk Worker ID.</p>
