@@ -174,7 +174,7 @@ class Consent extends React.Component {
           <b>
             <span style={{ fontSize: "14.0pt" }}>
               If I take part in this research, how will my privacy be protected?
-              What happens to the information you collect?{" "}
+              What happens to the information you collect?
             </span>
           </b>
         </p>
@@ -205,10 +205,10 @@ class Consent extends React.Component {
           </b>
         </p>
         <p>
-          The researcher for this study is Kenneth C. Arnold<i> </i>who can be
-          reached at<i> </i>kcarnold@seas.harvard.edu, 617-299-6536, or 33
-          Oxford St MD 240, Cambridge MA 02138.<i> </i>The faculty sponsor is
-          Krzysztof Z. Gajos who can be reached at kgajos@seas.harvard.edu
+          The researcher for this study is Kenneth C. Arnold who can be reached
+          at kcarnold@seas.harvard.edu, 617-299-6536, or 33 Oxford St MD 240,
+          Cambridge MA 02138. The faculty sponsor is Krzysztof Z. Gajos who can
+          be reached at kgajos@seas.harvard.edu
         </p>
         <ul style={{ marginTop: "0in" }} type="disc">
           <li>If you have questions, concerns, or complaints,</li>
