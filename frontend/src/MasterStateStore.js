@@ -443,6 +443,9 @@ export class MasterStateStore {
     M.extendObservable(this, {
       masterConfig: null,
       participantCode: null,
+      get isHDSL() {
+        return this.participantCode !== null;
+      },
       get prewrite() { return this.masterConfig.prewrite; },
       prewriteText: '',
       curPrewriteLine: 0,
