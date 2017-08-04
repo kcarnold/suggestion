@@ -74,6 +74,14 @@ class Model:
             raise Exception(f"The requested model `{name}` was not preloaded.")
 
     @classmethod
+    def get_or_load_model(cls, name: str) -> 'Model':
+        from suggestion.paths import paths
+        if name not in cls.preloaded:
+            cls.preload_model(name, paths.model_basename(name))
+        return cls.get_model(name)
+
+
+    @classmethod
     def from_basename(cls, name, basename):
         return cls(name=name, model_file=str(basename) + '.kenlm', arpa_file=str(basename) + '.arpa')
 
