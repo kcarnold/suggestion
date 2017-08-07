@@ -1,5 +1,5 @@
 // @flow
-import M from 'mobx';
+import * as M from 'mobx';
 import _ from 'lodash';
 
 let multiTapThresholdMs = 500;

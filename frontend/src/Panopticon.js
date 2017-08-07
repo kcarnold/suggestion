@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import M from 'mobx';
+import * as M from 'mobx';
 import moment from 'moment';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
@@ -20,9 +20,9 @@ export class PanoptStore {
   constructor(clientId, kind) {
     M.extendObservable(this, {
       showingIds: [],
-      states: M.asMap({}),
-      startTimes: M.asMap({}),
-      times: M.asMap({}),
+      states: M.observable.shallowMap({}),
+      startTimes: M.observable.shallowMap({}),
+      times: M.observable.shallowMap({}),
       acceleration: 10,
     });
   }

@@ -1,6 +1,6 @@
 // @flow
 
-import M from 'mobx';
+import * as M from 'mobx';
 import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 import TutorialTasks from './TutorialTasks';
@@ -478,7 +478,7 @@ export class MasterStateStore {
       get isPractice() {
         return (this.curExperiment || '').slice(0, 5) === 'pract';
       },
-      experiments: M.asMap({}),
+      experiments: M.observable.shallowMap({}),
       curExperiment: null,
       get experimentState() {
         if (this.curExperiment) {
@@ -488,7 +488,7 @@ export class MasterStateStore {
       get isPrewrite() {
         return this.curExperiment.slice(0, 3) === 'pre';
       },
-      controlledInputs: M.asMap({}),
+      controlledInputs: M.observable.shallowMap({}),
       timerStartedAt: null,
       timerDur: null,
       tutorialTasks: null,

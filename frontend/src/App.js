@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
-import M from 'mobx';
+import * as M from 'mobx';
 import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
@@ -150,7 +150,7 @@ function log(event) {
 
 registerHandler(state.handleEvent);
 
-let inflightRequests = M.observable(M.asMap({}));
+let inflightRequests = M.observable.shallowMap({});
 window.inflightRequests = inflightRequests;
 
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
-import M from 'mobx';
+import * as M from 'mobx';
 import {observer} from 'mobx-react';
 import WSClient from './wsclient';
 

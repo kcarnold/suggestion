@@ -1,4 +1,4 @@
-import M from 'mobx';
+import * as M from 'mobx';
 import _ from 'lodash';
 import countWords from './CountWords';
 import seedrandom from 'seedrandom';
