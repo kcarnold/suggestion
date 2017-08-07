@@ -104,9 +104,9 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
           evt.preventDefault();
           evt.stopPropagation();
         }}
-        word={sugg.word}
+        word={sugg.words[0]}
         beforeText={beforeText || ''}
-        preview={[]}
+        preview={sugg.words.slice(1)}
         isValid={true}
         meta={null} />
       )}

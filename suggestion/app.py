@@ -199,8 +199,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         traceback.print_exc()
                         print("Failing request:", json.dumps(request))
                         phrases = []
-                    next_word = suggestion_generator.phrases_to_suggs(phrases)
-                    result['next_word'] = next_word
+                    result['predictions'] = suggestion_generator.phrases_to_suggs(phrases)
                 dur = time.time() - start
                 result['dur'] = dur
                 self.send_json(**result)

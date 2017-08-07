@@ -110,7 +110,7 @@ export class ExperimentStateStore {
             let rec = result[attentionCheck.type][attentionCheck.slot];
             if (rec) {
               // [attentionCheck.slot].words.length > attentionCheck.word + 1) {
-              rec.word = 'æ' + rec.word;
+              rec.words[0] = 'æ' + rec.words[0];
               result.attentionCheckType = attentionCheck.type;
             }
           }
@@ -206,7 +206,7 @@ export class ExperimentStateStore {
         let ac = this.validateAttnCheck(event);
         if (ac.length) return ac;
 
-        let wordToInsert = this.visibleSuggestions[which][slot].word;
+        let wordToInsert = this.visibleSuggestions[which][slot].words[0];
         if (which === 'synonyms') {
           // Replace the _previous_ word.
           let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];

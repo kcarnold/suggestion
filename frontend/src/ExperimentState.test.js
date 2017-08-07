@@ -1,9 +1,9 @@
 import { ExperimentStateStore } from "./ExperimentState";
 
 const recs0 = {
-  predictions: [{ word: "of" }, { word: "and" }, { word: "the" }],
+  predictions: [{ words: ["of"] }, { words: ["and"] }, { words: ["the"] }],
   replacement_range: [4, 10],
-  synonyms: [{ word: "front" }, { word: "interior" }, { word: "exterior" }],
+  synonyms: [{ words: ["front"] }, { words: ["interior"] }, { words: ["exterior"] }],
 };
 
 it("inserts automatic spaces after suggestions", () => {
