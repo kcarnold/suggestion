@@ -43,11 +43,7 @@ yelp_train-stars12
 yelp_train-stars45
 '''
 
-def get_or_load_model(name):
-    if name not in Model.preloaded:
-        Model.preload_model(name, paths.model_basename(name))
-    return Model.get_model(name)
-[get_or_load_model(name) for name in PRELOAD_MODELS]
+[Model.get_or_load_model(name) for name in PRELOAD_MODELS]
 get_model = Model.get_model
 
 
