@@ -262,6 +262,20 @@ const namedConditions = {
       alternatives: true,
     },
     alternatives: true
+  },
+
+  yelprare: {
+    sugFlags: {
+      continuation_length: 17,
+      domain: 'yelp_lowfreq'
+    },
+  },
+
+  yelpcommon: {
+    sugFlags: {
+      continuation_length: 17,
+      domain: 'yelp_hifreq'
+    },
   }
 };
 

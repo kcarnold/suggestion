@@ -36,11 +36,13 @@ yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
 airbnb_train
-sotu'''.split()
+yelp_lowfreq
+yelp_hifreq'''.split()
 
 '''
 yelp_train-stars12
 yelp_train-stars45
+sotu
 '''
 
 [Model.get_or_load_model(name) for name in PRELOAD_MODELS]
