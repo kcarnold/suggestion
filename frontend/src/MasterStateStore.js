@@ -190,7 +190,7 @@ export const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 5,
-    useAttentionCheck: .1,
+    // useAttentionCheck: .1,
   },
   sentneg: {
     sugFlags: {
@@ -201,7 +201,7 @@ export const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 1,
-    useAttentionCheck: .1,
+    // useAttentionCheck: .1,
   },
   sentmatch: {
     sugFlags: {
@@ -221,7 +221,7 @@ export const namedConditions = {
     },
     showSynonyms: false,
     showReplacement: false,
-    useAttentionCheck: .1,
+    // useAttentionCheck: .1,
     hideFullwordPredictions: true,
   },
   yelpalternatives: {
@@ -232,7 +232,7 @@ export const namedConditions = {
     },
     showSynonyms: true,
     showReplacement: true,
-    useAttentionCheck: .1,
+    // useAttentionCheck: .1,
     hideFullwordPredictions: true,
   },
   airbnb: {
