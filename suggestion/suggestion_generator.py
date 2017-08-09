@@ -23,7 +23,7 @@ LOG10 = np.log(10)
 
 # Sentiment global flags
 SHOW_SENTIMENT_OPTIONS = False
-SENTIMENT_METHOD = 'simple'
+SENTIMENT_METHOD = 'full'
 MAX_LOGPROB_PENALTY = -1.
 
 
