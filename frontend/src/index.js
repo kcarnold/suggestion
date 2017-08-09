@@ -13,15 +13,20 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 let topLevel;
+let query = window.location.search.slice(1);
+
 if (window.location.search.slice(1, 7) === 'panopt') {
   let Panopticon = require('./Panopticon').default;
   topLevel = <Panopticon />;
-} else if (window.location.search.slice(1) === 'showall') {
+} else if (query === 'showall') {
   let ShowAllScreens = require('./ShowAllScreens').default;
   topLevel = <ShowAllScreens />;
-} else if (window.location.search.slice(1) === 'bench') {
+} else if (query === 'bench') {
   let Bench = require('./Bench').default;
   topLevel = <Bench />;
+} else if (query === 'demos') {
+  let DemoList = require('./DemoList').default;
+  topLevel = <DemoList />;
 } else {
   let App = require('./App').default;
   topLevel = <App />;

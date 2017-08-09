@@ -51,7 +51,7 @@ const CONDITION_DEFAULTS = {
   showSuggsAtBos: true,
 }
 
-const namedConditions = {
+export const namedConditions = {
   trump: {
     sugFlags: {
       useSufarr: false,
