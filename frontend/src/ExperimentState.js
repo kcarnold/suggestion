@@ -83,13 +83,18 @@ export class ExperimentStateStore {
       get wordCount() {
         return countWords(this.curText);
       },
-      get activeSuggestionWords() {
-        return this.activeSuggestion.suggestion.words.slice(this.activeSuggestion.wordIdx);
-      },
       get visibleSuggestions() {
         let fromServer = this.lastSuggestionsFromServer;
         let serverIsValid = fromServer.request_id === this.contextSequenceNum;
-        if (!serverIsValid) return {}; // TODO: restore the "promise" logic.
+        if (!serverIsValid) {
+          // Fill in the promised suggestion.
+          let blankRec = {words: []};
+          let predictions = _.range(3).map(() => blankRec);
+          if (this.activeSuggestion) {
+            predictions[this.activeSuggestion.slot] = {words: this.activeSuggestion.words};
+          }
+          return {predictions};
+        }
 
         // Make a copy, so we can modify.
         fromServer = M.toJS(fromServer);
@@ -137,7 +142,7 @@ export class ExperimentStateStore {
         if (this.activeSuggestion) {
           result.promise = {
             slot: this.activeSuggestion.slot,
-            words: this.activeSuggestionWords
+            words: this.activeSuggestion.words
           };
         }
         return result;
@@ -206,7 +211,8 @@ export class ExperimentStateStore {
         let ac = this.validateAttnCheck(event);
         if (ac.length) return ac;
 
-        let wordToInsert = this.visibleSuggestions[which][slot].words[0];
+        let tappedSuggestion = this.visibleSuggestions[which][slot];
+        let wordToInsert = tappedSuggestion.words[0];
         if (which === 'synonyms') {
           // Replace the _previous_ word.
           let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];
@@ -220,6 +226,15 @@ export class ExperimentStateStore {
             this.lastSpaceWasAuto = true;
           }
         } else {
+          if (tappedSuggestion.words.length > 1) {
+            this.activeSuggestion = {
+              words: tappedSuggestion.words.slice(1),
+              slot: slot,
+            };
+          } else {
+            this.activeSuggestion = null;
+          }
+
           let {curWord} = this.getSuggestionContext();
           let charsToDelete = curWord.length;
           let isNonWord = wordToInsert.match(/^\W$/);
