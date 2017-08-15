@@ -1192,7 +1192,7 @@ def request_to_kwargs(request):
         length_after_first=request.get('continuation_length', 17),
         null_logprob_weight=request.get('null_logprob_weight', 0.),
         prewrite_info=request.get('prewrite_info'),
-        constraints=request.get('constraints'),
+        constraints=request.get('constraints', {}),
         promise=request.get('promise'),
         sentiment=request.get('sentiment'),
         word_bonuses=None)
