@@ -219,9 +219,9 @@ class Consent extends React.Component {
         </ul>
         <p>
           This research has been reviewed by the Committee on the Use of Human
-          Subjects in Research at Harvard University.&nbsp; They can be reached
-          at 617-496-2847, 1414 Massachusetts Avenue, Second Floor, Cambridge,
-          MA 02138, or cuhs@fas.harvard.edu for any of the following:
+          Subjects in Research at Harvard University. They can be reached at
+          617-496-2847, 1350 Massachusetts Avenue, Suite 935, Cambridge, MA
+          02138, or cuhs@harvard.edu for any of the following:
         </p>
         <ul style={{ marginTop: "0in" }} type="disc">
           <li>
