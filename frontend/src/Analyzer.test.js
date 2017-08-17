@@ -1,8 +1,9 @@
 import Promise from "bluebird";
 import { MasterStateStore } from "./MasterStateStore";
 import { readLogFile } from './testUtil.js';
+import { processLog } from './Analyzer.js';
 
-const participantIds = ["smoke0"];
+const participantIds = ["99c66d"];
 let logData = {};
 
 beforeAll(() => {
@@ -14,9 +15,8 @@ beforeAll(() => {
     .catch(err => console.error(err));
 });
 
-it("creates state without crashing", () => {
+it("processes logs without crashing", () => {
   logData.forEach(([participantId, log]) => {
-    var state = new MasterStateStore(participantId);
-    log.forEach(entry => state.handleEvent(entry));
+    processLog(log);
   });
 });
