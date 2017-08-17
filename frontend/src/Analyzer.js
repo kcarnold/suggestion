@@ -1,23 +1,16 @@
 import {MasterStateStore} from './MasterStateStore';
-
+import _ from 'lodash';
 
 export function processLog(log) {
-  var participants = new Map();
+  let {participant_id} = log[0];
+  let state = new MasterStateStore(participant_id);
+  let byExpPage = {};
+  let pageSeq = [];
+  let requestsByTimestamp = {};
 
   log.forEach((entry) => {
     if (entry.kind === 'meta') return;
     let {participant_id} = entry;
-    let experiment = participants.get(participant_id);
-    if (!experiment) {
-      experiment = {
-        state: new MasterStateStore(participant_id),
-        byExpPage: {},
-        pageSeq: [],
-        requestsByTimestamp: {},
-      };
-      participants.set(participant_id, experiment);
-    }
-    let {state, byExpPage, pageSeq, requestsByTimestamp} = experiment;
     let lastText = (state.experimentState || {}).curText;
     let isValidSugUpdate = entry.request_id === (state.experimentState || {}).contextSequenceNum;
     state.handleEvent(entry);
@@ -50,9 +43,7 @@ export function processLog(log) {
       }
     }
   });
-
-  // Summarize the sub-experiments.
-  return [...participants].map(([participant_id, {state, byExpPage, pageSeq}]) => ([participant_id, {
+  return {
     config: state.masterConfigName,
     byExpPage,
     pageSeq,
@@ -68,5 +59,11 @@ export function processLog(log) {
         attentionCheckStats: expState.attentionCheckStats,
       };
     }),
-  }]));
+  };
+}
+
+export function processCombinedLog(log) {
+  return _.map(
+    _.groupBy(log, 'participant_id'),
+    (entries, participant_id) => [participant_id, processLog(entries)]);
 }

@@ -17,6 +17,7 @@ beforeAll(() => {
 
 it("processes logs without crashing", () => {
   logData.forEach(([participantId, log]) => {
-    processLog(log);
+    let result = processLog(log);
+    expect(result.byExpPage).toBeDefined();
   });
 });
