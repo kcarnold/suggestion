@@ -266,6 +266,16 @@ class LMClassifier:
         logprobs -= logsumexp(logprobs)
         return np.exp(logprobs)
 
+    def get_cur_posterior(self, state):
+        lm_states, scores = state
+        logprobs = scores + self.prior_logprobs
+        probs = np.exp(logprobs)
+        probs /= probs.sum()
+        return probs
+
+    def get_cur_classification(self, state):
+        return self.get_cur_posterior(state) @ self.sentiment_weights
+
     def classify_seq_by_tok(self, state, toks):
         logprobs = self.prior_logprobs.copy()
         all_logprobs = []
