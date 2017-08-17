@@ -9,6 +9,8 @@ from suggestion import train_ngram
 import pandas as pd
 import numpy as np
 from suggestion.paths import paths
+from sklearn.metrics import roc_auc_score
+
 #%%
 reviews = pd.read_pickle(str(paths.parent / 'yelp_preproc' / 'valid_data.pkl'))['data']
 #%%
@@ -32,11 +34,11 @@ posteriors = np.array([np.mean(lm_clf.classify_seq_by_tok(bos_state, seq), axis=
 #%%
 # Let's turn this into a binary classification.
 is_positive = labels_initial > 3
+#%% Evaluate the performance of the LM classifier on this task.
 pos_probs = posteriors[:,3] + posteriors[:,4]
 neg_probs = posteriors[:,0] + posteriors[:,1]
 pos_probs = pos_probs / (pos_probs + neg_probs)
 #%%
-from sklearn.metrics import roc_auc_score
 roc_auc_score(is_positive, pos_probs)
 # -> 0.72
 #%% Compare this to a simple NB classifier.
