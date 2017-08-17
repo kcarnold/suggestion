@@ -19,5 +19,6 @@ it("processes logs without crashing", () => {
   logData.forEach(([participantId, log]) => {
     let result = processLog(log);
     expect(result.byExpPage).toBeDefined();
+    expect(result.byExpPage['final-0'].displayedSuggs.length).toBeGreaterThan(0);
   });
 });

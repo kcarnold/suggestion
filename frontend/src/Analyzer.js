@@ -12,7 +12,7 @@ export function processLog(log) {
     if (entry.kind === 'meta') return;
     let {participant_id} = entry;
     let lastText = (state.experimentState || {}).curText;
-    let isValidSugUpdate = entry.request_id === (state.experimentState || {}).contextSequenceNum;
+    let isValidSugUpdate = entry.type === 'receivedSuggestions' && entry.msg.request_id === (state.experimentState || {}).contextSequenceNum;
     state.handleEvent(entry);
     if (state.experimentState) {
       let expState = state.experimentState;
@@ -23,6 +23,7 @@ export function processLog(log) {
           annotated: [],
           displayedSuggs: [],
           condition: state.conditionName,
+          place: state.curPlace,
         };
         byExpPage[page] = pageData;
         pageSeq.push(page);
@@ -32,10 +33,10 @@ export function processLog(log) {
         lastText = state.curText;
         if (pageData.displayedSuggs.length > 0) {
           let lastDisplayedSugg = pageData.displayedSuggs[pageData.displayedSuggs.length - 1];
-          lastDisplayedSugg.dieEvent = event;
+          lastDisplayedSugg.dieEvent = entry;
         }
       } else if (entry.type === 'receivedSuggestions' && isValidSugUpdate) {
-        experiment.displayedSuggs.push({
+        pageData.displayedSuggs.push({
           visibleSuggestions: expState.visibleSuggestions,
           displayEvent: entry,
           dieEvent: null,
