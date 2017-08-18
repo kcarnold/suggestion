@@ -5,6 +5,7 @@ import {observer, Provider} from 'mobx-react';
 import WSClient from './wsclient';
 import {MasterStateStore} from './MasterStateStore';
 import {MasterView} from './MasterView';
+import _ from 'lodash';
 
 let match = window.location.search.slice(1).match(/^(\w+)-(\w+)$/);
 let panopt = match[1], panopticode = match[2];
@@ -24,6 +25,7 @@ export class PanoptStore {
       startTimes: M.observable.shallowMap({}),
       times: M.observable.shallowMap({}),
       acceleration: 10,
+      analyses: M.observable.shallowMap()
     });
   }
 
@@ -33,6 +35,7 @@ export class PanoptStore {
     if (!this.states.has(id)) {
       this.states.set(id, new MasterStateStore(id));
       ws.send({type: 'get_logs', participantId: id});
+      ws.send({type: 'get_analyzed', participantId: id});
     }
   });
 
@@ -117,6 +120,9 @@ ws.onmessage = function(msg) {
     // });
     // state.replaying = false;
   }
+  if (msg.type === 'analyzed') {
+    store.analyses.set(msg.participant_id, msg.analysis);
+  }
 };
 
 const nullDispatch = () => {};
@@ -142,6 +148,16 @@ const ScreenTimesTable = ({state}) => {
   </table>;
 }
 
+const AnalyzedView = observer(({store, participantId}) => {
+  let analysis = store.analyses.get(participantId);
+  if (!analysis) return null;
+  return <div>
+    {_.map(analysis.byExpPage, ((content, pageName) => <div key={pageName}>
+      {pageName}
+    </div>))}
+  </div>;
+})
+
 const Panopticon = observer(class Panopticon extends Component {
   render() {
     return <div>
@@ -154,6 +170,7 @@ const Panopticon = observer(class Panopticon extends Component {
       if (!state.masterConfig) return null;
       return <div key={participantId}>
         <h1>{participantId} {state.conditions.join(',')}</h1>
+        <AnalyzedView store={store} participantId={participantId} />
         <div style={{display: 'flex', flexFlow: 'row'}}>
           <div style={{overflow: 'hidden', width: state.phoneSize.width, height: state.phoneSize.height, border: '1px solid black', flex: '0 0 auto'}}>
             <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'p'} spying={true}>
