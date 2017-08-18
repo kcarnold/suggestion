@@ -132,7 +132,7 @@ def get_rev(participant):
             if 'rev' in line:
                 return line['rev']
 
-def get_analyzer(git_rev):
+def get_analyzer(git_rev, analysis_files):
     import shutil
     by_rev = paths.parent / 'old-code'
     rev_root = by_rev / git_rev
@@ -143,25 +143,29 @@ def get_analyzer(git_rev):
         print("Installing npm packages")
         subprocess.check_call(['yarn'], cwd=os.path.join(rev_root, 'frontend'))
         subprocess.check_call(['yarn', 'add', 'babel-cli'], cwd=os.path.join(rev_root, 'frontend'))
-    shutil.copy(paths.parent / 'frontend' / 'analyze.js', rev_root / 'frontend' / 'analyze.js')
+    for name, content in analysis_files.items():
+        with open(rev_root / 'frontend' / name, 'w') as f:
+            f.write(content)
     return os.path.join(rev_root, 'frontend', 'analysis')
 
 
 @mem.cache
-def get_log_analysis_raw(participant, git_rev=None):
+def get_log_analysis_raw(participant, git_rev=None, analysis_files={}):
     logpath = paths.parent / 'logs' / (participant+'.jsonl')
     if git_rev is None:
         git_rev = get_rev(participant)
-    analyzer_path = get_analyzer(git_rev)
+    analyzer_path = get_analyzer(git_rev, analysis_files)
     with open(logpath) as logfile:
         return subprocess.check_output([analyzer_path], stdin=logfile), git_rev
 
 
 def get_log_analysis(participant, git_rev=None):
-    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev)
-    bundled_participants = json.loads(result)
-    assert len(bundled_participants) == 1
-    pid, analyzed = bundled_participants[0]
+    analysis_files = {
+        name: open(paths.parent / 'frontend' / name).read()
+        for name in ['analyze.js', 'analysis', 'src/Analyzer.js']
+    }
+    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev, analysis_files=analysis_files)
+    analyzed = json.loads(result)
     analyzed['git_rev'] = git_rev
     return analyzed
 

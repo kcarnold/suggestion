@@ -133,6 +133,9 @@ class Panopticon:
         Panopticon.connections.remove(client)
 
 
+def validate_participant_id(participant_id):
+    assert all(x in string.hexdigits for x in participant_id)
+
 
 class WebsocketHandler(tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
@@ -215,7 +218,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 elif self.kind == 'panopt' and participant_id == '42':
                     self.participant = Panopticon()
                 else:
-                    assert all(x in string.hexdigits for x in participant_id)
+                    validate_participant_id(participant_id)
                     self.participant = Participant.get_participant(participant_id)
                 self.participant.connected(self)
                 self.participant.log(dict(kind='meta', type='init', request=request))
@@ -232,12 +235,23 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                         backlog.append(entry)
                     cur_msg_idx[kind] = idx + 1
                 self.send_json(type='backlog', body=backlog)
+
             elif request['type'] == 'get_logs':
                 assert self.participant.is_panopticon
                 participant_id = request['participantId']
-                assert all(x in string.ascii_letters + string.digits for x in participant_id)
+                validate_participant_id(participant_id)
                 participant = Participant.get_participant(participant_id)
                 self.send_json(type='logs', participant_id=participant_id, logs=participant.get_log_entries())
+
+            elif request['type'] == 'get_analyzed':
+                assert self.participant.is_panopticon
+                participant_id = request['participantId']
+                validate_participant_id(participant_id)
+                from .analysis_util import get_log_analysis
+                # TODO: include the git revision overrides here
+                analysis = get_log_analysis(participant_id)
+                self.send_json(type='analyzed', participant_id=participant_id, analysis=analysis)
+
             elif request['type'] == 'log':
                 event = request['event']
                 self.participant.log(event)
