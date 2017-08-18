@@ -34,13 +34,13 @@ export class PanoptStore {
     this.showingIds.push(id);
     if (!this.states.has(id)) {
       this.states.set(id, new MasterStateStore(id));
-      ws.send({type: 'get_logs', participantId: id});
+      // ws.send({type: 'get_logs', participantId: id});
       ws.send({type: 'get_analyzed', participantId: id});
     }
   });
 
   addViewers = M.action((ids) => {
-    ids.forEach(id => this.addViewer(id))
+    ids.split(/\s/).forEach(id => this.addViewer(id))
   })
 }
 
@@ -148,50 +148,79 @@ const ScreenTimesTable = ({state}) => {
   </table>;
 }
 
+const ShowRecs = ({recs, action}) => <div
+  style={{display: 'flex', flexFlow: 'column nowrap'}}>
+  <div style={{display: 'flex', flexFlow: 'row nowrap', justifyContent: 'space-between'}}>
+    {recs.synonyms.map(({word}, i) => <div key={i} style={{padding: '5px', fontWeight: action.slot === i ? 'bold' : null}}>{word}</div>)}
+  </div>
+</div>;
+
 const AnalyzedView = observer(({store, participantId}) => {
   let analysis = store.analyses.get(participantId);
   if (!analysis) return null;
   return <div>
-    {_.map(analysis.byExpPage, ((content, pageName) => <div key={pageName}>
-      {pageName}
-    </div>))}
+    {_.map(analysis.byExpPage, ((content, pageName) => {
+      let synonymTaps = _.filter(content.displayedSuggs, {'action': {type: 'tapSuggestion', which: 'synonyms'}});
+      return <div key={pageName}>
+        {pageName}
+        <table>
+          <tbody>
+            {synonymTaps.map(({context, recs, action}, i) =>
+              <tr key={i}>
+                <td style={{maxWidth: '200px', fontSize: '10px', overflow: 'hidden', whiteSpace: 'nowrap', direction: 'rtl'}}>
+                  <bdi>{context}</bdi>
+                </td>
+                <td><ShowRecs recs={recs} action={action} /></td>
+              </tr>)}
+          </tbody>
+        </table>
+      </div>;
+    }))}
   </div>;
-})
+});
+
+const ReplayView = observer(({store, participantId}) => {
+  let state = store.states.get(participantId);
+  if (!state.masterConfig) return null;
+
+  return <div style={{display: 'flex', flexFlow: 'row'}}>
+      <div style={{overflow: 'hidden', width: state.phoneSize.width, height: state.phoneSize.height, border: '1px solid black', flex: '0 0 auto'}}>
+        <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'p'} spying={true}>
+          <MasterView kind={'p'}/>
+        </Provider>
+      </div>
+      <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black', flex: '0 0 auto'}}>
+        <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'c'} spying={true}>
+          <MasterView kind={'c'} />
+        </Provider>
+      </div>
+      <div style={{flex: '0 0 auto'}}>
+        <ScreenTimesTable state={state} />
+      </div>
+      <div style={{flex: '1 1 auto'}}>
+        {state.experiments.entries().map(([name, expState]) => <div key={name}>
+          <b>{name}</b><br/>{expState.curText}</div>)}
+      </div>
+    </div>;
+});
 
 const Panopticon = observer(class Panopticon extends Component {
   render() {
     return <div>
       <div><input ref={elt => {this.viewerInput = elt;}} /><button onClick={evt => {
-        store.addViewer(this.viewerInput.value);
+        store.addViewers(this.viewerInput.value);
         this.viewerInput.value = '';
       }}>Add</button></div>
       {store.showingIds.map(participantId => {
-      let state = store.states.get(participantId);
-      if (!state.masterConfig) return null;
-      return <div key={participantId}>
-        <h1>{participantId} {state.conditions.join(',')}</h1>
-        <AnalyzedView store={store} participantId={participantId} />
-        <div style={{display: 'flex', flexFlow: 'row'}}>
-          <div style={{overflow: 'hidden', width: state.phoneSize.width, height: state.phoneSize.height, border: '1px solid black', flex: '0 0 auto'}}>
-            <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'p'} spying={true}>
-              <MasterView kind={'p'}/>
-            </Provider>
-          </div>
-          <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black', flex: '0 0 auto'}}>
-            <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'c'} spying={true}>
-              <MasterView kind={'c'} />
-            </Provider>
-          </div>
-          <div style={{flex: '0 0 auto'}}>
-            <ScreenTimesTable state={state} />
-          </div>
-          <div style={{flex: '1 1 auto'}}>
-            {state.experiments.entries().map(([name, expState]) => <div key={name}>
-              <b>{name}</b><br/>{expState.curText}</div>)}
-          </div>
-        </div>
-      </div>;
-    })}</div>;
+        let conditions = []
+        // let state = store.states.get(participantId);
+        // if (!state.masterConfig) return null;
+        return <div key={participantId}>
+          <h1>{participantId} {conditions.join(',')}</h1>
+          <AnalyzedView store={store} participantId={participantId} />
+          { /* <ReplayView store={store} participantId={participantId} /> */}
+        </div>;
+      })}</div>;
   }
 });
 
