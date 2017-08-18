@@ -1,4 +1,5 @@
 import {MasterStateStore} from './MasterStateStore';
+import * as M from 'mobx';
 import _ from 'lodash';
 
 export function processLog(log) {
@@ -28,6 +29,7 @@ export function processLog(log) {
     // autospacing after punctuation seems to increment contextSequenceNum
     // without changing curText.
     let lastContextSeqNum = (state.experimentState || {}).contextSequenceNum;
+    let lastDisplayedSuggs = null;
 
     let isValidSugUpdate = entry.type === 'receivedSuggestions' && entry.msg.request_id === (state.experimentState || {}).contextSequenceNum;
     if (entry.kind !== 'meta') {
@@ -50,6 +52,7 @@ export function processLog(log) {
     }
 
     let expState = state.experimentState;
+    let visibleSuggestions = M.toJS(expState.visibleSuggestions);
     if (expState.contextSequenceNum !== lastContextSeqNum) {
       if (pageData.displayedSuggs[lastContextSeqNum]) {
         pageData.displayedSuggs[lastContextSeqNum].action = entry;
@@ -60,10 +63,15 @@ export function processLog(log) {
       pageData.displayedSuggs[expState.contextSequenceNum] = {
         timestamp: request.timestamp,
         context: expState.curText,
-        recs: expState.visibleSuggestions,
+        recs: visibleSuggestions,
         latency: response.responseTimestamp - request.timestamp,
         action: null,
       };
+    }
+
+    if (pageData.displayedSuggs[expState.contextSequenceNum] && !_.isEqual(visibleSuggestions, lastDisplayedSuggs)) {
+      pageData.displayedSuggs[expState.contextSequenceNum].recs = visibleSuggestions;
+      lastDisplayedSuggs = visibleSuggestions;
     }
   });
 
