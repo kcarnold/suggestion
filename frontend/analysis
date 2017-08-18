@@ -1,3 +1,3 @@
 #!/bin/bash
 cd "$(dirname ${BASH_SOURCE[0]})"
-NODE_ENV=development ./node_modules/babel-cli/bin/babel-node.js --presets react-app analyze.js
+NODE_ENV=development ./node_modules/babel-cli/bin/babel-node.js --presets env,react-app analyze.js
