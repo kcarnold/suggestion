@@ -8,42 +8,65 @@ export function processLog(log) {
   let pageSeq = [];
   let requestsByTimestamp = {};
 
+  function getPageData() {
+    let page = state.curExperiment;
+    if (!byExpPage[page]) {
+      let pageData = {
+        displayedSuggs: [],
+        condition: state.conditionName,
+        place: state.curPlace,
+      };
+      byExpPage[page] = pageData;
+      pageSeq.push(page);
+    }
+    return byExpPage[page];
+  }
+
   log.forEach((entry) => {
-    if (entry.kind === 'meta') return;
-    let {participant_id} = entry;
-    let lastText = (state.experimentState || {}).curText;
+
+    // We need to track context sequence numbers instead of curText because
+    // autospacing after punctuation seems to increment contextSequenceNum
+    // without changing curText.
+    let lastContextSeqNum = (state.experimentState || {}).contextSequenceNum;
+
     let isValidSugUpdate = entry.type === 'receivedSuggestions' && entry.msg.request_id === (state.experimentState || {}).contextSequenceNum;
-    state.handleEvent(entry);
-    if (state.experimentState) {
-      let expState = state.experimentState;
-      let page = state.curExperiment;
-      let pageData = byExpPage[page];
-      if (!pageData) {
-        pageData = {
-          annotated: [],
-          displayedSuggs: [],
-          condition: state.conditionName,
-          place: state.curPlace,
-        };
-        byExpPage[page] = pageData;
-        pageSeq.push(page);
+    if (entry.kind !== 'meta') {
+      state.handleEvent(entry);
+    }
+
+    if (!state.experimentState) {
+      return;
+    }
+
+    let pageData = getPageData();
+
+    // Track requests
+    if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
+      let msg = _.clone(entry.request);
+      requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
+    } else if (entry.type === 'receivedSuggestions') {
+      let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
+      requestsByTimestamp[msg.timestamp].response = msg;
+    }
+
+    let expState = state.experimentState;
+    if (expState.contextSequenceNum !== lastContextSeqNum) {
+      if (pageData.displayedSuggs[lastContextSeqNum]) {
+        pageData.displayedSuggs[lastContextSeqNum].action = entry;
       }
-      if (expState.curText !== lastText) {
-        pageData.annotated.push({...entry, curText: lastText});
-        lastText = state.curText;
-        if (pageData.displayedSuggs.length > 0) {
-          let lastDisplayedSugg = pageData.displayedSuggs[pageData.displayedSuggs.length - 1];
-          lastDisplayedSugg.dieEvent = entry;
-        }
-      } else if (entry.type === 'receivedSuggestions' && isValidSugUpdate) {
-        pageData.displayedSuggs.push({
-          visibleSuggestions: expState.visibleSuggestions,
-          displayEvent: entry,
-          dieEvent: null,
-        });
-      }
+      lastContextSeqNum = expState.contextSequenceNum;
+    } else if (entry.type === 'receivedSuggestions' && isValidSugUpdate) {
+      let {request, response}  = requestsByTimestamp[entry.msg.timestamp];
+      pageData.displayedSuggs[expState.contextSequenceNum] = {
+        timestamp: request.timestamp,
+        context: expState.curText,
+        recs: expState.visibleSuggestions,
+        latency: response.responseTimestamp - request.timestamp,
+        action: null,
+      };
     }
   });
+
   return {
     config: state.masterConfigName,
     byExpPage,

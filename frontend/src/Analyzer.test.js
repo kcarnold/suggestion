@@ -19,6 +19,15 @@ it("processes logs without crashing", () => {
   logData.forEach(([participantId, log]) => {
     let result = processLog(log);
     expect(result.byExpPage).toBeDefined();
-    expect(result.byExpPage['final-0'].displayedSuggs.length).toBeGreaterThan(0);
+    let page = result.byExpPage['final-0'];
+    expect(page.displayedSuggs.length).toBeGreaterThan(0);
+    let suggEntry = page.displayedSuggs[0];
+    expect(suggEntry).toMatchObject({
+      timestamp: expect.any(Number),
+      context: expect.any(String),
+      recs: expect.anything(),
+      latency: expect.any(Number),
+      action: expect.objectContaining({type: expect.any(String)}),
+    });
   });
 });
