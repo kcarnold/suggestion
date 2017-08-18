@@ -1,4 +1,4 @@
-import {processCombinedLog} from './src/Analyzer.js';
+import {processLog} from './src/Analyzer.js';
 var fs = require('fs');
 
 console.log = console.warn;
@@ -18,5 +18,5 @@ function readStdin(callback) {
 
 readStdin(function(err, res) {
   var log = res.split('\n').filter(line => line.length > 0).map(line => JSON.parse(line));
-  process.stdout.write(JSON.stringify(processCombinedLog(log)));
+  process.stdout.write(JSON.stringify(processLog(log)));
 });
