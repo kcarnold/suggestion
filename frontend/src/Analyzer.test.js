@@ -3,16 +3,35 @@ import { MasterStateStore } from "./MasterStateStore";
 import { readLogFile } from './testUtil.js';
 import { processLog } from './Analyzer.js';
 
-const participantIds = ["99c66d"];
+const participantIds = [
+  //"99c66d",
+  "c104c0",
+  ];
 let logData = null;
 let analyzed = null;
+
+function updateLog(log) {
+  // Port a log to the new format.
+  return log.map(entry => {
+    if (entry.type === 'receivedSuggestions') {
+      let msg = {...entry.msg};
+      ['predictions', 'synonyms'].forEach(typ => {
+        if (msg[typ]) {
+          msg[typ] = msg[typ].map(ent => ({words: [ent.word]}));
+        }
+      });
+      entry = {...entry, msg};
+    }
+    return entry;
+  })
+}
 
 beforeAll(() => {
   return Promise.map(participantIds, readLogFile)
     .then(logs => {
       console.log(`Loaded ${logs.length} logs.`);
       logData = logs;
-      analyzed = logData.map(([participantId, log]) => [participantId, processLog(log)]);
+      analyzed = logData.map(([participantId, log]) => [participantId, processLog(updateLog(log))]);
     })
     .catch(err => console.error(err));
 });
