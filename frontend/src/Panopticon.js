@@ -229,3 +229,6 @@ export default Panopticon;
 // Globals
 window.M = M;
 window.store = store;
+
+
+store.addViewers('c104c0 feebe1 50b0c9 50b80b 99c66d')
