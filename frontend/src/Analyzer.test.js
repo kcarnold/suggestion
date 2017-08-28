@@ -3,7 +3,7 @@ import { readLogFile } from './testUtil.js';
 import { analyzeLog } from './Analyzer.js';
 
 const participantIds = [
-  //"99c66d",
+  "99c66d",
   "c104c0",
   ];
 let logData = null;
