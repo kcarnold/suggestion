@@ -1,7 +1,6 @@
 import Promise from "bluebird";
-import { MasterStateStore } from "./MasterStateStore";
 import { readLogFile } from './testUtil.js';
-import { processLog } from './Analyzer.js';
+import { analyzeLog } from './Analyzer.js';
 
 const participantIds = [
   //"99c66d",
@@ -13,7 +12,7 @@ let analyzed = null;
 function updateLog(log) {
   // Port a log to the new format.
   return log.map(entry => {
-    if (entry.type === 'receivedSuggestions') {
+    if (false || entry.type === 'receivedSuggestions') {
       let msg = {...entry.msg};
       ['predictions', 'synonyms'].forEach(typ => {
         if (msg[typ]) {
@@ -26,14 +25,11 @@ function updateLog(log) {
   })
 }
 
-beforeAll(() => {
-  return Promise.map(participantIds, readLogFile)
-    .then(logs => {
-      console.log(`Loaded ${logs.length} logs.`);
-      logData = logs;
-      analyzed = logData.map(([participantId, log]) => [participantId, processLog(updateLog(log))]);
-    })
-    .catch(err => console.error(err));
+beforeAll(async () => {
+  let logs = await Promise.map(participantIds, readLogFile);
+  console.log(`Loaded ${logs.length} logs.`);
+  logData = logs;
+  analyzed = await Promise.map(logData, async ([participantId, log]) => [participantId, await analyzeLog(log)]);
 });
 
 it("includes the overall fields we expect", () => {

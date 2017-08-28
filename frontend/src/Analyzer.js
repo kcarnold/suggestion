@@ -1,10 +1,9 @@
-import {MasterStateStore} from './MasterStateStore';
 import * as M from 'mobx';
 import _ from 'lodash';
 
-export function processLog(log) {
+export function processLogGivenStateStore(StateStoreClass, log) {
   let {participant_id} = log[0];
-  let state = new MasterStateStore(participant_id);
+  let state = new StateStoreClass(participant_id);
   let byExpPage = {};
   let pageSeq = [];
   let requestsByTimestamp = {};
@@ -94,8 +93,12 @@ export function processLog(log) {
   };
 }
 
-export function processCombinedLog(log) {
-  return _.map(
-    _.groupBy(log, 'participant_id'),
-    (entries, participant_id) => [participant_id, processLog(entries)]);
+async function getStateStoreClass(log) {
+  let {rev} = log[0];
+  return (await import(`../../old-code/${rev}/frontend/src/MasterStateStore`)).MasterStateStore;
+}
+
+export async function analyzeLog(log) {
+  let stateStoreClass = await getStateStoreClass(log);
+  return processLogGivenStateStore(stateStoreClass, log);
 }
