@@ -91,7 +91,7 @@ export class ExperimentStateStore {
           let blankRec = {words: []};
           let predictions = _.range(3).map(() => blankRec);
           if (this.activeSuggestion) {
-            predictions[this.activeSuggestion.slot] = {words: this.activeSuggestion.words};
+            predictions[this.activeSuggestion.slot] = M.toJS(this.activeSuggestion);
           }
           return {predictions};
         }
@@ -108,6 +108,13 @@ export class ExperimentStateStore {
             result[type] = fromServer[type] || [];
           }
         });
+
+        if (this.activeSuggestion && this.activeSuggestion.highlightChars) {
+          // Highlight even what we receive from the server.
+          // FIXME: should this happen on server? Format conversion is complicated...
+          result.predictions[this.activeSuggestion.slot].highlightChars = this.activeSuggestion.highlightChars;
+        }
+
         let {attentionCheck} = this;
         if (attentionCheck !== null && serverIsValid) {
           let {type: attentionCheckType} = attentionCheck;
@@ -115,6 +122,7 @@ export class ExperimentStateStore {
             let rec = result[attentionCheck.type][attentionCheck.slot];
             if (rec) {
               // [attentionCheck.slot].words.length > attentionCheck.word + 1) {
+              // FIXME: this could be mutating a data structure that we don't own.
               rec.words[0] = 'æ' + rec.words[0];
               result.attentionCheckType = attentionCheck.type;
             }
@@ -123,9 +131,14 @@ export class ExperimentStateStore {
         return result;
       },
 
+      get lastSpaceIdx() {
+        let sofar = this.curText;
+        return sofar.search(/\s\S*$/);
+      },
+
       get suggestionContext() {
         let sofar = this.curText, cursorPos = sofar.length;
-        let lastSpaceIdx = sofar.search(/\s\S*$/);
+        let lastSpaceIdx = this.lastSpaceIdx;
         let curWord = [];
         for (let i=lastSpaceIdx + 1; i<cursorPos; i++) {
           let chr = {letter: sofar[i]};
@@ -181,6 +194,8 @@ export class ExperimentStateStore {
         let ac = this.validateAttnCheck(event);
         if (ac.length) return ac;
 
+        let oldCurWord = this.curText.slice(this.lastSpaceIdx + 1);
+
         let isNonWord = event.key.match(/\W/);
         let deleteSpace = this.lastSpaceWasAuto && isNonWord;
         let toInsert = event.key;
@@ -196,7 +211,25 @@ export class ExperimentStateStore {
         }
         this.insertText(toInsert, deleteSpace ? 1 : 0, taps);
         this.lastSpaceWasAuto = autoSpace;
-        this.activeSuggestion = null;
+        let newActiveSuggestion = null;
+
+        // If this key happened to be the prefix of a recommended word, continue that word.
+        let curWord = this.curText.slice(this.lastSpaceIdx + 1);
+        if (curWord.slice(0, oldCurWord.length) === oldCurWord) {
+          this.visibleSuggestions.predictions.forEach((pred, slot) => {
+            if (pred.words.length === 0) return;
+            if (newActiveSuggestion) return;
+            if (pred.words[0].slice(0, curWord.length) === curWord) {
+              newActiveSuggestion = {
+                words: pred.words,
+                slot,
+                highlightChars: curWord.length
+              };
+            }
+          });
+        }
+        this.activeSuggestion = newActiveSuggestion;
+
         return [this.changedMsg()];
       }),
       tapBackspace: M.action(() => {

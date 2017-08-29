@@ -83,12 +83,27 @@ const tutorialTaskDescs = {
 
 class Suggestion extends Component {
   render() {
-    let {onTap, word, preview, isValid, meta, beforeText} = this.props;
+    let {onTap, word, preview, isValid, meta, beforeText, highlightChars} = this.props;
+    let highlighted = '';
+    if (highlightChars) {
+      highlighted = word.slice(0, highlightChars);
+      word = word.slice(highlightChars);
+    }
+    let classes = {
+      invalid: !isValid,
+      bos: isValid && (meta || {}).bos
+    };
+    if (!!highlightChars) {
+      if (highlightChars % 2)
+        classes.hasHighlightOdd = true;
+      else
+        classes.hasHighlightEven = true
+    }
     return <div
-      className={classNames("Suggestion", {invalid: !isValid, bos: isValid && (meta || {}).bos})}
+      className={classNames("Suggestion", classes)}
       onTouchStart={isValid ? onTap : null}
       onTouchEnd={evt => {evt.preventDefault();}}>
-      <span className="word"><span className="beforeText">{beforeText}</span>{word}</span><span className="preview">{preview.join(' ')}</span>
+      <span className="word"><span className="beforeText">{beforeText}</span><span className="highlighted">{highlighted}</span>{word}</span><span className="preview">{preview.join(' ')}</span>
     </div>;
   }
 }
@@ -107,6 +122,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
         word={sugg.words[0]}
         beforeText={beforeText || ''}
         preview={sugg.words.slice(1)}
+        highlightChars={sugg.highlightChars}
         isValid={true}
         meta={null} />
       )}

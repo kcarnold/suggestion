@@ -1,5 +1,5 @@
 import { ExperimentStateStore } from "./ExperimentState";
-import * as M from 'mobx';
+import * as M from "mobx";
 
 const recs0 = {
   predictions: [{ words: ["of"] }, { words: ["and"] }, { words: ["the"] }],
@@ -85,5 +85,66 @@ it("promises a phrase completion even without a server roundtrip", () => {
   expect(state.suggestionContext.promise.slot).toEqual(1);
   expect(M.toJS(state.suggestionContext.promise.words)).toEqual(words.slice(1));
 
-  expect(M.toJS(state.visibleSuggestions.predictions[1].words)).toEqual(words.slice(1));
+  expect(M.toJS(state.visibleSuggestions.predictions[1].words)).toEqual(
+    words.slice(1),
+  );
+});
+
+it("promises the same word completion as long as the user is typing a prefix", () => {
+  let state = new ExperimentStateStore({});
+  let slot = 1, otherSlot = 0;
+  let words = recs1.predictions[slot].words; //["this", "is", "my", "favorite", "place"];
+
+  // Set up the received recommendations
+  state.handleEvent({
+    type: "receivedSuggestions",
+    msg: { request_id: state.contextSequenceNum, ...recs1 },
+  });
+  expect(M.toJS(state.visibleSuggestions.predictions[slot].words)).toEqual(
+    words,
+  );
+
+  // Start typing that word.
+  let word = words[0];
+  Array.prototype.forEach.call(word, (key, charIdx) => {
+    state.handleEvent({ type: "tapKey", key });
+    // The corresponding slot should still display this word.
+    let shownInSlot = state.visibleSuggestions.predictions[slot];
+    expect(shownInSlot.words[0]).toEqual(word);
+    expect(state.visibleSuggestions.predictions[otherSlot].words).toEqual([]);
+    expect(shownInSlot.highlightChars).toEqual(charIdx + 1);
+    expect(state.suggestionContext.promise.slot).toEqual(1);
+    expect(M.toJS(state.suggestionContext.promise.words)).toEqual(words);
+  });
+
+  // Typing space clears it.
+  state.handleEvent({ type: "tapKey", key: ' '});
+  expect(state.visibleSuggestions.predictions[slot].words).toEqual([]);
+});
+
+it("doesn't promise the same word completion if the user isn't typing a prefix", () => {
+  let state = new ExperimentStateStore({});
+  let slot = 1;
+  let words = recs1.predictions[slot].words; //["this", "is", "my", "favorite", "place"];
+
+  // Set up the received recommendations
+  state.handleEvent({
+    type: "receivedSuggestions",
+    msg: { request_id: state.contextSequenceNum, ...recs1 },
+  });
+  expect(M.toJS(state.visibleSuggestions.predictions[slot].words)).toEqual(
+    words,
+  );
+
+  // Start typing that word.
+  let word = words[0];
+
+  // None of the words start with "a"
+  recs1.predictions.forEach(pred => {
+    expect(pred.words[0][0]).not.toEqual('a');
+  });
+
+  // Tap 'a'.
+  state.handleEvent({ type: "tapKey", key: 'a' });
+  expect(state.visibleSuggestions.predictions[slot].words).toEqual([]);
 });
