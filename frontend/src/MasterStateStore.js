@@ -336,6 +336,7 @@ const MASTER_CONFIGS = {
   synonyms: {
     baseConditions: ['yelppredict', 'yelpalternatives'],
     instructions: 'yelp',
+    showSecondPractice: true,
   }
 };
 
@@ -343,14 +344,19 @@ const MASTER_CONFIGS = {
 
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
+  let {showSecondPractice} = masterConfig;
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
     {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbPlain', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer2'},
+  ];
+  if (showSecondPractice) {
+    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer2'});
+  }
+  result = result.concat([
     {controllerScreen: 'SelectRestaurants'},
     {controllerScreen: 'IntroSurvey'},
-  ];
+  ]);
   if (masterConfigName === 'infoSource') {
     conditions.forEach((conditionName, block) => {
       result = result.concat([
