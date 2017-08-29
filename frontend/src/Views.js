@@ -298,7 +298,7 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
     <p>Think of {numPlaces} <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
 
-    {groups.map(({header, indices: groupIndices}, groupIdx) => <div>
+    {groups.map(({header, indices: groupIndices}, groupIdx) => <div key={groupIdx}>
       {header && <h1>{header}</h1>}
       {groupIndices.map(idx => <RestaurantPrompt  key={idx} idx={idx} />)}
     </div>)}
