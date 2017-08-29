@@ -172,10 +172,13 @@ const ControlledInput = inject('dispatch', 'state')(observer(function Controlled
     {...props} />;
   }));
 
-const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
-  name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
-  onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}}
-  renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />));
+const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <div>
+  <StarRatingComponent
+    name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
+    onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}}
+    renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />
+  {state.controlledInputs.get(name)}
+  </div>));
 
 
 const qualtricsPrefix = 'https://harvard.az1.qualtrics.com/SE/?SID=';
@@ -262,9 +265,26 @@ export const  ProbablyWrongCode = () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
   </div>;
 
+function RestaurantPrompt({idx}) {
+  return <div key={idx} className="Restaurant">{idx}.
+    Name: <ControlledInput name={`restaurant${idx}`} /><br />
+    About how long ago were you there, in days? <ControlledInput name={`visit${idx}`} type="number" min="0"/>
+    <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} />
+    {askKnowWhatToSay && <span><br/><br />On a scale of 1 to 5, do you already know what you want to say about this experience? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
+    <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" /></span>}
+  </div>;
+}
+
 export const SelectRestaurants = inject('state')(observer(({state}) => {
   let numPlaces = state.conditions.length;
-  let indices = state.conditions.map((condition, idx) => idx + 1)
+  let indices = state.conditions.map((condition, idx) => idx + 1);
+  let groups = [{header: null, indices}];
+  if (state.masterConfigName === 'sent4') {
+    groups = [
+      {header: "Above-average experiences", indices: [1, 2]},
+      {header: "Below-average experiences", indices: [3, 4]}
+    ];
+  }
   let allFields = [];
   indices.forEach(idx => {
     ['restaurant', 'visit', 'star', 'knowWhat'].forEach(kind => {
@@ -277,13 +297,12 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
   return <div>
     <p>Think of {numPlaces} <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
-    {indices.map(idx => <div key={idx} className="Restaurant">{idx}.
-      Name: <ControlledInput name={`restaurant${idx}`} /><br />
-      About how long ago were you there, in days? <ControlledInput name={`visit${idx}`} type="number" min="0"/>
-      <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} /> {state.controlledInputs.get(`star${idx}`)}
-      {askKnowWhatToSay && <span><br/><br />On a scale of 1 to 5, do you already know what you want to say about this experience? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
-      <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" /></span>}
+
+    {groups.map(({header, indices: groupIndices}, groupIdx) => <div>
+      {header && <h1>{header}</h1>}
+      {groupIndices.map(idx => <RestaurantPrompt  key={idx} idx={idx} />)}
     </div>)}
+
     {complete || <p>(The Next button will be enabled once all fields are filled out.)</p>}
     <NextBtn disabled={!complete} />
   </div>;
