@@ -1,0 +1,1 @@
+{"presets": [['env', {"target": {"node": "current"}}], "react-app"], "plugins": ["dynamic-import-node"]}
