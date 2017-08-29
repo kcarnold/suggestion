@@ -492,6 +492,7 @@ export class MasterStateStore {
       get places() {
         let {controlledInputs} = this;
         let res = this.conditions.map((condition, idx) => ({
+          idx,
           name: controlledInputs.get(`restaurant${idx+1}`),
           visit: controlledInputs.get(`visit${idx+1}`) + " day(s) ago",
           stars: controlledInputs.get(`star${idx+1}`),

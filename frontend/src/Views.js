@@ -148,10 +148,13 @@ const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
   }} disabled={props.disabled}>{props.children || "Next"}</button>);
 
 
-const ControlledInput = inject('dispatch', 'state')(observer(({state, dispatch, name, ...props}) => <input
-  onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}}
-  value={state.controlledInputs.get(name) || ''}
-  {...props} />));
+const ControlledInput = inject('dispatch', 'state')(observer(function ControlledInput({state, dispatch, name, ...props}) {
+  return <input
+    name={name}
+    onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}}
+    value={state.controlledInputs.get(name) || ''}
+    {...props} />;
+  }));
 
 const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <StarRatingComponent
   name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
