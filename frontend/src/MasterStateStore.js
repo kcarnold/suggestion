@@ -380,8 +380,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
 
 
 function specialSent4PlaceSort(participantId, places) {
-  places = _.sortBy(places, 'stars');
-  let neg = places.slice(0, 2), pos = places.slice(2);
+  let pos = places.slice(0, 2), neg = places.slice(2);
   neg = seededShuffle(`${participantId}-places-neg`, neg);
   pos = seededShuffle(`${participantId}-places-pos`, pos);
   let order = seededShuffle(`${participantId}-places-order`, [pos, neg]);
