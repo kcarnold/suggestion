@@ -28,8 +28,10 @@ if (window.location.search.slice(1, 7) === 'panopt') {
   let DemoList = require('./DemoList').default;
   topLevel = <DemoList />;
 } else {
-  let App = require('./App').default;
-  topLevel = <App />;
+  let mod = require('./App');
+  let globalState = mod.init();
+  let App = mod.default;
+  topLevel = <App global={globalState} />;
 }
 
 
