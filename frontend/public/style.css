@@ -262,6 +262,12 @@ span.word {
 }
 
 
+/** Instructions etc. **/
+
+.Tutorial li {
+  margin-bottom: 1em;
+}
+
 .Restaurant {
     border-bottom: 1px solid black;
     padding: 12px;

@@ -408,14 +408,19 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
       // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
 
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    return <div>
+    return <div className="Tutorial">
+      <h1>Tutorial</h1>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
       But it has a few special features that we want to show you!</p>
 
-      <p><b>Practice task</b>:
-        Imagine you're writing a description of a residence you know well, suitable for posting to a site like Airbnb. (It could be where you live now, where you grew up, etc. -- but please don't include any information that would identify you.) <b>Write a sentence about the interior of the residence.</b> Try to write it using <b>as few taps</b> as possible.</p>
+      <p><b>Tutorial task</b>:</p>
 
-      <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
+      <ul>
+        <li>Think of a residence that you know well -- where you live now, where you grew up, etc.</li>
+        <li>Imagine you're writing a description of it for a site like Airbnb or Craigslist. (Please don't include any information that would identify you.)</li>
+        <li><b>Write a sentence about the interior of the residence.</b></li>
+        <li>Try to write it using <b>as few taps</b> as possible. Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</li>
+      </ul>
 
       <p>Once you've typed a sentence, click <NextBtn />.</p>
     </div>;
