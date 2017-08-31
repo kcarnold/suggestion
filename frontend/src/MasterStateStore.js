@@ -70,6 +70,15 @@ export const namedConditions = {
     },
     showPhrase: true,
   },
+  airbnb: {
+    sugFlags: {
+      useSufarr: false,
+      temperature: 0,
+      use_bos_suggs: false,
+      domain: 'airbnb_train'
+    },
+    showPhrase: true,
+  },
   nosugg: {
     sugFlags: {
       useSufarr: false,
@@ -235,7 +244,7 @@ export const namedConditions = {
     // useAttentionCheck: .1,
     hideFullwordPredictions: true,
   },
-  airbnb: {
+  airbnbAlternatives: {
     sugFlags: {
       split: true,
       num_sims: 10,
@@ -336,7 +345,7 @@ const MASTER_CONFIGS = {
   synonyms: {
     baseConditions: ['yelppredict', 'yelpalternatives'],
     instructions: 'yelp',
-    showSecondPractice: true,
+    showAlternativesPractice: true,
   }
 };
 
@@ -344,15 +353,18 @@ const MASTER_CONFIGS = {
 
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
-  let {showSecondPractice} = masterConfig;
+  let {showAlternativesPractice} = masterConfig;
+  let tutorialCondition = showAlternativesPractice ? 'airbnbPlain' : 'airbnb';
   let result = [
     {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
     {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
     {controllerScreen: 'IntroSurvey'},
-    {preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbPlain', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
+    {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
-  if (showSecondPractice) {
-    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnb', name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer2'});
+  if (showAlternativesPractice) {
+    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbAlternatives', name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeAlternativesInstructions'});
+  } else {
+    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'TutorialInstructions'});
   }
   result = result.concat([
     {controllerScreen: 'SelectRestaurants'},
