@@ -329,6 +329,7 @@ export const Instructions = inject('state')(observer(({state}) => {
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to complete this step.</p>
         : <p>Your phone shows a brief quiz on these instructions. Once you've passed the quiz, look back here.</p>}
+      <p>The shortcuts will be different from what you saw before.</p>
     </div>;
   }));
 
