@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-06-29T10:57:44Z",
-  "lastModifiedDate": "2017-07-26T21:02:17Z",
+  "lastModifiedDate": "2017-08-31T20:48:32Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -17,7 +17,7 @@
         "selector": "TB",
         "subSelector": null
       },
-      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span><br>\n<br>The main part of this task will be writing about each experience that you just listed. There will be a brief survey after each writing session, then a survey about the experiment overall. <div><br></div><div>If any part of this task is confusing or unclear, please don't hesitate to ask us about it!<br>\n<br>Before we get started, could you please answer a few questions about yourself?<br></div>",
+      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span> If any part of this task is confusing or unclear, please don't hesitate to ask us about it!<br><div>\n<br>Before we get started, could you please answer a few questions about yourself?<br></div>",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
