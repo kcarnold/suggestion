@@ -433,13 +433,13 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       <h1>Tutorial (part 1 of 2)</h1>
 
       <p>For technical reasons, we have to use a special keyboard for this experiment. It might feel harder to type with it than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
-      But it has a few special features that you get to try out!</p>
+      But it has a few special features that you get to try out! (scroll down...)</p>
 
       <ul>
         <li>Try the shortcut buttons to insert words:<br/>
         <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Tap one of the boxes to insert that word.</TutorialTodo>
         </li>
-        <li>To help you get used to the shortcuts, if you start tapping a word that you could use a shortcut for, the shortcut will light up.</li>
+        <li>To help you get used to the shortcuts, if you start typing out a word that you could use a shortcut for, the shortcut will light up. Try it: <b>tap the first few letters of the word in the leftmost box</b> and notice what happens.</li>
         <li>Each shortcut button shows a preview of the words that it will insert if you tap it repeatedly. For example, if you triple-tap the box on the left, it will insert &ldquo;<tt>{previewPhrase3}</tt>&rdquo;.
         <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Try a <b>double-tap</b> to insert two words.</TutorialTodo>
         </li>
