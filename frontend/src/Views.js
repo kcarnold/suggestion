@@ -219,7 +219,7 @@ const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(cla
   render() {
     if (this.props.spying) {
       let url = this.getRedirectURL();
-      return <div>(survey: {this.props.state.curScreen.controllerScreen}) <a href={url}>{url}</a></div>;
+      return <div>(survey: {this.props.state.curScreen.controllerScreen || this.props.state.curScreen.screen}) <a href={url}>{url}</a></div>;
     }
     return <div>redirecting...</div>;
   }
