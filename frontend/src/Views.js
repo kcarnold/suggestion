@@ -371,21 +371,32 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
   </div>;
 }));
 
+const InstructionsSegment = inject('state')(observer(class instructionsSegment extends Component {
+  componentDidMount() {
+    this.ref.scrollTop = 0;
+  }
+
+  render() {
+    let {state} = this.props;
+    let instructionsScreens = {
+      PracticeComputer: PracticeComputer,
+      TutorialInstructions: TutorialInstructions,
+      RevisionComputer: RevisionComputer,
+    }
+    let instructionsScreenName = state.screens[state.screenNum].controllerScreen;
+    return React.createElement(
+      instructionsScreens[instructionsScreenName],
+      {ref: elt => this.ref = elt});
+  }
+}));
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState, isPractice} = state;
       let {showReplacement, showSynonyms, showPredictions} = state.experimentState;
       let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
-      let instructionsScreens = {
-        PracticeComputer: <PracticeComputer />,
-        TutorialInstructions: <TutorialInstructions />,
-        RevisionComputer: <RevisionComputer />
-      }
-      let instructionsScreenName = state.screens[state.screenNum].controllerScreen;
-      let instructions = instructionsScreens[instructionsScreenName];
       return <div className="ExperimentScreen">
         <div className="header">
-          <div key={instructionsScreenName} style={{flex: '0 0 200px'}}>{instructions}</div>
+          <div style={{flex: '0 0 200px'}}><InstructionsSegment /></div>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If you notice an æ, tap on it (or nearby, it doesn't matter). Don't worry if you happen to miss a few.</p>}
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>There was an æ in an area you haven't noticed yet!<br/>Look for the æ and tap it.<br/>Once you notice it yourself, these messages will stop.</div>}
