@@ -357,7 +357,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let tutorialCondition = showAlternativesPractice ? 'airbnbPlain' : 'airbnb';
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},
-    {screen: 'IntroSurvey'},
+    {screen: 'SelectRestaurants'},
     {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
   if (showAlternativesPractice) {
@@ -365,9 +365,6 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   } else {
     result.push({preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'TutorialInstructions'});
   }
-  result = result.concat([
-    {screen: 'SelectRestaurants'},
-  ]);
   if (masterConfigName === 'infoSource') {
     conditions.forEach((conditionName, block) => {
       result = result.concat([
@@ -384,6 +381,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   }
   result = result.concat([
     {controllerScreen: 'ShowReviews', screen: 'PostExpSurvey'},
+    {screen: 'IntroSurvey'},
     {screen: 'Done', controllerScreen: 'Done'},
   ]);
   return result;

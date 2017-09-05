@@ -296,8 +296,16 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
   let complete = _.every(allFields, x => state.controlledInputs.get(x))
 
   return <div>
-    <h1>Ready to write some reviews?</h1>
-    <p>Think of {numPlaces} <b>restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
+    <h1>Experiment Outline</h1>
+    <p>In this experiment, you'll:</p>
+    <ul>
+      <li>Complete a tutorial to learn how to use the new keyboard</li>
+      <li>Write short reviews of 4 restaurants of your choice</li>
+      <li>Answer a few questions about each review, and some overall questions at the end</li>
+      <li>Complete a demographic and personality questionnaire</li>
+    </ul>
+
+    <p>Before we get started, we want to make sure you'll be able to write about 4 different restaurant visits. So  <b>think of {numPlaces} restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
 
     {groups.map(({header, indices: groupIndices}, groupIdx) => <div key={groupIdx} style={{borderLeft: '2px solid black', paddingLeft: '5px'}}>
@@ -336,14 +344,14 @@ export const Instructions = inject('state')(observer(({state}) => {
 
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
-export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
+export const ReadyPhone = inject('state')(observer(({state}) => <div>
     <h1>Let's write about your experience at {state.curPlace.name}!</h1>
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     {state.condition.useAttentionCheck && <p>For this study, we need to measure which parts of the screen people are paying attention to. So if you happen to notice an "æ" somewhere, tap it to acknowledge that you saw it. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
     <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
-    : <RedirectToSurvey url={texts[state.masterConfig.instructions].instructionsQuiz} afterEvent={'passedQuiz'} extraParams={{prewrite: state.prewrite}} />));
+));
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
@@ -396,7 +404,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
       return <div className="ExperimentScreen">
         <div className="header">
-          <div style={{flex: '0 0 200px'}}><InstructionsSegment /></div>
+          <div style={{flex: '0 0 200px', padding: '5px'}}><InstructionsSegment /></div>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If you notice an æ, tap on it (or nearby, it doesn't matter). Don't worry if you happen to miss a few.</p>}
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>There was an æ in an area you haven't noticed yet!<br/>Look for the æ and tap it.<br/>Once you notice it yourself, these messages will stop.</div>}
@@ -468,7 +476,7 @@ export const TutorialInstructions = inject('state', 'dispatch')(observer(({state
     <p><b>Tutorial task</b>:</p>
 
     <ul>
-      <li>Think of a residence that you know well -- where you live now, where you grew up, etc.</li>
+      <li>Think of a residence that you know well, such as where you live now or where you grew up.</li>
       <li>Imagine you're writing a description of it for a site like Airbnb or Craigslist. (Please don't include any information that would identify you.)</li>
       <li><b>Write a sentence about the interior of the residence.</b></li>
       <li>Try to write it using <b>as few taps</b> as possible. Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</li>
