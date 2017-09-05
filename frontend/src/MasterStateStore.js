@@ -19,7 +19,7 @@ type Screen = {
 function experimentBlock(block:number, conditionName: string, includePrewrite: boolean): Array<Screen> {
   let prewritePhase = [
     {
-      controllerScreen: 'Instructions', screen: 'ReadyPhone',
+      screen: 'ReadyPhone',
       preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `pre-${block}`},
     },
     {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
@@ -30,7 +30,7 @@ function experimentBlock(block:number, conditionName: string, includePrewrite: b
     {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
     // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
     {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
-    {controllerScreen: 'PostTaskSurvey'},
+    {screen: 'PostTaskSurvey'},
   ];
 
   if (includePrewrite) {
@@ -356,9 +356,8 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let {showAlternativesPractice} = masterConfig;
   let tutorialCondition = showAlternativesPractice ? 'airbnbPlain' : 'airbnb';
   let result = [
-    {controllerScreen: 'Welcome', screen: 'ProbablyWrongCode'},
-    {screen: 'SetupPairingPhone', controllerScreen: 'SetupPairingComputer'},
-    {controllerScreen: 'IntroSurvey'},
+    {controllerScreen: 'Welcome', screen: 'Welcome'},
+    {screen: 'IntroSurvey'},
     {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
   if (showAlternativesPractice) {
@@ -367,7 +366,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     result.push({preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'TutorialInstructions'});
   }
   result = result.concat([
-    {controllerScreen: 'SelectRestaurants'},
+    {screen: 'SelectRestaurants'},
   ]);
   if (masterConfigName === 'infoSource') {
     conditions.forEach((conditionName, block) => {
@@ -384,7 +383,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     });
   }
   result = result.concat([
-    {screen: 'ShowReviews', controllerScreen: 'PostExpSurvey'},
+    {controllerScreen: 'ShowReviews', screen: 'PostExpSurvey'},
     {screen: 'Done', controllerScreen: 'Done'},
   ]);
   return result;

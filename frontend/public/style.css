@@ -55,14 +55,14 @@ html, body {
     overflow-y: scroll;
     background-color: #ccc;
     color: black;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     /* max-height: 140px; */
 }
 
 /*** TEXT ***/
 .CurText {
     white-space: pre-wrap;
-    flex: 1 1 auto;
+    flex: 1 0 54px;
     padding: 1px;
     overflow-y: scroll;
     display: flex;

@@ -337,6 +337,7 @@ export const Instructions = inject('state')(observer(({state}) => {
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
 export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz ? <div>
+    <h1>Let's write about your experience at {state.curPlace.name}!</h1>
     <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
@@ -347,7 +348,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => state.passedQuiz
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
 export const RevisionComputer = inject('state')(observer(({state}) => <div>
-  <p><b>Now use your phone to write about your experience at {state.curPlace.name}.</b></p>
+  <p><b>Your experience at {state.curPlace.name}.</b></p>
 
   <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
       <div>Word count: {state.experimentState.wordCount}</div>
@@ -375,11 +376,16 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       let {experimentState, isPractice} = state;
       let {showReplacement, showSynonyms, showPredictions} = state.experimentState;
       let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
+      let instructionsScreens = {
+        PracticeComputer: <PracticeComputer />,
+        TutorialInstructions: <TutorialInstructions />,
+        RevisionComputer: <RevisionComputer />
+      }
+      let instructionsScreenName = state.screens[state.screenNum].controllerScreen;
+      let instructions = instructionsScreens[instructionsScreenName];
       return <div className="ExperimentScreen">
         <div className="header">
-          {isPractice ? "See computer for instructions." : <span>{
-            state.prewrite ? (state.isPrewrite ? "Brainstorming for your" : "Revised") : "Your"} <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>
-          </span>}
+          <div key={instructionsScreenName} style={{flex: '0 0 200px'}}>{instructions}</div>
           {experimentState.curConstraint.avoidLetter ? <div>This sentence cannot use the letter <b>{experimentState.curConstraint.avoidLetter}</b>.</div> : null}
           {state.condition.useAttentionCheck && <p>If you notice an æ, tap on it (or nearby, it doesn't matter). Don't worry if you happen to miss a few.</p>}
           {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>There was an æ in an area you haven't noticed yet!<br/>Look for the æ and tap it.<br/>Once you notice it yourself, these messages will stop.</div>}

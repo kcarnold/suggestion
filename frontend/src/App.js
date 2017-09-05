@@ -30,7 +30,7 @@ export function init() {
     if (!code) {
       // Generate a code.
       clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
-      code = clientId + '-c';
+      code = clientId + '-p';
       let config = defaultConfig;
       if (externalAction.slice(0, 2) === 'c=') {
         config = externalAction.slice(2);
