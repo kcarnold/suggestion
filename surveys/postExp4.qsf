@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-06-29T10:48:29Z",
-  "lastModifiedDate": "2017-06-29T10:56:11Z",
+  "lastModifiedDate": "2017-09-06T14:57:05Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -81,7 +81,7 @@
         "selector": "TB",
         "subSelector": null
       },
-      "questionText": "<span style=\"font-size:16px;\"><strong>Closing Survey</strong></span><br>\n<br>\nYour phone's screen should be showing what you wrote for reference.",
+      "questionText": "<span style=\"font-size:16px;\"><strong>Closing Survey</strong></span>",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
@@ -155,7 +155,7 @@
         "selector": "ML",
         "subSelector": null
       },
-      "questionText": "Think about the words or phrases that the keyboard offered. What differences (if any) did you notice between the writing sessions?",
+      "questionText": "Think about the shortcuts that the keyboard offered. What differences (if any) did you notice between the writing sessions?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false,
@@ -195,6 +195,25 @@
         }
       }
     },
+    "QID27": {
+      "questionType": {
+        "type": "TE",
+        "selector": "SL",
+        "subSelector": null
+      },
+      "questionText": "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months? Don't count the reviews from this study.",
+      "questionLabel": null,
+      "validation": {
+        "doesForceResponse": false,
+        "type": "ValidNumber",
+        "settings": {
+          "maxDecimals": 0,
+          "minimum": 0.0,
+          "maximum": 0.0
+        }
+      },
+      "questionName": "Q33"
+    },
     "QID7": {
       "questionType": {
         "type": "TE",
@@ -214,7 +233,7 @@
         "selector": "ML",
         "subSelector": null
       },
-      "questionText": "Thanks for participating in this study!<br><br>Any closing thoughts you'd like to tell us?",
+      "questionText": "Thanks for participating in this study! Just a few questions about demographics and personality, then we're done.<br><br>Before we get to demographics, any closing thoughts you'd like to tell us?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false
@@ -279,6 +298,9 @@
     "Q16": {
       "question": "QID16"
     },
+    "Q33": {
+      "question": "QID27"
+    },
     "Q7": {
       "question": "QID7"
     },
@@ -313,6 +335,10 @@
         {
           "type": "Question",
           "questionId": "QID16"
+        },
+        {
+          "type": "Question",
+          "questionId": "QID27"
         },
         {
           "type": "Question",

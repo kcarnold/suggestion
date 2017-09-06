@@ -5,7 +5,7 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-07-31T21:11:40Z",
-  "lastModifiedDate": "2017-07-31T21:18:11Z",
+  "lastModifiedDate": "2017-09-06T14:45:43Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -128,7 +128,7 @@
         "selector": "STAR",
         "subSelector": null
       },
-      "questionText": "Now that you've had a chance to write about it, how many stars would you give your experience at this restaurant? (It's OK if this isn't the same as what you said at first.)",
+      "questionText": "Now that you've had a chance to write about it, how many stars would you give your experience at this restaurant?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": true
@@ -165,7 +165,7 @@
         "selector": "ML",
         "subSelector": null
       },
-      "questionText": "How would you describe the words that the keyboard gave -- what they were and how you used them (or didn't use them)?",
+      "questionText": "How would you describe the shortcuts that the keyboard gave -- what they were and how you used them (or didn't use them)?",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false,
@@ -179,7 +179,7 @@
         "selector": "SAVR",
         "subSelector": "TX"
       },
-      "questionText": "Compared with the experience you were writing about, the phrases that the keyboard gave were usually...",
+      "questionText": "Compared with the experience you were writing about, the shortcuts that the keyboard gave were usually...",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false,

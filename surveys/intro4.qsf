@@ -5,25 +5,12 @@
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-08-31T20:48:32Z",
-  "lastModifiedDate": "2017-08-31T21:17:42Z",
+  "lastModifiedDate": "2017-09-06T14:46:44Z",
   "expiration": {
     "startDate": null,
     "endDate": null
   },
   "questions": {
-    "QID1": {
-      "questionType": {
-        "type": "DB",
-        "selector": "TB",
-        "subSelector": null
-      },
-      "questionText": "<span style=\"font-size:16px;\"><strong>Welcome!</strong></span> If any part of this task is confusing or unclear, please don't hesitate to ask us about it!<br><div>\n<br>Before we get started, could you please answer a few questions about yourself?<br></div>",
-      "questionLabel": null,
-      "validation": {
-        "doesForceResponse": false
-      },
-      "questionName": "Q1"
-    },
     "QID12": {
       "questionType": {
         "type": "Meta",
@@ -636,25 +623,9 @@
       "randomization": {
         "type": "all"
       }
-    },
-    "QID33": {
-      "questionType": {
-        "type": "DB",
-        "selector": "TB",
-        "subSelector": null
-      },
-      "questionText": "Thanks! Submit this survey to continue with the experiment.",
-      "questionLabel": null,
-      "validation": {
-        "doesForceResponse": false
-      },
-      "questionName": "Q33"
     }
   },
   "exportColumnMap": {
-    "Q1": {
-      "question": "QID1"
-    },
     "Q12_1_TEXT": {
       "question": "QID12",
       "choice": "QID12.choices.1"
@@ -856,28 +827,16 @@
     "Q21_112": {
       "question": "QID20",
       "subQuestion": "QID20.subQuestions.112"
-    },
-    "Q33": {
-      "question": "QID33"
     }
   },
   "blocks": {
-    "BL_cIR1YYomzsRNa1n": {
-      "description": "Default Question Block",
-      "elements": [
-        {
-          "type": "Question",
-          "questionId": "QID1"
-        },
-        {
-          "type": "Question",
-          "questionId": "QID12"
-        }
-      ]
-    },
     "BL_8IF8DosshSEGAGp": {
       "description": "Demographics",
       "elements": [
+        {
+          "type": "Question",
+          "questionId": "QID12"
+        },
         {
           "type": "Question",
           "questionId": "QID6"
@@ -905,24 +864,16 @@
       ]
     },
     "BL_d5NMwqtF7M323FX": {
-      "description": "Block 3",
+      "description": "Personality",
       "elements": [
         {
           "type": "Question",
           "questionId": "QID20"
-        },
-        {
-          "type": "Question",
-          "questionId": "QID33"
         }
       ]
     }
   },
   "flow": [
-    {
-      "id": "BL_cIR1YYomzsRNa1n",
-      "type": "Block"
-    },
     {
       "type": "EmbeddedData"
     },
