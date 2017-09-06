@@ -215,7 +215,7 @@ export class ExperimentStateStore {
 
         // If this key happened to be the prefix of a recommended word, continue that word.
         let curWord = this.curText.slice(this.lastSpaceIdx + 1);
-        if (curWord.slice(0, oldCurWord.length) === oldCurWord) {
+        if (!isNonWord && curWord.slice(0, oldCurWord.length) === oldCurWord) {
           this.visibleSuggestions.predictions.forEach((pred, slot) => {
             if (pred.words.length === 0) return;
             if (newActiveSuggestion) return;

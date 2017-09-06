@@ -40,6 +40,27 @@ const recs1 = {
   ],
 };
 
+const recs2 = {
+  predictions: [
+    {
+      words: ["."],
+      meta: {
+      },
+    },
+    {
+      words: ["!"],
+      meta: {
+      },
+    },
+    {
+      words: ["and", "it", "was"],
+      meta: {
+      },
+    },
+  ],
+};
+
+
 function tapKeys(state, keys) {
   Array.prototype.forEach.call(keys, key =>
     state.handleEvent({ type: "tapKey", key }),
@@ -147,4 +168,25 @@ it("doesn't promise the same word completion if the user isn't typing a prefix",
   // Tap 'a'.
   state.handleEvent({ type: "tapKey", key: 'a' });
   expect(state.visibleSuggestions.predictions[slot].words).toEqual([]);
+});
+
+
+it("doesn't promise word completions for punctuation", () => {
+  Array.prototype.forEach.call('.!', char => {
+    let state = new ExperimentStateStore({});
+
+    tapKeys(state, "i have never had a bad experience ");
+
+    // Set up the received recommendations
+    state.handleEvent({
+      type: "receivedSuggestions",
+      msg: { request_id: state.contextSequenceNum, ...recs2 },
+    });
+
+    // Tap a period, which is also a shortcut, but shouldn't trigger a promise.
+    expect(state.visibleSuggestions.predictions[0].words[0]).toEqual('.');
+    state.handleEvent({ type: "tapKey", key: char });
+    expect(state.visibleSuggestions.predictions[0].words).toEqual([]);
+    expect(state.suggestionContext.promise).toBeUndefined();
+  });
 });
