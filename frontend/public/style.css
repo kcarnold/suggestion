@@ -264,7 +264,7 @@ span.word {
 
 /** Instructions etc. **/
 
-.Tutorial li {
+.Tutorial li, .SelectRestaurants li {
   margin-bottom: 1em;
 }
 

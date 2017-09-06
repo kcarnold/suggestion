@@ -296,15 +296,15 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
   });
   let complete = _.every(allFields, x => state.controlledInputs.get(x))
 
-  return <div>
+  return <div className="SelectRestaurants">
     <h1>Experiment Outline</h1>
     <p>In this experiment, you'll:</p>
-    <ul>
-      <li>Complete a tutorial to learn how to use the new keyboard</li>
-      <li>Write short reviews of 4 restaurants of your choice</li>
-      <li>Answer a few questions about each review, and some overall questions at the end</li>
-      <li>Complete a demographic and personality questionnaire</li>
-    </ul>
+    <ol>
+      <li>Complete a tutorial to learn how to use the new keyboard,</li>
+      <li>Write short reviews of 4 restaurants of your choice,</li>
+      <li>Answer a few questions about each review, and some overall questions at the end, and</li>
+      <li>Complete a demographic and personality questionnaire.</li>
+    </ol>
 
     <p>Before we get started, we want to make sure you'll be able to write about 4 different restaurant visits. So  <b>think of {numPlaces} restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
