@@ -29,7 +29,7 @@ export function init() {
     let hash = '';
     if (!code) {
       // Generate a code.
-      clientId = _.range(6).map(function(i) { return _.sample('0123456789abcdef'); }).join('');
+      clientId = _.range(6).map(function(i) { return _.sample('23456789cfghjmpqrvwx'); }).join('');
       code = clientId + '-p';
       let config = defaultConfig;
       if (externalAction.slice(0, 2) === 'c=') {

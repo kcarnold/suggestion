@@ -1,4 +1,4 @@
-import string
+import re
 import json
 import time
 import os
@@ -134,7 +134,7 @@ class Panopticon:
 
 
 def validate_participant_id(participant_id):
-    assert all(x in string.hexdigits for x in participant_id)
+    return re.match(r'^[0-9a-zA-Z]+$', participant_id) is not None
 
 
 class WebsocketHandler(tornado.websocket.WebSocketHandler):
