@@ -170,6 +170,7 @@ const ControlledInput = inject('dispatch', 'state')(observer(function Controlled
     name={name}
     onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}}
     value={state.controlledInputs.get(name) || ''}
+    autoComplete="off" autoCorrect="off" autoCapitalize="on" spellCheck="false"
     {...props} />;
   }));
 
