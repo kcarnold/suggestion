@@ -5,13 +5,9 @@ class Consent extends React.Component {
     return (
       <section
         className="container"
-        id="Other"
         style={{
           marginBottom: 15,
           padding: "10px 10px",
-          fontFamily: "Verdana, Geneva, sans-serif",
-          color: "#333333",
-          fontSize: "0.9em",
         }}
       >
         <p>
