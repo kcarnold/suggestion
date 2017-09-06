@@ -462,7 +462,7 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
 
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
       {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
-        Ready for the second part of the tutorial? Click <NextBtn />.</p> : <p>Complete all of the steps above to move on.</p>}
+        Ready for the second part of the tutorial? Tap <NextBtn />.</p> : <p>Complete all of the steps above to move on.</p>}
     </div>;
   }));
 
