@@ -111,6 +111,24 @@ it("promises a phrase completion even without a server roundtrip", () => {
   );
 });
 
+it("doesn't crash when running out of words", () => {
+  let state = new ExperimentStateStore({});
+  let words = ["this", "is", "my", "favorite", "place"];
+  state.handleEvent({
+    type: "receivedSuggestions",
+    msg: { request_id: state.contextSequenceNum, ...recs1 },
+  });
+
+  // Tap on that sugg way more times than there are words.
+  for (let i=0; i<10; i++) {
+    state.handleEvent({ type: "tapSuggestion", which: "predictions", slot: 1 });
+  }
+
+  expect(M.toJS(state.visibleSuggestions.predictions[1].words)).toEqual([]);
+  expect(state.curText).toEqual(words.join(' ') + ' ');
+});
+
+
 it("promises the same word completion as long as the user is typing a prefix", () => {
   let state = new ExperimentStateStore({});
   let slot = 1, otherSlot = 0;

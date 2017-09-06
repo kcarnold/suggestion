@@ -246,6 +246,7 @@ export class ExperimentStateStore {
 
         let tappedSuggestion = this.visibleSuggestions[which][slot];
         let wordToInsert = tappedSuggestion.words[0];
+        if (!wordToInsert) return [];
         if (which === 'synonyms') {
           // Replace the _previous_ word.
           let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];
