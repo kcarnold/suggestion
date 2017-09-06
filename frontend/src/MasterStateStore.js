@@ -341,6 +341,7 @@ const MASTER_CONFIGS = {
   sent4: {
     baseConditions: ['sentpos', 'sentneg'],
     instructions: 'yelp',
+    timeEstimate: '45 to 75 minutes',
   },
   synonyms: {
     baseConditions: ['yelppredict', 'yelpalternatives'],
@@ -448,6 +449,10 @@ export class MasterStateStore {
       get isHDSL() {
         return this.participantCode !== null;
       },
+      get isMTurk() {
+        return !this.isHDSL;
+      },
+      get timeEstimate() { return this.masterConfig.timeEstimate; },
       get prewrite() { return this.masterConfig.prewrite; },
       prewriteText: '',
       curPrewriteLine: 0,

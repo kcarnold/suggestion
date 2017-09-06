@@ -256,12 +256,12 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
   }
 }));
 
-export const Welcome = () => <div>
+export const Welcome = inject('state')(observer(({state}) => <div>
     <h1>Welcome</h1>
-    <Consent />
+    <p>You should be seeing this page on a touchscreen device. If not, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
+    <Consent timeEstimate={state.timeEstimate} isMTurk={state.isMTurk} />
     <p>If you consent to participate, and if you're seenig this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
-    <p>If you're not on a touchscreen device, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
-  </div>;
+  </div>));
 
 export const  ProbablyWrongCode = () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>

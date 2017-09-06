@@ -1,9 +1,6 @@
 import React from "react";
 
-class Consent extends React.Component {
-  render() {
-    return (
-      <section
+const Consent = ({timeEstimate, isMTurk}) => <section
         className="container"
         style={{
           marginBottom: 15,
@@ -100,7 +97,7 @@ class Consent extends React.Component {
           </b>
         </p>
         <p>
-          We are studying systems that make suggestions while someone is typing
+          We are studying systems that offer shortcuts while someone is typing
           to find out how the system's design affects the writing process,
           writing outcome, and the author's subjective experience, and how
           psychological factors may influence those effects.
@@ -126,7 +123,7 @@ class Consent extends React.Component {
         <p>
           Some aspects of this study will occur at your own pace, so the time
           commitment may vary, but we expect it to be{" "}
-          <strong>between 15 and 30 minutes</strong>. There will be an
+          <strong>{timeEstimate}</strong>. There will be an
           opportunity to take a break about every 5 minutes.
         </p>
         <p>
@@ -179,8 +176,8 @@ class Consent extends React.Component {
           De-identified data may be shared with other researchers and other
           participants in this study.
         </p>
-        <p>
-          If you are completing this study through Amazon Mechanical Turk: The
+        {isMTurk && <p>
+          The
           MTurk platform provides access to your worker ID, which in some cases
           can be mapped to your name and work history. We are relying on the
           security of that platform to maintain your confidentiality. To
@@ -192,7 +189,7 @@ class Consent extends React.Component {
           with any MTurk task.{" "}
           <b>Please make sure to mark your Amazon Profile as private</b> if you
           do not want it to be found from your Mechanical Turk Worker ID.
-        </p>
+        </p>}
         <p>
           <b>
             <span style={{ fontSize: "14.0pt" }}>
@@ -230,9 +227,6 @@ class Consent extends React.Component {
             If you have questions about your rights as a research participant.
           </li>
         </ul>
-      </section>
-    );
-  }
-}
+      </section>;
 
 export default Consent;
