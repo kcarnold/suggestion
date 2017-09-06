@@ -434,6 +434,7 @@ export class MasterStateStore {
     this.clientId = clientId;
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
+    this.isDemo = isDemo;
     let demoConditionName = clientId.slice(4);
     let sentiment = null;
     if (demoConditionName.slice(0,9) === 'sentmatch') {

@@ -395,8 +395,9 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
       RevisionComputer: RevisionComputer,
     }
     let instructionsScreenName = state.screens[state.screenNum].controllerScreen;
+    let instructionEltProto = state.isDemo ? 'div' : instructionsScreens[instructionsScreenName];
     let instructionElt = React.createElement(
-      instructionsScreens[instructionsScreenName],
+      instructionEltProto,
       {ref: elt => this.ref = elt});
     return <div className="header">
       <div style={{flex: '0 0 200px', padding: '5px'}}>{instructionElt}</div>
