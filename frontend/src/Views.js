@@ -270,7 +270,7 @@ export const  ProbablyWrongCode = () => <div>
 
 function RestaurantPrompt({idx}) {
   return <div key={idx} className="Restaurant">{idx}.
-    Name: <ControlledInput name={`restaurant${idx}`} /><br />
+      Name of the place: <ControlledInput name={`restaurant${idx}`} /><br />
     About how long ago were you there, in days? <ControlledInput name={`visit${idx}`} type="number" min="0"/>
     <br />How would you rate that visit? <ControlledStarRating name={`star${idx}`} />
     {askKnowWhatToSay && <span><br/><br />On a scale of 1 to 5, do you already know what you want to say about this experience? 1="I haven't thought about it at all yet", 5="I know exactly what I want to say"<br/>
