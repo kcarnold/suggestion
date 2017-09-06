@@ -259,7 +259,7 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
 export const Welcome = () => <div>
     <h1>Welcome</h1>
     <Consent />
-    <p>If you consent to participate, click here: <NextBtn /></p>
+    <p>If you consent to participate, and if you're seenig this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
     </div>;
 
 export const  ProbablyWrongCode = () => <div>
