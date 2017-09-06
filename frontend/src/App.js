@@ -274,9 +274,6 @@ const App = observer(class App extends Component {
       } else if (state.pingTime > MAX_PING_TIME) {
         return <div>Sorry, your phone's connection to our server is too slow (your ping is {Math.round(state.pingTime)} ms). Check your WiFi connection and reload the page.</div>;
       }
-      if (state.phoneSize.width > state.phoneSize.height) {
-        return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
-      }
     }
     return (
       <Provider state={state} dispatch={dispatch} clientId={clientId} clientKind={clientKind} spying={false}>

@@ -412,6 +412,10 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
       let {experimentState} = state;
       let {showReplacement, showSynonyms, showPredictions} = state.experimentState;
       let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
+      if (state.phoneSize.width > state.phoneSize.height) {
+        return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
+      }
+
       return <div className="ExperimentScreen">
         <ExperimentHead key={state.screens[state.screenNum].controllerScreen} />
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
