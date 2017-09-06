@@ -260,7 +260,8 @@ export const Welcome = () => <div>
     <h1>Welcome</h1>
     <Consent />
     <p>If you consent to participate, and if you're seenig this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
-    </div>;
+    <p>If you're not on a touchscreen device, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
+  </div>;
 
 export const  ProbablyWrongCode = () => <div>
     <p>Waiting for computer. If you're seeing this on your phone, you probably mistyped your code.</p>
