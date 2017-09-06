@@ -443,7 +443,7 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       <h1>Tutorial (part 1 of 2)</h1>
 
       <p>For technical reasons, we have to use a special keyboard for this experiment. It might feel harder to type with it than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.
-      But it has a few special features that you get to try out! (scroll down...)</p>
+      But it has a few special features that you get to try out! (scroll this section down...)</p>
 
       <ul>
         <li>Try the shortcut buttons to insert words:<br/>
