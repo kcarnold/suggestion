@@ -1,3 +1,4 @@
 joblib>=0.10.[
 python-dotenv
 readability
+attrs
