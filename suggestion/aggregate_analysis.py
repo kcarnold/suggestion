@@ -20,8 +20,7 @@ from suggestion.analysis_util import (
         # survey stuff
         skip_col_re, prefix_subs, decode_scales,
         # log analysis stuff
-        get_existing_requests, classify_annotated_event, get_log_analysis,
-        group_requests_by_session,
+        classify_annotated_event, get_log_analysis,
         get_content_stats_single_suggestion)
 
 
@@ -353,7 +352,8 @@ def get_log_analysis_data(participant, git_rev):
             'place_knowWhatToWrite': 'know_what_to_write',
             'place_stars': 'stars_before'}
         for old_name, new_name in renames.items():
-            datum[new_name] = datum.pop(old_name)
+            if old_name in datum:
+                datum[new_name] = datum.pop(old_name)
         classified_events = [classify_annotated_event(evt) for evt in page_data['annotated']]
 #        transitions = Counter(zip(itertools.chain(['start'], classified_events), itertools.chain(classified_events, ['end']))).most_common()
 #        for (a, b), count in transitions:
@@ -456,12 +456,6 @@ def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
     return pd.Series(dict(unigram_llk_mean=np.mean(freqs), unigram_llk_std=np.std(freqs), num_sentences=len(nltk.sent_tokenize(doc))))
 
 
-def get_latencies(participants):
-    suggestion_data_raw = {participant: get_existing_requests(paths.parent / 'logs' / f'{participant}.jsonl') for participant in participants}
-    suggestion_data = pd.concat({participant: pd.DataFrame(suggestions) for participant, suggestions, in suggestion_data_raw.items()}, axis=0, names=['participant_id', None])
-    return suggestion_data.groupby(level=0).latency.apply(lambda x: np.percentile(x, 75)).to_frame('latency_75')
-
-
 def clean_merge(*a, must_match=[], combine_cols=[], **kw):
     res = pd.merge(*a, **kw)
     for col in must_match:
@@ -477,22 +471,18 @@ def clean_merge(*a, must_match=[], combine_cols=[], **kw):
 
 #%%
 @mem.cache
-def get_suggestion_content_stats(participant_id, page_conditions):
-    suggestion_data_raw = get_existing_requests(paths.parent / 'logs' / f'{participant_id}.jsonl')
-    res = group_requests_by_session(suggestion_data_raw, participant_id)
-
-    if len(res) != len(page_conditions):
-        print(f"Failed to get content stats for logfile {participant_id}")
-        return {}
-
+def get_suggestion_content_stats(analyzed):
     by_trial = []
-    for condition, block in zip(page_conditions, res):
+    for page_name in analyzed['pageSeq']:
+        page = analyzed['byExpPage'][page_name]
+        condition = page['condition']
         if condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg']:
             continue
-        assert len(block) > 0
+        displayed_suggs = page['displayedSuggs']
+        assert len(displayed_suggs) > 0
 
         block_data = []
-        for sugg in block:
+        for sugg in displayed_suggs:
             for datum in get_content_stats_single_suggestion(sugg, word_freq_analyzer=word_freq_analyzer) or []:
                 block_data.append(datum)
 
@@ -554,11 +544,6 @@ def get_all_data_pre_annotation(batch=None):
 
     # Parse 'know what to write'
     trial_level_data['know_what_to_write'] = pd.to_numeric(trial_level_data.know_what_to_write, errors='coerce')
-
-    # Calculate latency.
-    participant_level_data = clean_merge(
-            participant_level_data, get_latencies(participants),
-            left_index=True, right_index=True, how='left')
 
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
