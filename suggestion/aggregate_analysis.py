@@ -30,7 +30,7 @@ word_freq_analyzer = WordFreqAnalyzer.build()
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 
 
-ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
+ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'intro4', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
 
 
 STUDY_COLUMNS = '''
@@ -356,7 +356,7 @@ def summarize_trials(log_analysis):
         # and some contexts never have a corresponding displayed suggestion
         # if the latency is too high.
         latencies = [rec['latency'] for rec in page_data['displayedSuggs'] if rec]
-        datum['latency_75'] = np.percentile(latencies, 75)
+        datum['latency_75_trial'] = np.percentile(latencies, 75)
 
         datum.update(flatten_dict(page_data))
         renames = {
@@ -421,8 +421,12 @@ def get_sentiment_and_topic_annotations(trial_level_data, annotator):
 
     result_files = list(paths.parent.joinpath('gruntwork').glob(f"annotations_{annotator}_*.csv"))
     if result_files:
-        annotation_results = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True).dropna(how='all', subset=['pos', 'neg', 'topics'])
-        task = task.combine_first(annotation_results.set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx']))
+        cols = ['pos', 'neg', 'topics']
+        annotation_results = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True).dropna(how='all', subset=cols)
+        task = clean_merge(
+            task.drop(cols, axis=1),
+            annotation_results.set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx']).drop(['sentence'], axis=1),
+            how='left', left_index=True, right_index=True)#, must_match=['sentence'])
 
     task = task.reset_index()
     topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
@@ -570,7 +574,13 @@ def get_all_data_pre_annotation(batch=None):
     participant_level_data['total_rec_taps_overall'] = taps_agg.num_tapSugg_bos + taps_agg.num_tapSugg_full + taps_agg.num_tapSugg_part
     participant_level_data['total_actions_nobackspace_overall'] = participant_level_data['total_key_taps_overall'] + participant_level_data['total_rec_taps_overall']
     participant_level_data['rec_frac_overall'] = participant_level_data['total_rec_taps_overall'] / participant_level_data['total_actions_nobackspace_overall']
-    participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
+    if 'attentionCheckStats_passed' in taps_agg:
+        participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
+
+    participant_level_data = clean_merge(
+            participant_level_data,
+            trial_level_data.groupby('participant_id').latency_75_trial.max().to_frame('latency_75'),
+            left_index=True, right_index=True)
 
     too_much_latency = (participant_level_data['latency_75'] > 500)
     print(f"Excluding {np.sum(too_much_latency)} for too much latency")
@@ -586,7 +596,8 @@ def get_all_data_pre_annotation(batch=None):
             left_index=True, right_index=True, how='left')
     participant_level_data = participant_level_data.reset_index()
 
-    trial_level_data['attention_check_frac_passed_trial'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
+    if 'attentionCheckStats_passed' in trial_level_data:
+        trial_level_data['attention_check_frac_passed_trial'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
 
     # Filter for valid data.
     trial_level_data = trial_level_data[~trial_level_data.final_text.isnull()]
@@ -624,11 +635,14 @@ def get_all_data_with_annotations(batch=None):
 
     # Manual text corrections
     trial_level_data, corrections_todo = get_corrected_text(trial_level_data)
+    # Fill in missing.
+    trial_level_data['corrected_text'] = trial_level_data.corrected_text.combine_first(trial_level_data['final_text'])
 
     # Compute likelihoods
+    corrected_text = trial_level_data.corrected_text.dropna()
     trial_level_data = clean_merge(
         trial_level_data,
-        trial_level_data.corrected_text.dropna().apply(analyze_llks),
+        corrected_text.apply(analyze_llks),
         left_index=True, right_index=True, how='left')
 
     # Compute other readability measures
@@ -670,14 +684,17 @@ def get_all_data_with_annotations(batch=None):
             .topics
             .agg([has_any_nonsense, num_topics]))
 
-    trial_level_data = clean_merge(
-        trial_level_data, topic_data.reset_index(),
-        on=['participant_id', 'block', 'condition'], how='left')
-
+    if len(topic_data) > 0:
+        trial_level_data = clean_merge(
+            trial_level_data, topic_data.reset_index(),
+            on=['participant_id', 'block', 'condition'], how='left')
+    else:
+        trial_level_data['has_any_nonsense'] = None
+        trial_level_data['num_topics'] = None
 
     participant_level_data = clean_merge(
             participant_level_data,
-            (trial_level_data.groupby('participant_id').has_any_nonsense.value_counts().unstack().loc[:,True].fillna(0) > 0).to_frame('participant_wrote_any_nonsense'),
+            trial_level_data.groupby('participant_id').has_any_nonsense.max().to_frame('participant_wrote_any_nonsense'),
             left_on='participant_id', right_index=True, how='left')
 
     trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
@@ -727,13 +744,13 @@ def reorder_columns(df, desired_order):
 #%%
 def main(args):
     x = get_all_data_with_annotations(batch=args.batch)
+    basename = '+'.join(args.batch) if len(args.batch) else 'ALL'
     if args.write_output:
-        x['all_data'].to_csv('all_data.csv', index=False)
-        x['participant_level_data'].to_csv('participant_level_data.csv', index=False)
-        x['trial_level_data'].to_csv('trial_level_data.csv', index=False)
-        x['corrections_todo'].to_csv('gruntwork/corrections_todo.csv', index=False)
-        x['annotations_todo'].to_csv('gruntwork/annotations_todo_kca.csv', index=False)
-        x['participant_level_data'].query('study=="sent4_0"').drop(['Imagination', 'Agreeableness'], axis=1).dropna(axis=1).to_csv('participant_level_sent4.csv', index=False)
+        x['all_data'].to_csv(f'{basename}_all_data.csv', index=False)
+        x['participant_level_data'].to_csv(f'{basename}_participant_level_data.csv', index=False)
+        x['trial_level_data'].to_csv(f'{basename}_trial_level_data.csv', index=False)
+        x['corrections_todo'].to_csv(f'gruntwork/{basename}_corrections_todo.csv', index=False)
+        x['annotations_todo'].to_csv(f'gruntwork/{basename}_annotations_todo_kca.csv', index=False)
     return x
 #%%
 
