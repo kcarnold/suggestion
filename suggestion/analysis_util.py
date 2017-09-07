@@ -122,7 +122,7 @@ def get_content_stats_single_suggestion(sugg, word_freq_analyzer):
         # Skip partial words.
         return
 
-    model = suggestion_generator.get_or_load_model(meta['domain'])
+    model = suggestion_generator.Model.get_or_load_model(meta['domain'])
     try:
         toks = suggestion_generator.tokenize_sofar(sugg['sofar'])
     except:
@@ -133,7 +133,8 @@ def get_content_stats_single_suggestion(sugg, word_freq_analyzer):
     state = model.get_state(toks)[0]
     clf_startstate = suggestion_generator.sentiment_classifier.get_state(toks)
     res = []
-    for sugg_slot, phrase in enumerate(sugg['phrases']):
+    for sugg_slot, rec in enumerate(sugg['recs']['predictions']):
+        phrase = rec['words']
         if phrase:
             sentiment_posteriors = suggestion_generator.sentiment_classifier.classify_seq_by_tok(clf_startstate, phrase)
             sentiment = np.mean(sentiment_posteriors, axis=0) @ suggestion_generator.sentiment_classifier.sentiment_weights

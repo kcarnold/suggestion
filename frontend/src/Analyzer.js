@@ -69,6 +69,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     } else if (entry.type === 'receivedSuggestions' && isValidSugUpdate) {
       let {request, response}  = requestsByTimestamp[entry.msg.timestamp];
       pageData.displayedSuggs[expState.contextSequenceNum] = {
+        request_id: request.request_id,
         sofar: request.sofar,
         cur_word: request.cur_word,
         flags: request.flags,
