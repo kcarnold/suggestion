@@ -6,6 +6,7 @@ import ujson as json
 import subprocess
 from collections import Counter
 import nltk
+import argparse
 
 from suggestion.paths import paths
 root_path = paths.parent
@@ -132,10 +133,12 @@ sugg_contextual_llk_mean
 ###
 ### Metadata
 ###
-def get_participants_by_study():
+def get_participants_by_study(batch=None):
     import yaml
     participants_table = []
     for study_name, participants in yaml.load(open(root_path / 'participants.yaml')).items():
+        if batch and study_name not in batch:
+            continue
         for participant in participants.split():
             participants_table.append((participant, study_name))
     return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
@@ -154,7 +157,7 @@ def get_survey_data_raw():
         for name in ALL_SURVEY_NAMES}
 
 #%%
-traits_key = pd.read_csv('traits.csv').set_index('item').key.reset_index().dropna().set_index('item').key.to_dict()
+traits_key = pd.read_csv(paths.parent / 'traits.csv').set_index('item').key.reset_index().dropna().set_index('item').key.to_dict()
 trait_names = {
         "N": "Neuroticism",
         "NfC": "NeedForCognition",
@@ -513,8 +516,8 @@ def drop_cols_by_prefix(df, prefixes):
     return df.drop(drop_cols, axis=1)
 
 #%%
-def get_all_data_pre_annotation():
-    participants_by_study = get_participants_by_study()
+def get_all_data_pre_annotation(batch=None):
+    participants_by_study = get_participants_by_study(batch=batch)
     #[participants_by_study.study == 'sent4_0']
     participants = list(participants_by_study.participant_id)
 
@@ -622,8 +625,8 @@ def get_all_data_pre_annotation():
     return participant_level_data, trial_level_data
 
 
-def get_all_data_with_annotations():
-    participant_level_data, trial_level_data = get_all_data_pre_annotation()
+def get_all_data_with_annotations(batch=None):
+    participant_level_data, trial_level_data = get_all_data_pre_annotation(batch=batch)
 
     # Manual text corrections
     trial_level_data, corrections_todo = get_corrected_text(trial_level_data)
@@ -728,9 +731,9 @@ def reorder_columns(df, desired_order):
             reorder_cols.append(col)
     return df.loc[:, reorder_cols]
 #%%
-def main(write_output=False):
-    x = get_all_data_with_annotations()
-    if write_output:
+def main(args):
+    x = get_all_data_with_annotations(batch=args.batch)
+    if args.write_output:
         x['all_data'].to_csv('all_data.csv', index=False)
         x['participant_level_data'].to_csv('participant_level_data.csv', index=False)
         x['trial_level_data'].to_csv('trial_level_data.csv', index=False)
@@ -739,9 +742,15 @@ def main(write_output=False):
         x['participant_level_data'].query('study=="sent4_0"').drop(['Imagination', 'Agreeableness'], axis=1).dropna(axis=1).to_csv('participant_level_sent4.csv', index=False)
     return x
 #%%
+
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--write-output', action='store_true')
+    parser.add_argument('--batch', action='append')
+    args = parser.parse_args()
     # global vars are a source of errors, so we do this convoluted thing so the linter doesn't think they're valid globals.
-    globals().update(main(write_output=True))
+    globals().update(main(args))
 
 #%%
 

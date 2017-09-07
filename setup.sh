@@ -1,5 +1,5 @@
 #!/bin/bash
-conda install -y tornado ujson cython numpy datrie nltk scipy numba scikit-learn cytoolz pandas
+conda install -y tornado ujson cython numpy datrie nltk scipy numba scikit-learn cytoolz pandas yaml
 pip install -r requirements.txt
 pip install -e .
 
