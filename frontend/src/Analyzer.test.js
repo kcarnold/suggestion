@@ -26,7 +26,9 @@ it("includes the overall fields we expect", () => {
 
 function expectNotToContainAttnCheck(recset) {
   recset.predictions.concat(recset.synonyms).forEach(rec => {
-    expect(rec.word).not.toMatch(/æ/);
+    (rec.words || [rec.word]).forEach(word => {
+      expect(word).not.toMatch(/æ/);
+    });
   });
 }
 
@@ -37,6 +39,9 @@ it("extracts what suggestions were displayed", () => {
     page.displayedSuggs.forEach(suggEntry => {
       expect(suggEntry).toMatchObject({
         timestamp: expect.any(Number),
+        flags: expect.objectContaining({
+          domain: expect.any(String),
+        }),
         context: expect.any(String),
         recs: expect.anything(),
         latency: expect.any(Number),
