@@ -34,7 +34,7 @@ export class PanoptStore {
     this.showingIds.push(id);
     if (!this.states.has(id)) {
       this.states.set(id, new MasterStateStore(id));
-      // ws.send({type: 'get_logs', participantId: id});
+      ws.send({type: 'get_logs', participantId: id});
       ws.send({type: 'get_analyzed', participantId: id});
     }
   });
@@ -218,7 +218,7 @@ const Panopticon = observer(class Panopticon extends Component {
         return <div key={participantId}>
           <h1>{participantId} {conditions.join(',')}</h1>
           <AnalyzedView store={store} participantId={participantId} />
-          { /* <ReplayView store={store} participantId={participantId} /> */}
+          <ReplayView store={store} participantId={participantId} />
         </div>;
       })}</div>;
   }
@@ -231,4 +231,5 @@ window.M = M;
 window.store = store;
 
 
-store.addViewers('c104c0 feebe1 50b0c9 50b80b 99c66d')
+// store.addViewers('c104c0 feebe1 50b0c9 50b80b 99c66d')
+store.addViewers('2wr5j9 v4w898 7jqggr')

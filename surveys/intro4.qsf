@@ -1,11 +1,11 @@
 {
   "id": "SV_3Rb0qjF0w4YdLNz",
-  "name": "Writing Study - Intro - 2017-08-31",
+  "name": "Writing Study - Demographics - 2017-09-06",
   "ownerId": "UR_789p4qOsBfCeHqZ",
   "organizationId": "harvard",
   "isActive": true,
   "creationDate": "2017-08-31T20:48:32Z",
-  "lastModifiedDate": "2017-09-06T14:46:44Z",
+  "lastModifiedDate": "2017-09-06T16:09:43Z",
   "expiration": {
     "startDate": null,
     "endDate": null
@@ -282,7 +282,7 @@
         "selector": "SL",
         "subSelector": null
       },
-      "questionText": "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?",
+      "questionText": "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months? Don't count the reviews in this study.",
       "questionLabel": null,
       "validation": {
         "doesForceResponse": false,
