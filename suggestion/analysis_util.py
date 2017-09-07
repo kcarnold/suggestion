@@ -63,7 +63,8 @@ def checkout_old_code(git_rev):
 
 
 @mem.cache
-def get_log_analysis_raw(participant, git_rev=None):
+def get_log_analysis_raw(participant, git_rev=None, analysis_files=None):
+    # Ignore analysis_files; just use them to know when to invalidate the cache.
     logpath = paths.parent / 'logs' / (participant+'.jsonl')
     if git_rev is None:
         git_rev = get_rev(participant)
@@ -74,7 +75,11 @@ def get_log_analysis_raw(participant, git_rev=None):
 
 
 def get_log_analysis(participant, git_rev=None):
-    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev)
+    analysis_files = {
+        name: open(paths.parent / 'frontend' / name).read()
+        for name in ['analyze.js', 'analysis', 'src/Analyzer.js']
+    }
+    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev, analysis_files=analysis_files)
     analyzed = json.loads(result)
     analyzed['git_rev'] = git_rev
     return analyzed
@@ -83,7 +88,7 @@ def get_log_analysis(participant, git_rev=None):
 
 def classify_annotated_event(evt):
     typ = evt['type']
-    if typ in {'externalAction', 'next'}:
+    if typ in {'externalAction', 'next', 'resized', 'tapText'}:
         return None
     text = evt['curText']
     null_word = len(text) == 0 or text[-1] == ' '

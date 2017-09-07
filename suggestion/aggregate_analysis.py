@@ -332,8 +332,8 @@ def get_log_analysis_data(participant, git_rev):
                  conditions=','.join(conditions),
                  config=log_analysis['config'],
                  git_rev=log_analysis['git_rev'])
-    all_page_conditions = [log_analysis['byExpPage'][page]['condition'] for page in log_analysis['pageSeq']]
-    for page, page_data in log_analysis['byExpPage'].items():
+    for page in log_analysis['pageSeq']:
+        page_data = log_analysis['byExpPage'][page].copy()
         datum = base_datum.copy()
         if '-' in page:
             kind, num = page.split('-')
@@ -346,7 +346,22 @@ def get_log_analysis_data(participant, git_rev):
             # FIXME: maybe in the future we'll want to look at practice and prewrite data too?
             continue
         datum['block'] = num
-        datum.update(flatten_dict(log_analysis['blocks'][num]))
+
+        # Count actions.
+        actions = page_data.pop('actions')
+        classified_events = [classify_annotated_event(evt) for evt in actions]
+        for typ, count in Counter(classified_events).items():
+            if typ is not None:
+                datum[f'num_{typ}'] = count
+
+        # Summarize latencies
+        # Note that 'displayedSuggs' is actually indexed by context sequence number,
+        # and some contexts never have a corresponding displayed suggestion
+        # if the latency is too high.
+        latencies = [rec['latency'] for rec in page_data['displayedSuggs'] if rec]
+        datum['latency_75'] = np.percentile(latencies, 75)
+
+        datum.update(flatten_dict(page_data))
         renames = {
             'finalText': 'final_text',
             'place_knowWhatToWrite': 'know_what_to_write',
@@ -354,16 +369,8 @@ def get_log_analysis_data(participant, git_rev):
         for old_name, new_name in renames.items():
             if old_name in datum:
                 datum[new_name] = datum.pop(old_name)
-        classified_events = [classify_annotated_event(evt) for evt in page_data['annotated']]
-#        transitions = Counter(zip(itertools.chain(['start'], classified_events), itertools.chain(classified_events, ['end']))).most_common()
-#        for (a, b), count in transitions:
-#            if a is not None and b is not None:
-#                datum[f'x_{a}_{b}'] = count
-        for typ, count in Counter(classified_events).items():
-            if typ is not None:
-                datum[f'num_{typ}'] = count
         data.append(datum)
-    return data, all_page_conditions
+    return data
 
 
 #%% Human tasks
@@ -528,7 +535,7 @@ def get_all_data_pre_annotation(batch=None):
 
     log_analysis_data_raw = {participant: get_log_analysis_data(participant, correct_git_revs.get(participant))
         for participant in participants}
-    log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, (data, page_conditions) in log_analysis_data_raw.items()}).reset_index(drop=True)
+    log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
     trial_level_data = clean_merge(
             survey_data['trial'],
@@ -541,9 +548,6 @@ def get_all_data_pre_annotation(batch=None):
     for col in trial_level_data.columns:
         if col.startswith('num_tap'):
             trial_level_data[col] = trial_level_data[col].fillna(0)
-
-    # Parse 'know what to write'
-    trial_level_data['know_what_to_write'] = pd.to_numeric(trial_level_data.know_what_to_write, errors='coerce')
 
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
@@ -587,7 +591,9 @@ def get_all_data_pre_annotation(batch=None):
 
 
     # Standardize some measures
-    trial_level_data['know_what_to_write_z'] = trial_level_data.groupby('participant_id').know_what_to_write.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+    if 'know_what_to_write' in trial_level_data:
+        trial_level_data['know_what_to_write'] = pd.to_numeric(trial_level_data.know_what_to_write, errors='coerce')
+        trial_level_data['know_what_to_write_z'] = trial_level_data.groupby('participant_id').know_what_to_write.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
 
     trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
     trial_level_data['stars_after_z'] = trial_level_data.groupby('participant_id').stars_after.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
