@@ -48,3 +48,25 @@ it("extracts what suggestions were displayed", () => {
     })
   });
 });
+
+it("extracts final text", () => {
+  analyzed.forEach(([participantId, result]) => {
+    let page = result.byExpPage['final-0'];
+    expect(page.finalText).toEqual(expect.any(String));
+    expect(page.finalText.length).toBeGreaterThan(0);
+  });
+});
+
+it("includes all actions", () => {
+  analyzed.forEach(([participantId, result]) => {
+    let page = result.byExpPage['final-0'];
+    expect(page.actions.length).toBeGreaterThan(0);
+    page.actions.forEach(action => {
+      expect(action).toMatchObject({
+        timestamp: expect.any(Number),
+        type: expect.any(String),
+        curText: expect.any(String),
+      });
+    });
+  });
+});

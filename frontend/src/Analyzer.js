@@ -15,6 +15,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         displayedSuggs: [],
         condition: state.conditionName,
         place: state.curPlace,
+        finalText: '',
+        actions: [],
       };
       byExpPage[page] = pageData;
       pageSeq.push(page);
@@ -40,6 +42,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     }
 
     let pageData = getPageData();
+    let expState = state.experimentState;
 
     // Track requests
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
@@ -50,7 +53,10 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       requestsByTimestamp[msg.timestamp].response = msg;
     }
 
-    let expState = state.experimentState;
+    if (['connected', 'init', 'requestSuggestions', 'receivedSuggestions'].indexOf(entry.type) === -1) {
+      pageData.actions.push({...entry, curText: expState.curText, timestamp: entry.jsTimestamp});
+    }
+
     let visibleSuggestions = M.toJS(expState.visibleSuggestions);
     if (expState.contextSequenceNum !== lastContextSeqNum) {
       if (pageData.displayedSuggs[lastContextSeqNum]) {
@@ -72,6 +78,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       pageData.displayedSuggs[expState.contextSequenceNum].recs = visibleSuggestions;
       lastDisplayedSuggs = visibleSuggestions;
     }
+    pageData.finalText = expState.curText;
   });
 
   return {
@@ -80,16 +87,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageSeq,
     screenTimes: state.screenTimes,
     conditions: state.conditions,
-    blocks: state.conditions.map((condition, block) => {
-      let expState = state.experiments.get(`final-${block}`) || {};
-      return {
-        condition: condition,
-        prewriteText: (state.experiments.get(`pre-${block}`) || {}).curText,
-        finalText: expState.curText,
-        place: state.places[block],
-        attentionCheckStats: expState.attentionCheckStats,
-      };
-    }),
   };
 }
 
