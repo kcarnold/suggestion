@@ -39,6 +39,8 @@ it("extracts what suggestions were displayed", () => {
     page.displayedSuggs.forEach(suggEntry => {
       expect(suggEntry).toMatchObject({
         timestamp: expect.any(Number),
+        sofar: expect.any(String),
+        cur_word: expect.any(Array),
         flags: expect.objectContaining({
           domain: expect.any(String),
         }),
