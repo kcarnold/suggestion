@@ -59,7 +59,7 @@ sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for sta
 
 enable_sufarr = False
 enable_bos_suggs = False
-use_word_vecs = True
+use_word_vecs = False
 
 if enable_sufarr:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
