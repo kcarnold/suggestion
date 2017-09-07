@@ -233,23 +233,21 @@ def process_survey_data(survey, survey_data_raw):
     data = data.applymap(lambda x: decode_scales.get(x, x))
 
     # Specific renames
-    if survey in ['intro', 'intro2']:
+    if survey in ['intro', 'postExp']:
         renames = {
             "How old are you?": ("age", 'numeric'),
             "What is your gender?": ("gender", None),
             "How proficient would you say you are in English?": ("english_proficiency", None),
             "What is the highest level of school you have completed or the highest degree you have received?": ("education", None),
             "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?": ("reviewing_experience", None),
+            "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months": ("reviewing_experience", None),
+            "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
+            "Did you speak or whisper what you were writing while you were writing it?": ("verbalized_during", None)
         }
-    if survey in ['postTask', 'postTask3']:
+    if survey == 'postTask':
         renames = {
             "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
             "Compared with the experience you were writing about, the phrases that the keyboard gave were usua": ("sentiment_manipcheck_posttask", None),
-        }
-    if survey.startswith('postExp'):
-        renames = {
-            "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
-            "Did you speak or whisper what you were writing while you were writing it?": ("verbalized_during", None)
         }
     for orig, new in renames.items():
         if orig not in data.columns:
@@ -267,20 +265,23 @@ def process_survey_data(survey, survey_data_raw):
 
 
 def get_survey_data_processed():
-    survey_data = {'participant': None, 'trial': None}
+    survey_data = {}
     raw_survey_data = get_survey_data_raw()
-    def get_and_concat(names):
-        return pd.concat([raw_survey_data[name] for name in names], axis=0, ignore_index=True)
-    intro_data = process_survey_data('intro', get_and_concat(['intro', 'intro2']))
-    postTask_data = process_survey_data('postTask', get_and_concat(['postTask', 'postTask3']))
-    postExp_data = process_survey_data('postExp', get_and_concat(['postExp', 'postExp3', 'postExp4']))
+    def concat_rows(*a):
+        return pd.concat(*a, axis=0, ignore_index=True)
+    intro_data = concat_rows([process_survey_data('intro', raw_survey_data[name]) for name in ['intro', 'intro2', 'intro3', 'intro4']])
+    postTask_data = concat_rows([process_survey_data('postTask', raw_survey_data[name]) for name in ['postTask', 'postTask3']])
+    postExp_data = concat_rows([process_survey_data('postExp', raw_survey_data[name]) for name in ['postExp', 'postExp3', 'postExp4']])
 
     survey_data['trial'] = postTask_data
-    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion', 'OpennessToExperience']
+    traits_that_overlap = [trait for trait in trait_names.values() if trait in intro_data and trait in postExp_data]
+#    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion', 'OpennessToExperience']
     traits_that_overlap.extend([f'{trait}-num-items' for trait in traits_that_overlap])
+    for col in ['reviewing_experience']:
+        if col in intro_data and col in postExp_data:
+            traits_that_overlap.append(col)
     survey_data['participant'] = clean_merge(
             intro_data, postExp_data, on=['participant_id'], how='outer', combine_cols=traits_that_overlap)
-
     return survey_data
 #%%
 ###
