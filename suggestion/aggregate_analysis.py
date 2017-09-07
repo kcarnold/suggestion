@@ -322,13 +322,10 @@ def get_correct_git_revs():
     return pd.merge(revs_and_timestamps, commits_at_timestamps.to_frame('correct_git_rev'), left_on='study', right_index=True, how='left')
 
 
-def get_log_analysis_data(participant, git_rev):
+def summarize_trials(log_analysis):
     data = []
-    log_analysis = get_log_analysis(participant, git_rev=git_rev)
-    if participant.endswith('_real'):
-        participant = participant[:-len('_real')]
     conditions = log_analysis['conditions']
-    base_datum = dict(participant_id=participant,
+    base_datum = dict(participant_id=log_analysis['participant_id'],
                  conditions=','.join(conditions),
                  config=log_analysis['config'],
                  git_rev=log_analysis['git_rev'])
@@ -370,7 +367,7 @@ def get_log_analysis_data(participant, git_rev):
             if old_name in datum:
                 datum[new_name] = datum.pop(old_name)
         data.append(datum)
-    return data
+    return pd.DataFrame(data)
 
 
 #%% Human tasks
@@ -490,6 +487,10 @@ def get_suggestion_content_stats(analyzed):
 
         block_data = []
         for sugg in displayed_suggs:
+            if sugg is None:
+                # Skip contexts where no suggestion was shown.
+                continue
+
             for datum in get_content_stats_single_suggestion(sugg, word_freq_analyzer=word_freq_analyzer) or []:
                 block_data.append(datum)
 
@@ -533,13 +534,12 @@ def get_all_data_pre_annotation(batch=None):
 
     correct_git_revs = get_correct_git_revs().set_index('participant_id').correct_git_rev.to_dict()
 
-    log_analysis_data_raw = {participant: get_log_analysis_data(participant, correct_git_revs.get(participant))
+    log_analysis_data_raw = {participant: get_log_analysis(participant, correct_git_revs.get(participant))
         for participant in participants}
-    log_analysis_data = pd.concat({participant: pd.DataFrame(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True)
 
     trial_level_data = clean_merge(
             survey_data['trial'],
-            log_analysis_data,
+            pd.concat({participant: summarize_trials(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True),
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
     trial_level_data['final_length_chars'] = trial_level_data.final_text.str.len()
@@ -551,8 +551,8 @@ def get_all_data_pre_annotation(batch=None):
 
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
-            participant_id: pd.DataFrame(get_suggestion_content_stats(participant_id, page_conditions))
-            for participant_id, (data, page_conditions) in log_analysis_data_raw.items()}, names=['participant_id', 'block']).reset_index()
+            participant_id: pd.DataFrame(get_suggestion_content_stats(log_analysis))
+            for participant_id, log_analysis in log_analysis_data_raw.items()}, names=['participant_id', 'block']).reset_index()
     trial_level_data = clean_merge(
             trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
 

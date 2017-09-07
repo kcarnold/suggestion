@@ -112,7 +112,7 @@ def classify_annotated_event(evt):
 
 def get_content_stats_single_suggestion(sugg, word_freq_analyzer):
     from suggestion import suggestion_generator
-    meta = {k: sugg.pop(k, None) for k in 'domain sentiment_method sentiment temperature useSufarr use_bos_suggs'.split()}
+    meta = sugg.pop('flags')
 
     if not meta['domain'].startswith('yelp'):
         return
