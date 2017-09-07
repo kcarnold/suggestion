@@ -30,6 +30,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     // autospacing after punctuation seems to increment contextSequenceNum
     // without changing curText.
     let lastContextSeqNum = (state.experimentState || {}).contextSequenceNum;
+    let lastText = (state.experimentState || {}).curText;
     let lastDisplayedSuggs = null;
 
     let isValidSugUpdate = entry.type === 'receivedSuggestions' && entry.msg.request_id === (state.experimentState || {}).contextSequenceNum;
@@ -37,12 +38,12 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       state.handleEvent(entry);
     }
 
-    if (!state.experimentState) {
+    let expState = state.experimentState;
+    if (!expState) {
       return;
     }
 
     let pageData = getPageData();
-    let expState = state.experimentState;
 
     // Track requests
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
@@ -57,7 +58,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     }
 
     if (['connected', 'init', 'requestSuggestions', 'receivedSuggestions'].indexOf(entry.type) === -1) {
-      pageData.actions.push({...entry, curText: expState.curText, timestamp: entry.jsTimestamp});
+      pageData.actions.push({...entry, curText: lastText, timestamp: entry.jsTimestamp});
     }
 
     let visibleSuggestions = M.toJS(expState.visibleSuggestions);
