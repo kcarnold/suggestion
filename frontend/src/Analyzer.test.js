@@ -33,15 +33,15 @@ it("extracts what suggestions were displayed", () => {
   analyzed.forEach(([participantId, result]) => {
     let page = result.byExpPage['final-0'];
     expect(page.displayedSuggs.length).toBeGreaterThan(0);
-    let suggEntry = page.displayedSuggs[0];
-    expect(suggEntry).toMatchObject({
-      timestamp: expect.any(Number),
-      context: expect.any(String),
-      recs: expect.anything(),
-      latency: expect.any(Number),
-      action: expect.objectContaining({type: expect.any(String)}),
+    page.displayedSuggs.forEach(suggEntry => {
+      expect(suggEntry).toMatchObject({
+        timestamp: expect.any(Number),
+        context: expect.any(String),
+        recs: expect.anything(),
+        latency: expect.any(Number),
+        action: expect.objectContaining({type: expect.any(String)}),
+      });
     });
-
     page.displayedSuggs.forEach(({recs, action}) => {
       if ((action || {}).type === 'tapSuggestion')
         expectNotToContainAttnCheck(recs);

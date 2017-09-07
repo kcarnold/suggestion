@@ -78,7 +78,14 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       pageData.displayedSuggs[expState.contextSequenceNum].recs = visibleSuggestions;
       lastDisplayedSuggs = visibleSuggestions;
     }
+  });
+
+  // Close out all the experiment pages.
+  pageSeq.forEach(pageName => {
+    let pageData = byExpPage[pageName];
+    let expState = state.experiments.get(pageName);
     pageData.finalText = expState.curText;
+    pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
   });
 
   return {
