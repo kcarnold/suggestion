@@ -48,6 +48,9 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
       let msg = _.clone(entry.request);
       requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
+      if (msg.sofar !== expState.suggestionContext.prefix) {
+        throw new Error(`State mismatch! ${msg.sofar} vs ${expState.suggestionContext.prefix}`)
+      }
     } else if (entry.type === 'receivedSuggestions') {
       let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
       requestsByTimestamp[msg.timestamp].response = msg;
