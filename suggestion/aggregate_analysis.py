@@ -480,7 +480,8 @@ def get_suggestion_content_stats(analyzed):
     for page_name in analyzed['pageSeq']:
         page = analyzed['byExpPage'][page_name]
         condition = page['condition']
-        if condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg']:
+        if page_name.startswith('pract'):
+            #condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg', 'airbnb']:
             continue
         displayed_suggs = page['displayedSuggs']
         assert len(displayed_suggs) > 0
@@ -494,7 +495,9 @@ def get_suggestion_content_stats(analyzed):
             for datum in get_content_stats_single_suggestion(sugg, word_freq_analyzer=word_freq_analyzer) or []:
                 block_data.append(datum)
 
+        assert len(block_data) > 0
         block_df = pd.DataFrame(block_data)
+        assert 'request_id' in block_df
         block_df = block_df.drop_duplicates(['request_id', 'sugg_slot'])
         by_trial.append(dict(
             condition=condition,
