@@ -234,14 +234,18 @@ class Model:
 DEFAULT_SENTIMENT_WEIGHTS = [-1, -1, 0, 1, 1.]
 
 
+def normalize_sentiment_weights(sentiment_weights):
+    sentiment_weights = np.array(sentiment_weights)
+    sentiment_weights -= np.min(sentiment_weights)
+    sentiment_weights /= np.max(sentiment_weights)
+    return sentiment_weights
+
+
 class LMClassifier:
     def __init__(self, models, prior_counts, sentiment_weights=DEFAULT_SENTIMENT_WEIGHTS):
         self.models = models
         self.prior_logprobs = np.log(prior_counts / prior_counts.sum())
-        sentiment_weights = np.array(sentiment_weights)
-        sentiment_weights -= np.min(sentiment_weights)
-        sentiment_weights /= np.max(sentiment_weights)
-        self.sentiment_weights = sentiment_weights
+        self.sentiment_weights = normalize_sentiment_weights(sentiment_weights)
 
     def get_state(self, toks, bos=False):
         models = self.models
