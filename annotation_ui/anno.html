@@ -1,0 +1,58 @@
+<!-- <script src="jquery-3.2.1.js"></script> -->
+<script src="vue.js"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js"></script>
+<link rel="stylesheet" href="anno.css">
+<!-- <link rel="stylesheet" href="https://s3.amazonaws.com/megacomplete.net/anno/anno.css" -->
+<body>
+
+<div id="app" v-cloak>
+
+<p>Each section below contains a restaurant review. Each review is split into sentences.
+
+    <b>Mark how much positive and how much negative sentiment each sentence has</b>, on a scale from 0 to 2:</p>
+<ul>
+    <li><b>Positive</b>: 0 = no positive sentiment, 1 = weak positive sentiment, 2 = clear positive sentiment</li>
+    <li><b>Negative</b>: 0 = no negative sentiment, 1 = weak negative sentiment, 2 = clear negative sentiment</li>
+    <li>Some of the sentences might be nonsense. If so, check the "nonsense" box. (Typos aren't nonsense.)</li>
+</ul>
+<p>Examples:</p>
+<ul>
+    <li>"The food is pretty good.": pos=2, neg=0</li>
+<li>"The food was terrible but the service made up for it": pos=2, neg=2</li>
+<li>"My only complaint was the noise level.": pos=1, neg=2 (although mainly negative, it has some weak positive because it's the <em>only</em> complaint)</li>
+<li>"Great" (in a context where it's obviously sarcastic) pos=0, neg=2</li>
+</ul>
+
+    <div v-for="(text, textIdx) in texts" class="textSection">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sentence</th>
+                    <th>Nonsense?</th>
+                    <th>Positive</th>
+                    <th>Negative</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(sent, sentIdx) in text.data">
+                    <td class="sentence">{{sent.sentence}}</td>
+                    <td><input type="checkbox" v-model.number="texts[textIdx].data[sentIdx].nonsense"></td>
+                    <td v-if="!texts[textIdx].data[sentIdx].nonsense"><input type="number" min="0" max="2" v-model.number="texts[textIdx].data[sentIdx].pos" /></td>
+                    <td v-if="!texts[textIdx].data[sentIdx].nonsense"><input type="number" min="0" max="2" v-model.number="texts[textIdx].data[sentIdx].neg" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <input type="hidden" name="results" v-bind:value="JSON.stringify(texts)">
+
+<p>We&#39;re still refining this HIT, so we&#39;d appreciate your feedback: are the instructions clear? How long did it actually take you? Is the payment fair? Any technical difficulties? Anything else?</p>
+<textarea cols="80" name="feedback" placeholder="optional feedback" rows="4"></textarea>
+
+</div>
+
+<script src="data.js"></script>
+<script src="anno.js"></script>
+<!-- <script src="https://s3.amazonaws.com/megacomplete.net/anno/data.js"></script> -->
+<!-- <script src="https://s3.amazonaws.com/megacomplete.net/anno/anno-airbnb.js"></script> -->
+</body>

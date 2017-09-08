@@ -1,0 +1,28 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+#app {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.textSection {
+    border: 1px solid black;
+    margin: 30px 0;
+}
+
+.sentence {
+    max-width: 500px;
+}
+
+input[type=number] {
+    width: 50px;
+}
