@@ -42,8 +42,7 @@ decode_scales = {
         "Very Accurate": 5}
 
 
-def get_rev(participant):
-    logpath = paths.parent / 'logs' / (participant+'.jsonl')
+def get_rev(logpath):
     with open(logpath) as logfile:
         for line in logfile:
             line = json.loads(line)
@@ -63,17 +62,14 @@ def checkout_old_code(git_rev):
 
 
 @mem.cache
-def get_log_analysis_raw(participant, git_rev=None, analysis_files=None):
+def get_log_analysis_raw(logpath, logfile_size, git_rev=None, analysis_files=None):
     # Ignore analysis_files; just use them to know when to invalidate the cache.
-    logpath = paths.parent / 'logs' / (participant+'.jsonl')
-    if git_rev is None:
-        git_rev = get_rev(participant)
     checkout_old_code(git_rev)
     analyzer_path = os.path.join(paths.parent, 'frontend', 'analysis')
     with open(logpath) as logfile:
         result = subprocess.check_output([analyzer_path], stdin=logfile)
         assert len(result) > 0
-        return result, git_rev
+        return result
 
 
 def get_log_analysis(participant, git_rev=None):
@@ -81,7 +77,12 @@ def get_log_analysis(participant, git_rev=None):
         name: open(paths.parent / 'frontend' / name).read()
         for name in ['analyze.js', 'analysis', 'src/Analyzer.js']
     }
-    result, git_rev = get_log_analysis_raw(participant, git_rev=git_rev, analysis_files=analysis_files)
+    logpath = paths.parent / 'logs' / (participant+'.jsonl')
+    if git_rev is None:
+        git_rev = get_rev(logpath)
+    logfile_size = os.path.getsize(logpath)
+
+    result = get_log_analysis_raw(logpath, logfile_size, git_rev=git_rev, analysis_files=analysis_files)
     analyzed = json.loads(result)
     analyzed['git_rev'] = git_rev
     return analyzed
