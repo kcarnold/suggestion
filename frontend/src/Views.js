@@ -445,7 +445,12 @@ export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispat
       // <video src="demo4.mp4" controls ref={elt => {elt.playbackRate=2;}}/>
 
 export const PracticeComputer = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-  let previewPhrase3 = state.experimentState.visibleSuggestions.predictions[0].words.slice(0, 3).join(' ');
+  let previewPhrase3;
+  try {
+    previewPhrase3 = state.experimentState.visibleSuggestions.predictions[0].words.slice(0, 3).join(' ');
+  } catch (e) {
+    previewPhrase3 = '(nothing right now)';
+  }
     return <div className="Tutorial">
       <h1>Tutorial (part 1 of 2)</h1>
 
