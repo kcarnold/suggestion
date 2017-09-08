@@ -22,6 +22,14 @@ it("includes the overall fields we expect", () => {
   analyzed.forEach(([participantId, analysis]) => {
     expect(analysis.conditions).toBeDefined();
     expect(analysis.byExpPage).toBeDefined();
+    expect(analysis.screenTimes).toEqual(expect.any(Array));
+    analysis.screenTimes.forEach(obj => {
+      expect(obj).toMatchObject({
+        num: expect.any(Number),
+        name: expect.any(String),
+        timestamp: expect.any(Number),
+      });
+    });
   });
 });
 

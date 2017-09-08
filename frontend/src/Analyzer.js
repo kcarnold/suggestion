@@ -148,12 +148,19 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
   console.assert(state.curScreen.screen === 'Done', "Incomplete log file %s", participant_id);
 
+  let screenTimes = state.screenTimes.map(screen => {
+    let screenDesc = state.screens[screen.num];
+    return {
+      ...screen, name: screenDesc.screen || screenDesc.controllerScreen
+    };
+  });
+
   return {
     participant_id,
     config: state.masterConfigName,
     byExpPage,
     pageSeq,
-    screenTimes: state.screenTimes,
+    screenTimes,
     conditions: state.conditions,
   };
 }
