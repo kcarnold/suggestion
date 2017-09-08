@@ -17,6 +17,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         place: state.curPlace,
         finalText: '',
         actions: [],
+        tmpSugRequests: {},
       };
       byExpPage[page] = pageData;
       pageSeq.push(page);
@@ -48,13 +49,25 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     // Track requests
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
       let msg = _.clone(entry.request);
-      requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
-      if (msg.sofar !== expState.suggestionContext.prefix) {
-        throw new Error(`State mismatch! ${msg.sofar} vs ${expState.suggestionContext.prefix}`)
+      if (pageData.tmpSugRequests[msg.request_id]) {
+        console.log("Ignoring duplicate request", msg.timestamp);
+        return;
+      } else {
+        requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
+        if (msg.sofar !== expState.suggestionContext.prefix) {
+          throw new Error(`State mismatch! ${msg.sofar} vs ${expState.suggestionContext.prefix}`)
+        }
+        pageData.tmpSugRequests[msg.request_id] = 'request';
       }
     } else if (entry.type === 'receivedSuggestions') {
       let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
-      requestsByTimestamp[msg.timestamp].response = msg;
+      if (!requestsByTimestamp[msg.timestamp] && pageData.tmpSugRequests[msg.request_id]) {
+        console.log("Ignoring response to duplicate request", msg.timestamp);
+        return;
+      } else {
+        requestsByTimestamp[msg.timestamp].response = msg;
+        pageData.tmpSugRequests[msg.request_id] = 'response';
+      }
     }
 
     if (['connected', 'init', 'requestSuggestions', 'receivedSuggestions'].indexOf(entry.type) === -1) {
@@ -94,6 +107,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let expState = state.experiments.get(pageName);
     pageData.finalText = expState.curText;
     pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
+    delete pageData['tmpSugRequests'];
   });
 
   console.assert(state.curScreen.screen === 'Done')
