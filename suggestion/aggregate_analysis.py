@@ -25,7 +25,7 @@ from suggestion.analysis_util import (
 
 
 from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
-word_freq_analyzer = WordFreqAnalyzer.build()
+word_freq_analyzer = WordFreqAnalyzer.get()
 
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 

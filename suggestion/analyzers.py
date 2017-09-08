@@ -70,6 +70,12 @@ class WordFreqAnalyzer:
         vocab, counts = data['vocab']
         return cls(vocab, counts)
 
+    @classmethod
+    def get(cls):
+        if not hasattr(cls, 'singleton'):
+            cls.singleton = cls.build()
+        return cls.singleton
+
 
 class WordPairAnalyzer:
     def __init__(self, vectorizer, projection_mat, samples, prototypical_ecdf_best, mean_len_chars):
