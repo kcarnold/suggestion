@@ -17,13 +17,15 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         place: state.curPlace,
         finalText: '',
         actions: [],
-        tmpSugRequests: {},
       };
       byExpPage[page] = pageData;
       pageSeq.push(page);
     }
     return byExpPage[page];
   }
+
+  let lastScreenNum = null;
+  let tmpSugRequests = null;
 
   log.forEach((entry) => {
 
@@ -39,6 +41,11 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       state.handleEvent(entry);
     }
 
+    if (state.screenNum !== lastScreenNum) {
+      tmpSugRequests = {};
+      lastScreenNum = state.screenNum;
+    }
+
     let expState = state.experimentState;
     if (!expState) {
       return;
@@ -49,24 +56,24 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     // Track requests
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
       let msg = _.clone(entry.request);
-      if (pageData.tmpSugRequests[msg.request_id]) {
+      requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
+      if (tmpSugRequests[msg.request_id]) {
         console.log("Ignoring duplicate request", msg.timestamp);
         return;
       } else {
-        requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
         if (msg.sofar !== expState.suggestionContext.prefix) {
           throw new Error(`State mismatch! ${msg.sofar} vs ${expState.suggestionContext.prefix}`)
         }
-        pageData.tmpSugRequests[msg.request_id] = 'request';
+        tmpSugRequests[msg.request_id] = 'request';
       }
     } else if (entry.type === 'receivedSuggestions') {
       let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
-      if (!requestsByTimestamp[msg.timestamp] && pageData.tmpSugRequests[msg.request_id]) {
+      if (!requestsByTimestamp[msg.timestamp] && tmpSugRequests[msg.request_id]) {
         console.log("Ignoring response to duplicate request", msg.timestamp);
         return;
       } else {
         requestsByTimestamp[msg.timestamp].response = msg;
-        pageData.tmpSugRequests[msg.request_id] = 'response';
+        tmpSugRequests[msg.request_id] = 'response';
       }
     }
 
@@ -107,7 +114,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let expState = state.experiments.get(pageName);
     pageData.finalText = expState.curText;
     pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
-    delete pageData['tmpSugRequests'];
   });
 
   console.assert(state.curScreen.screen === 'Done')
