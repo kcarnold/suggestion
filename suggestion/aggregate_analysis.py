@@ -742,6 +742,17 @@ def reorder_columns(df, desired_order):
         if col not in reorder_cols:
             reorder_cols.append(col)
     return df.loc[:, reorder_cols]
+
+#%%
+def get_annotation_json(annotations_todo):
+    task = annotations_todo.drop(['pos','neg','topics'], axis=1)
+    groups = [
+        (key, group.loc[:, ['sent_idx', 'sentence']].to_dict(orient='records'))
+        for key, group
+        in task.groupby(['participant_id', 'config', 'condition', 'block'], sort=False)]
+    import random
+    random.shuffle(groups)
+    return groups
 #%%
 def main(args):
     x = get_all_data_with_annotations(batch=args.batch)
@@ -752,6 +763,8 @@ def main(args):
         x['trial_level_data'].to_csv(f'{basename}_trial_level_data.csv', index=False)
         x['corrections_todo'].to_csv(f'gruntwork/{basename}_corrections_todo.csv', index=False)
         x['annotations_todo'].to_csv(f'gruntwork/{basename}_annotations_todo_kca.csv', index=False)
+        json.dump(get_annotation_json(x['annotations_todo']), open(f'gruntwork/{basename}_annotations_todo.json', 'w'),
+                  default=lambda x: x.tolist())
     return x
 #%%
 
