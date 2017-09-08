@@ -71,7 +71,9 @@ def get_log_analysis_raw(participant, git_rev=None, analysis_files=None):
     checkout_old_code(git_rev)
     analyzer_path = os.path.join(paths.parent, 'frontend', 'analysis')
     with open(logpath) as logfile:
-        return subprocess.check_output([analyzer_path], stdin=logfile), git_rev
+        result = subprocess.check_output([analyzer_path], stdin=logfile)
+        assert len(result) > 0
+        return result, git_rev
 
 
 def get_log_analysis(participant, git_rev=None):
