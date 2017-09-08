@@ -96,6 +96,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
   });
 
+  console.assert(state.curScreen.screen === 'Done')
+
   return {
     participant_id,
     config: state.masterConfigName,
