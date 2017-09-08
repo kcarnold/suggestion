@@ -511,6 +511,11 @@ def get_suggestion_content_stats(analyzed):
 def drop_cols_by_prefix(df, prefixes):
     drop_cols = [col for col in df.columns if any(col.startswith(x) for x in prefixes)]
     return df.drop(drop_cols, axis=1)
+#%%
+def summarize_times(log_analysis):
+   times = log_analysis['screenTimes']
+   return dict(participant_id=log_analysis['participant_id'],
+               total_time_mins=(times[-1]['timestamp'] - times[1]['timestamp']) / 1000 / 60)
 
 #%%
 def get_all_data_pre_annotation(batch=None):
@@ -542,6 +547,11 @@ def get_all_data_pre_annotation(batch=None):
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
     trial_level_data['final_length_chars'] = trial_level_data.final_text.str.len()
+
+    participant_level_data = clean_merge(
+            participant_level_data,
+            pd.DataFrame([summarize_times(log_analysis_data_raw[participant]) for participant in participants]).set_index('participant_id'),
+            how='outer', left_index=True, right_index=True)
 
     # Fill missing data in tap counts with zeros
     for col in trial_level_data.columns:
@@ -724,9 +734,6 @@ def load_turk_annotations():
     assert res['sentIdx'].equals(res['sent_idx'])
     del res['sentIdx']
     return res
-annos = load_turk_annotations()
-
-annos.groupby(['participant_id', 'config', 'condition', 'block', 'sent_idx']).mean()
 #%%
 def reorder_columns(df, desired_order):
     reorder_cols = []

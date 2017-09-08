@@ -23,6 +23,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         place: state.curPlace,
         finalText: '',
         actions: [],
+        firstEventTimestamp: null,
+        lastEventTimestamp: null,
       };
       byExpPage[page] = pageData;
       pageSeq.push(page);
@@ -91,6 +93,11 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
     let pageData = getPageData();
 
+    if (pageData.firstEventTimestamp === null) {
+      pageData.firstEventTimestamp = entry.jsTimestamp;
+    }
+    pageData.lastEventTimestamp = entry.jsTimestamp;
+
     // Assert state consistency
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions' && entry.request.request_id === expState.contextSequenceNum) {
       let requestCurText = entry.request.sofar + entry.request.cur_word.map((ent => ent.letter)).join('');
@@ -139,6 +146,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let expState = state.experiments.get(pageName);
     pageData.finalText = expState.curText;
     pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
+    pageData.secsOnPage = (pageData.lastEventTimestamp - pageData.firstEventTimestamp) / 1000;
   });
 
   if (stateMismatches.length) {

@@ -86,5 +86,6 @@ it("includes all actions", () => {
         curText: expect.any(String),
       });
     });
+    expect(page.secsOnPage).toEqual(expect.any(Number));
   });
 });
