@@ -3,10 +3,11 @@ import { readLogFile } from './testUtil.js';
 import { analyzeLog } from './Analyzer.js';
 
 const participantIds = [
-  "99c66d",
-  "c104c0",
-  "v4w898",
+  // "99c66d",
+  // "c104c0",
+  // "v4w898",
   "p964wg", // this one has duplicates because of a double connection
+  "r3f4wp",
   ];
 let logData = null;
 let analyzed = null;
