@@ -733,6 +733,27 @@ def get_all_data_with_annotations(batch=None):
             annotations_todo=annotation_todo)
 
 #%%
+def load_turk_annotations():
+    meta_header = ['participant_id', 'config', 'condition', 'block']
+    result_files = list(paths.parent.joinpath('gruntwork', 'turk_annotations_results').glob("Batch*results.csv"))
+    raw = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True)
+    records = raw.loc[:, ['WorkerId', 'Answer.results']].to_dict('records')
+    res = []
+    for record in records:
+        worker_id = record['WorkerId']
+        annos = json.loads(record['Answer.results'])
+        for text_entry in annos:
+            meta = dict(dict(zip(meta_header, text_entry['meta'])), WorkerId=worker_id)
+            for sent in text_entry['data']:
+                res.append(dict(meta, **sent))
+    res = pd.DataFrame(res).fillna(0)
+    assert res['sentIdx'].equals(res['sent_idx'])
+    del res['sentIdx']
+    return res
+annos = load_turk_annotations()
+
+annos.groupby(['participant_id', 'config', 'condition', 'block', 'sent_idx']).mean()
+#%%
 def reorder_columns(df, desired_order):
     reorder_cols = []
     for col in desired_order:
