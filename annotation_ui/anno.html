@@ -1,9 +1,7 @@
-<!-- <script src="jquery-3.2.1.js"></script> -->
-<script src="vue.js"></script>
+<script src="https://unpkg.com/vue"></script>
 <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js"></script>
-<link rel="stylesheet" href="anno.css">
-<!-- <link rel="stylesheet" href="https://s3.amazonaws.com/megacomplete.net/anno/anno.css" -->
-<body>
+<!-- <link rel="stylesheet" href="anno.css"> -->
+<link rel="stylesheet" href="https://s3.amazonaws.com/megacomplete.net/anno/anno.css">
 
 <div id="app" v-cloak>
 
@@ -51,8 +49,10 @@
 
 </div>
 
-<script src="data.js"></script>
-<script src="anno.js"></script>
+<!-- <script src="data.js"></script> -->
+<script>
+var taskData = ${task};
+</script>
+<!-- <script src="anno.js"></script> -->
 <!-- <script src="https://s3.amazonaws.com/megacomplete.net/anno/data.js"></script> -->
-<!-- <script src="https://s3.amazonaws.com/megacomplete.net/anno/anno-airbnb.js"></script> -->
-</body>
+<script src="https://s3.amazonaws.com/megacomplete.net/anno/anno.js"></script>
