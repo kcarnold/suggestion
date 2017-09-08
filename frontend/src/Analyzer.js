@@ -1,6 +1,8 @@
 import * as M from 'mobx';
 import _ from 'lodash';
 
+const HACK_TSCODES_TO_SKIP = {'p964wg-1504799690416': true};
+
 export function processLogGivenStateStore(StateStoreClass, log) {
   let {participant_id} = log[0];
   let state = new StateStoreClass(participant_id);
@@ -26,6 +28,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
   let lastScreenNum = null;
   let tmpSugRequests = null;
+  let lastSugResponseTimestamp = null;
 
   log.forEach((entry) => {
 
@@ -37,8 +40,38 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let lastDisplayedSuggs = null;
 
     let isValidSugUpdate = entry.type === 'receivedSuggestions' && entry.msg.request_id === (state.experimentState || {}).contextSequenceNum;
+
+    // Track requests
+    if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
+      let msg = _.clone(entry.request);
+      requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
+      if (tmpSugRequests[msg.request_id]) {
+        console.log("Ignoring duplicate request", msg.timestamp);
+        requestsByTimestamp[msg.timestamp].dupe = true;
+        return;
+      } else {
+        tmpSugRequests[msg.request_id] = 'request';
+      }
+    } else if (entry.type === 'receivedSuggestions') {
+      let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
+      let tscode = `${participant_id}-${msg.timestamp}`;
+      if (HACK_TSCODES_TO_SKIP[tscode]) {
+        return;
+      }
+      lastSugResponseTimestamp = tscode;
+      if (false && requestsByTimestamp[msg.timestamp].dupe) {
+        console.log("Ignoring response to duplicate request", msg.timestamp);
+        return;
+      } else {
+        requestsByTimestamp[msg.timestamp].response = msg;
+        tmpSugRequests[msg.request_id] = 'response';
+      }
+    }
+
+
     if (entry.kind !== 'meta') {
-      state.handleEvent(entry);
+      if (entry.type !== 'receivedSuggestions' || isValidSugUpdate)
+        state.handleEvent(entry);
     }
 
     if (state.screenNum !== lastScreenNum) {
@@ -53,27 +86,10 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
     let pageData = getPageData();
 
-    // Track requests
+    // Assert state consistency
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
-      let msg = _.clone(entry.request);
-      requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
-      if (tmpSugRequests[msg.request_id]) {
-        console.log("Ignoring duplicate request", msg.timestamp);
-        return;
-      } else {
-        if (msg.sofar !== expState.suggestionContext.prefix) {
-          throw new Error(`State mismatch! ${msg.sofar} vs ${expState.suggestionContext.prefix}`)
-        }
-        tmpSugRequests[msg.request_id] = 'request';
-      }
-    } else if (entry.type === 'receivedSuggestions') {
-      let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
-      if (!requestsByTimestamp[msg.timestamp] && tmpSugRequests[msg.request_id]) {
-        console.log("Ignoring response to duplicate request", msg.timestamp);
-        return;
-      } else {
-        requestsByTimestamp[msg.timestamp].response = msg;
-        tmpSugRequests[msg.request_id] = 'response';
+      if (entry.request.sofar !== expState.suggestionContext.prefix) {
+        throw new Error(`State mismatch! ${entry.request.sofar} vs ${expState.suggestionContext.prefix} - last sug response ${lastSugResponseTimestamp}`)
       }
     }
 

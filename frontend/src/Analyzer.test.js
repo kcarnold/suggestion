@@ -6,6 +6,7 @@ const participantIds = [
   "99c66d",
   "c104c0",
   "v4w898",
+  "p964wg", // this one has duplicates because of a double connection
   ];
 let logData = null;
 let analyzed = null;
