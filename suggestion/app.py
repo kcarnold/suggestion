@@ -148,13 +148,16 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
-        self.log_file = None
         self.participant = None
         self.keyRects = {}
         self.wire_bytes_in = self.wire_bytes_out = 0
         self.message_bytes_in = self.msg_bytes_out = 0
         self.sug_state = None
+        self.connection_id = str(time.time())
         # There will also be a 'kind', which gets set only when the client connects.
+
+    def log(self, event):
+        self.participant.log(dict(event, connection_id=self.connection_id))
 
     def open(self):
         print('ws open, compressed={}'.format(self.ws_connection._compressor is not None), flush=True)
@@ -206,7 +209,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 dur = time.time() - start
                 result['dur'] = dur
                 self.send_json(**result)
-                self.participant.log(dict(type="requestSuggestions", kind="meta", request=request))
+                self.log(dict(type="requestSuggestions", kind="meta", request=request))
                 print('{participant_id} {type} in {dur:.2f}'.format(participant_id=getattr(self.participant, 'participant_id'), type=request['type'], dur=dur))
             elif request['type'] == 'keyRects':
                 self.keyRects[request['layer']] = request['keyRects']
@@ -221,7 +224,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                     validate_participant_id(participant_id)
                     self.participant = Participant.get_participant(participant_id)
                 self.participant.connected(self)
-                self.participant.log(dict(kind='meta', type='init', request=request))
+                self.log(dict(kind='meta', type='init', request=request))
                 messageCount = request.get('messageCount', {})
                 print("Client", participant_id, self.kind, "connecting with messages", messageCount)
                 backlog = []
@@ -254,7 +257,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
 
             elif request['type'] == 'log':
                 event = request['event']
-                self.participant.log(event)
+                self.log(event)
                 self.participant.broadcast(dict(type='otherEvent', event=event), exclude_conn=self)
             elif request['type'] == 'ping':
                 pass
