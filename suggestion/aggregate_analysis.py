@@ -411,32 +411,23 @@ def get_annotations_task(trial_level_data):
         for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
             by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
     res = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
-    res['pos'] = None
-    res['neg'] = None
-    res['topics'] = None
     return res
 
 #%%
-def get_sentiment_and_topic_annotations(trial_level_data, annotator):
-    task = get_annotations_task(trial_level_data).set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx'])
+def merge_sentiment_annotations(task, annotation_results):
+    task = clean_merge(
+        task,
+        annotation_results.drop(['sentence'], axis=1),
+        how='left', on=['participant_id', 'config', 'condition', 'block', 'sent_idx'])#, must_match=['sentence'])
 
-    result_files = list(paths.parent.joinpath('gruntwork').glob(f"annotations_{annotator}_*.csv"))
-    if result_files:
-        cols = ['pos', 'neg', 'topics']
-        annotation_results = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True).dropna(how='all', subset=cols)
-        task = clean_merge(
-            task.drop(cols, axis=1),
-            annotation_results.set_index(['participant_id', 'config', 'condition', 'block', 'sent_idx']).drop(['sentence'], axis=1),
-            how='left', left_index=True, right_index=True)#, must_match=['sentence'])
-
-    task = task.reset_index()
-    topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
-    sentiment_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).pos.apply(lambda group: np.all(group.isnull()))
-    todo = clean_merge(task, (topics_todo | sentiment_todo).to_frame('todo'), left_on=['participant_id', 'block'], right_index=True, how='left')
-    todo = todo[todo.todo].drop(['todo'], axis=1)
+#    topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
+    todo_flag = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).pos.apply(lambda group: np.all(group.isnull()))
+    todo = clean_merge(task, todo_flag.to_frame('todo'), left_on=['participant_id', 'block'], right_index=True, how='left')
+    todo = todo[todo.todo].drop(['todo', 'WorkerId'], axis=1)
 
     annos = task.query('sent_idx >= 0').copy()
-    annos['pos'] = pd.to_numeric(annos['pos'])
+    for col in ['pos', 'neg', 'nonsense']:
+        annos[col] = pd.to_numeric(annos[col])
     return annos, todo
 #%%
 
@@ -654,10 +645,11 @@ def get_all_data_with_annotations(batch=None):
 
 
     # Pull in annotations.
-    annotation_results, annotation_todo = get_sentiment_and_topic_annotations(trial_level_data, annotator='kca')
+    annotations_task = get_annotations_task(trial_level_data)
+    annotation_results, annotation_todo = merge_sentiment_annotations(annotations_task, load_turk_annotations())
     #.drop('sent_idx sentence'.split(), axis=1)
     annotation_results['is_mixed'] = (annotation_results['pos'] > 0) & (annotation_results['neg'] > 0)
-    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg']]
+    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense']]
     total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
     sentiments = clean_merge(
         max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'}),
@@ -673,25 +665,7 @@ def get_all_data_with_annotations(batch=None):
     trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
     trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
 
-    def has_any_nonsense(group):
-        return any(x for tlist in group if isinstance(tlist, str) for x in tlist.split() if x == 'nonsense')
-    def num_topics(group):
-        return len(sorted({x.replace('-', '') for tlist in group if isinstance(tlist, str) for x in tlist.split() if x != 'nonsense'}))
-
-    topic_data = (
-            annotation_results
-            .dropna(subset=['topics'])
-            .groupby(['participant_id', 'block', 'condition'])
-            .topics
-            .agg([has_any_nonsense, num_topics]))
-
-    if len(topic_data) > 0:
-        trial_level_data = clean_merge(
-            trial_level_data, topic_data.reset_index(),
-            on=['participant_id', 'block', 'condition'], how='left')
-    else:
-        trial_level_data['has_any_nonsense'] = None
-        trial_level_data['num_topics'] = None
+    trial_level_data['has_any_nonsense'] = trial_level_data['nonsense'] > 0
 
     participant_level_data = clean_merge(
             participant_level_data,
@@ -766,11 +740,10 @@ def reorder_columns(df, desired_order):
 
 #%%
 def get_annotation_json(annotations_todo):
-    task = annotations_todo.drop(['pos','neg','topics'], axis=1)
     groups = [
         (key, group.loc[:, ['sent_idx', 'sentence']].to_dict(orient='records'))
         for key, group
-        in task.groupby(['participant_id', 'config', 'condition', 'block'], sort=False)]
+        in annotations_todo.groupby(['participant_id', 'config', 'condition', 'block'], sort=False)]
     import random
     random.shuffle(groups)
     return groups
