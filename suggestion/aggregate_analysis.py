@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import re
-import ujson as json
+import json
 import subprocess
 from collections import Counter
 import nltk

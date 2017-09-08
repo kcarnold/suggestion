@@ -1,7 +1,11 @@
 import * as M from 'mobx';
 import _ from 'lodash';
 
-const HACK_TSCODES_TO_SKIP = {'p964wg-1504799690416': true};
+let HACK_TSCODES_TO_SKIP = {}
+const CODES = "p964wg-1504799690416";
+CODES.split(/\s/).forEach(code => {
+  HACK_TSCODES_TO_SKIP[code] = true;
+});
 
 export function processLogGivenStateStore(StateStoreClass, log) {
   let {participant_id} = log[0];
@@ -29,8 +33,9 @@ export function processLogGivenStateStore(StateStoreClass, log) {
   let lastScreenNum = null;
   let tmpSugRequests = null;
   let lastSugResponseTimestamp = null;
+  let stateMismatches = [];
 
-  log.forEach((entry) => {
+  log.forEach((entry, logIdx) => {
 
     // We need to track context sequence numbers instead of curText because
     // autospacing after punctuation seems to increment contextSequenceNum
@@ -70,8 +75,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
 
     if (entry.kind !== 'meta') {
-      if (entry.type !== 'receivedSuggestions' || isValidSugUpdate)
-        state.handleEvent(entry);
+      // if (entry.type !== 'receivedSuggestions' || isValidSugUpdate)
+      state.handleEvent(entry);
     }
 
     if (state.screenNum !== lastScreenNum) {
@@ -87,9 +92,13 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let pageData = getPageData();
 
     // Assert state consistency
-    if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
-      if (entry.request.sofar !== expState.suggestionContext.prefix) {
-        throw new Error(`State mismatch! ${entry.request.sofar} vs ${expState.suggestionContext.prefix} - last sug response ${lastSugResponseTimestamp}`)
+    if (entry.kind === 'meta' && entry.type === 'requestSuggestions' && entry.request.request_id === expState.contextSequenceNum) {
+      let requestCurText = entry.request.sofar + entry.request.cur_word.map((ent => ent.letter)).join('');
+      if (requestCurText !== expState.curText) {
+        stateMismatches.push(lastSugResponseTimestamp);
+        console.log(participant_id, logIdx, "Correcting curText:", expState.curText, 'TO', requestCurText)
+        expState.curText = requestCurText;
+        // throw new Error(`State mismatch! ${entry.request.sofar} vs ${expState.suggestionContext.prefix} - last sug response ${lastSugResponseTimestamp}`)
       }
     }
 
@@ -132,7 +141,12 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {type: 'next'};
   });
 
-  console.assert(state.curScreen.screen === 'Done')
+  if (stateMismatches.length) {
+    console.error(stateMismatches.join(' '));
+    throw new Error(`State mismatches: ${stateMismatches.join(' ')}`);
+  }
+
+  console.assert(state.curScreen.screen === 'Done', "Incomplete log file %s", participant_id);
 
   return {
     participant_id,
