@@ -109,6 +109,11 @@ export function init() {
   }
 
   function _dispatch(event) {
+    Raven.captureBreadcrumb({
+      category: 'dispatch',
+      message: event.type,
+      data: event
+    });
     console.log(event);
     event.jsTimestamp = +new Date();
     event.kind = clientKind;
