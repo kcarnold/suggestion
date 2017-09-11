@@ -5,6 +5,10 @@ import dateutil.parser
 import datetime
 import re
 
+COMPLETE_NUM_ACTIONS=18
+
+TECHNICAL_DIFFICULTIES = '7h9r8g p964wg jcqf4w'.split()
+
 def get_log_data(log_file, earliest):
     size = os.path.getsize(log_file),
     meta = None
@@ -14,7 +18,9 @@ def get_log_data(log_file, earliest):
             if idx > 50 and meta is None:
                 return
             line = json.loads(line)
-            if line.get('type') == 'externalAction':
+            if line.get('type') == 'next' or line.get('externalAction') == 'completeSurvey':
+                num_nexts += 1
+            elif line.get('type') == 'externalAction':
                 timestamp = dateutil.parser.parse(line['timestamp'])
                 if timestamp < earliest:
                     return
@@ -23,8 +29,6 @@ def get_log_data(log_file, earliest):
                     continue
                 config, pid = match.groups()
                 meta = dict(timestamp=timestamp, config=config, pid=int(pid), participant_id=line['participant_id'], size=size)
-            elif line.get('type') == 'next':
-                num_nexts += 1
     if meta:
         return dict(meta, num_nexts=num_nexts)
 
@@ -42,16 +46,18 @@ participants = []
 for pid, group in toolz.groupby('pid', log_files).items():
     participants.append(max(group, key=lambda e: e['size']))
 
+participants = [p for p in participants if p['participant_id'] not in TECHNICAL_DIFFICULTIES]
+
 # Dump a CSV by Sona participant id:
 participants.sort(key=lambda x: x['pid'])
-print('\n'.join('{pid},{participant_id}'.format(**participant) for participant in participants if participant['num_nexts'] == 12))
+print('\n'.join('{pid},{participant_id}'.format(**participant) for participant in participants if participant['num_nexts'] == COMPLETE_NUM_ACTIONS))
 
 print("\nIncomplete")
-print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] != 12))
+print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] != COMPLETE_NUM_ACTIONS))
 
 
 # Dump a list of participant_ids
 print()
 participants.sort(key=lambda x: x['timestamp'])
-print(' '.join(participant['participant_id'] for participant in participants if participant['num_nexts'] == 12))
+print(' '.join(participant['participant_id'] for participant in participants if participant['num_nexts'] == COMPLETE_NUM_ACTIONS))
 
