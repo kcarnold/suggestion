@@ -596,7 +596,9 @@ def get_all_data_pre_annotation(batch=None):
     # For a summary of how many trials there are each:
     # trial_level_data.groupby(['config', 'participant_id']).size().groupby(level=0).value_counts()
 
-    return participant_level_data, trial_level_data
+    return tuple(
+            table.dropna(axis=1, how='all') for table in
+            (participant_level_data, trial_level_data))
 
 
 def get_all_data_with_annotations(batch=None):
