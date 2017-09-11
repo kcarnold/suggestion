@@ -1,21 +1,9 @@
-import subprocess
 import glob
 import os
 import json
 import dateutil.parser
 import datetime
 import re
-
-if False:
-    pwd = os.getcwd()
-    try:
-        os.chdir('logs')
-        hdsl_files_raw = subprocess.check_output(['grep', '--files-with-matches', '-E', '&p=\d+'] + glob.glob('*.jsonl'))
-        hdsl_files = hdsl_files_raw.decode('utf8').split()
-        pids = [subprocess.check_output(['grep', '-E', '--only-matching', r'&p=\d+', file]).decode('utf8').strip()[3:] for file in hdsl_files]
-        # print('\n'.join(map(','.join, [(sid, max((os.path.getsize(f'logs/{pid}.jsonl'), pid) for sid, pid in pids)[1]) for sid, pids in groups.items()])))
-    finally:
-        os.chdir(pwd)
 
 def get_log_data(log_file, earliest):
     size = os.path.getsize(log_file),
@@ -54,11 +42,16 @@ participants = []
 for pid, group in toolz.groupby('pid', log_files).items():
     participants.append(max(group, key=lambda e: e['size']))
 
-# participants.sort(key=lambda x: x['timestamp'])
+# Dump a CSV by Sona participant id:
 participants.sort(key=lambda x: x['pid'])
-print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] == 12))
-    # print(pid,
-    #     max(group, key=lambda e: e['timestamp'])['participant_id'],
-    #     max(group, key=lambda e: e['size'])['participant_id'],
-    #     )
-    # print()['participant_id'])
+print('\n'.join('{pid},{participant_id}'.format(**participant) for participant in participants if participant['num_nexts'] == 12))
+
+print("\nIncomplete")
+print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] != 12))
+
+
+# Dump a list of participant_ids
+print()
+participants.sort(key=lambda x: x['timestamp'])
+print(' '.join(participant['participant_id'] for participant in participants if participant['num_nexts'] == 12))
+
