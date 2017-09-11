@@ -59,6 +59,12 @@ function replay(log, state) {
     delete toLog.timestamp;
     delete toLog.kind;
     delete toLog.jsTimestamp;
+    if (event.type === 'requestSuggestions') {
+      let requestCurText = event.request.sofar + event.request.cur_word.map((ent => ent.letter)).join('');
+      if (event.request.request_id === state.experimentState.contextSequenceNum && requestCurText !== state.experimentState.curText) {
+        debugger;
+      }
+    }
     // console.log(toLog);
     // try {
     state.handleEvent(event);
@@ -232,4 +238,6 @@ window.store = store;
 
 
 // store.addViewers('c104c0 feebe1 50b0c9 50b80b 99c66d')
-store.addViewers('2wr5j9 v4w898 7jqggr')
+// store.addViewers('2wr5j9 v4w898 7jqggr')
+store.addViewers('9qxf5g hfj33r jcqf4w')
+
