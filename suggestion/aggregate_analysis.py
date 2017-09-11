@@ -402,9 +402,11 @@ def merge_sentiment_annotations(task, annotation_results):
 
 MIN_WORD_COUNT = 5
 def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
-    if not isinstance(doc, str):
-        return
-    toks = tokenization.tokenize(doc.lower())[0]
+    try:
+        toks = tokenization.tokenize(doc.lower())[0]
+    except Exception:
+        print("Failed to tokenize", doc[:30])
+        return pd.Series()
     filtered = []
     freqs = []
     skipped = set()
