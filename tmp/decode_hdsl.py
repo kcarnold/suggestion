@@ -19,9 +19,11 @@ if False:
 
 def get_log_data(log_file, earliest):
     size = os.path.getsize(log_file),
+    meta = None
+    num_nexts = 0
     with open(log_file) as f:
         for idx, line in enumerate(f):
-            if idx > 50:
+            if idx > 50 and meta is None:
                 return
             line = json.loads(line)
             if line.get('type') == 'externalAction':
@@ -30,9 +32,13 @@ def get_log_data(log_file, earliest):
                     return
                 match = re.match(r'c=(\w+)&p=(\d+)', line['externalAction'])
                 if not match:
-                    return
+                    continue
                 config, pid = match.groups()
-                return dict(timestamp=timestamp, config=config, pid=pid, participant_id=line['participant_id'], size=size)
+                meta = dict(timestamp=timestamp, config=config, pid=int(pid), participant_id=line['participant_id'], size=size)
+            elif line.get('type') == 'next':
+                num_nexts += 1
+    if meta:
+        return dict(meta, num_nexts=num_nexts)
 
 
 earliest = datetime.datetime(2017, 9, 1)
@@ -48,8 +54,9 @@ participants = []
 for pid, group in toolz.groupby('pid', log_files).items():
     participants.append(max(group, key=lambda e: e['size']))
 
-participants.sort(key=lambda x: x['timestamp'])
-print(' '.join(participant['participant_id'] for participant in participants))
+# participants.sort(key=lambda x: x['timestamp'])
+participants.sort(key=lambda x: x['pid'])
+print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] == 12))
     # print(pid,
     #     max(group, key=lambda e: e['timestamp'])['participant_id'],
     #     max(group, key=lambda e: e['size'])['participant_id'],
