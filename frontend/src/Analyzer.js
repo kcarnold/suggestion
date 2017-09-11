@@ -51,13 +51,15 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     // Track requests
     if (entry.kind === 'meta' && entry.type === 'requestSuggestions') {
       let msg = _.clone(entry.request);
+      let requestCurText = msg.sofar + msg.cur_word.map((ent => ent.letter)).join('');
       requestsByTimestamp[msg.timestamp] = {request: msg, response: null};
       if (tmpSugRequests[msg.request_id]) {
-        console.log("Ignoring duplicate request", msg.timestamp);
+        console.assert(tmpSugRequests[msg.request_id] === requestCurText, `Mismatch request curText for ${participant_id}-${msg.timestamp}}, "${tmpSugRequests[msg.request_id]}" VS "${requestCurText}"`);
+        // console.log("Ignoring duplicate request", msg.timestamp);
         requestsByTimestamp[msg.timestamp].dupe = true;
         return;
       } else {
-        tmpSugRequests[msg.request_id] = 'request';
+        tmpSugRequests[msg.request_id] = requestCurText;
       }
     } else if (entry.type === 'receivedSuggestions') {
       let msg = {...entry.msg, responseTimestamp: entry.jsTimestamp};
@@ -66,13 +68,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         return;
       }
       lastSugResponseTimestamp = tscode;
-      if (false && requestsByTimestamp[msg.timestamp].dupe) {
-        console.log("Ignoring response to duplicate request", msg.timestamp);
-        return;
-      } else {
-        requestsByTimestamp[msg.timestamp].response = msg;
-        tmpSugRequests[msg.request_id] = 'response';
-      }
+      requestsByTimestamp[msg.timestamp].response = msg;
     }
 
 
@@ -154,7 +150,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     throw new Error(`State mismatches: ${stateMismatches.join(' ')}`);
   }
 
-  console.assert(state.curScreen.screen === 'Done', "Incomplete log file %s", participant_id);
+  // One log didn't get to the last
+  console.assert(state.curScreen.screen === 'Done' || state.curScreen.screen === 'IntroSurvey', "Incomplete log file %s", participant_id);
 
   let screenTimes = state.screenTimes.map(screen => {
     let screenDesc = state.screens[screen.num];
