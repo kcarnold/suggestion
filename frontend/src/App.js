@@ -127,8 +127,12 @@ export function init() {
     });
     // Run side-effects after all handlers have had at it.
     sideEffects.forEach(sideEffect => {
-      if (sideEffect.type !== 'suggestion_context_changed') {
-        setTimeout(() => dispatch(sideEffect), 0);
+      if (sideEffect.type === 'requestSuggestions') {
+        ws.send(sideEffect);
+      } else {
+        if (sideEffect.type !== 'suggestion_context_changed') {
+          setTimeout(() => dispatch(sideEffect), 0);
+        }
       }
     });
   }
@@ -156,49 +160,11 @@ export function init() {
 
   registerHandler(state.handleEvent);
 
-  let inflightRequests = M.observable.shallowMap({});
-  window.inflightRequests = inflightRequests;
-
-
-  function startRequestingSuggestions() {
-    // Auto-runner to watch the context and request suggestions.
-    M.autorun(() => {
-      let {suggestionRequest} = state;
-      if (!suggestionRequest)
-        return;
-
-
-      // If there's more than one request already in-flight, don't make another.
-      // We allow two requests to be in-flight so that we can pipeline in the common case.
-      if (M.untracked(() => inflightRequests.size) > 1) {
-        console.log("Interlocking request because there's already too many requests in-flight.");
-        // But get flagged when that changes.
-        inflightRequests.size; // eslint-disable-line no-unused-expressions
-        return;
-      }
-
-      let {request_id} = suggestionRequest;
-      if (M.untracked(() => JSON.stringify(inflightRequests.get(request_id)) === JSON.stringify(suggestionRequest))) {
-        console.warn(`Would have made a duplicate request ${request_id}.`);
-        return;
-      }
-
-      console.log('requesting', suggestionRequest);
-      ws.send(suggestionRequest);
-      M.untracked(() => {
-        inflightRequests.set(request_id, +new Date());
-      });
-    });
-  }
-
   var didInit = false;
 
   ws.onmessage = function(msg) {
     if (msg.type === 'suggestions') {
       dispatch({type: 'receivedSuggestions', msg});
-      let requestTime = inflightRequests.get(msg.request_id);
-      inflightRequests.delete(msg.request_id);
-      console.log('rtt', (+new Date() - requestTime));
     } else if (msg.type === 'backlog') {
       console.log('Backlog', msg);
       let firstTime = !didInit;
@@ -234,7 +200,6 @@ export function init() {
   // The handler for the first backlog message calls 'afterFirstMessage'.
   function afterFirstMessage() {
     if (clientKind === 'p') {
-      startRequestingSuggestions();
       setSize();
     }
     if (state.pingTime === null || state.pingTime > MAX_PING_TIME) {

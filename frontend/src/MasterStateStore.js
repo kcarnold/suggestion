@@ -427,7 +427,7 @@ export class MasterStateStore {
       // This condition repeats the base conditions.
       this.conditions = this.conditions.concat(this.conditions);
     }
-    this.initScreen();
+    this.screenNum = 0;
   }
 
   constructor(clientId:string) {
@@ -435,11 +435,11 @@ export class MasterStateStore {
 
     let isDemo = (clientId || '').slice(0, 4) === 'demo';
     this.isDemo = isDemo;
-    let demoConditionName = clientId.slice(4);
+    this.demoConditionName = clientId.slice(4);
     let sentiment = null;
-    if (demoConditionName.slice(0,9) === 'sentmatch') {
-      sentiment = +demoConditionName[9];
-      demoConditionName = 'sentmatch';
+    if (this.demoConditionName.slice(0,9) === 'sentmatch') {
+      sentiment = +this.demoConditionName[9];
+      this.demoConditionName = 'sentmatch';
     }
 
     this.times = {prewriteTimer, finalTimer};
@@ -465,7 +465,7 @@ export class MasterStateStore {
       sentiment,
       lastEventTimestamp: null,
       replaying: true,
-      screenNum: 0,
+      screenNum: null,
       block: null,
       conditions: null,
       conditionName: null,
@@ -497,17 +497,18 @@ export class MasterStateStore {
       get screens() {
         if (isDemo) {
           return [{
-            preEvent: {type: 'setupExperiment', block: 0, condition: demoConditionName, name: 'demo'},
+            preEvent: {type: 'setupExperiment', block: 0, condition: this.demoConditionName, name: 'demo'},
             screen: 'ExperimentScreen', controllerScreen: 'ExperimentScreen'
           }];
         }
         return getScreens(this.masterConfigName, this.conditions);
       },
       get curScreen() {
-        return this.screens[this.screenNum];
-      },
-      get nextScreen() {
-        return this.screens[this.screenNum + 1];
+        if (this.screenNum) {
+          return this.screens[this.screenNum];
+        } else {
+          return {};
+        }
       },
       get places() {
         let {controlledInputs} = this;
@@ -525,17 +526,6 @@ export class MasterStateStore {
           return seededShuffle(`${this.clientId}-places`, res);
         }
       },
-      get suggestionRequestParams() {
-        let sentiment = this.condition.sentiment;
-        if (sentiment === 'match') {
-          sentiment = this.sentiment || this.curPlace.stars;
-        }
-        return {
-          domain: 'yelp_train-balanced',
-          ...this.condition.sugFlags,
-          sentiment
-        };
-      },
       get curPlace() {
         if (isDemo) return {name: 'Corner Cafe', visit: 'last night', stars: 4};
         return this.places[this.block];
@@ -548,45 +538,12 @@ export class MasterStateStore {
         console.assert(!!this.conditionName);
         return {...CONDITION_DEFAULTS, ...namedConditions[this.conditionName]};
       },
-      get suggestionRequest() {
-        let {experimentState} = this;
-        if (!experimentState)
-          return null;
-
-        let seqNum = experimentState.contextSequenceNum;
-        let {prefix, curWord, constraints, promise} = experimentState.getSuggestionContext();
-        let response = {
-          type: 'requestSuggestions',
-          request_id: seqNum,
-          sofar: prefix,
-          cur_word: curWord,
-          flags: {
-            constraints,
-            promise,
-            ...this.suggestionRequestParams
-          }
-        };
-        if (this.condition.usePrewriteText && this.prewriteLines.length) {
-          response['prewrite_info'] = {
-            text: this.prewriteLines[this.curPrewriteLine],
-            amount: 1.
-          };
-        }
-        return response;
-      }
     });
-
-    if (isDemo) {
-      this.setMasterConfig('demo');
-      if (demoConditionName === 'withPrewrite') {
-        this.prewriteText = "tacos\nbest food\ncheap\nextra queso\ncarne asada\nweekly\ngood place for pick up not eat in\nwalls echo\nalways same order\nnew try horchata\n"
-      }
-      this.pingTime = 0;
-    }
   }
 
   initScreen() {
     // Execute start-of-screen actions.
+    let sideEffects = [];
     let screen = this.screens[this.screenNum];
     if (screen.preEvent) {
       let {preEvent} = screen;
@@ -595,7 +552,20 @@ export class MasterStateStore {
         this.block = preEvent.block;
         this.conditionName = preEvent.condition;
         this.curExperiment = preEvent.name;
-        this.experiments.set(preEvent.name, new ExperimentStateStore(this.condition));
+
+        let sentiment = this.condition.sentiment;
+        if (sentiment === 'match') {
+          sentiment = this.sentiment || this.curPlace.stars;
+        }
+        let sugFlags = {
+          domain: 'yelp_train-balanced',
+          ...this.condition.sugFlags,
+          sentiment
+        };
+
+        let experimentObj = new ExperimentStateStore(this.condition, sugFlags);
+        this.experiments.set(preEvent.name, experimentObj);
+        sideEffects.push(experimentObj.init());
         this.tutorialTasks = new TutorialTasks();
         if (this.masterConfig.useConstraints) {
           this.experimentState.useConstraints = this.masterConfig.useConstraints;
@@ -612,6 +582,7 @@ export class MasterStateStore {
       this.timerStartedAt = this.lastEventTimestamp;
       this.timerDur = screen.timer;
     }
+    return sideEffects;
   }
 
   handleEvent = M.action((event) => {
@@ -667,7 +638,14 @@ export class MasterStateStore {
       if (event.kind === 'p') {
         this.phoneSize = {width: event.width, height: event.height};
       }
-      break;
+      if (this.isDemo && !this.experimentState) {
+        this.setMasterConfig('demo');
+        if (this.demoConditionName === 'withPrewrite') {
+          this.prewriteText = "tacos\nbest food\ncheap\nextra queso\ncarne asada\nweekly\ngood place for pick up not eat in\nwalls echo\nalways same order\nnew try horchata\n"
+        }
+        this.pingTime = 0;
+      }
+    break;
     case 'pingResults':
       if (event.kind === 'p') {
         this.pingTime = event.ping.mean;
@@ -686,7 +664,7 @@ export class MasterStateStore {
     }
 
     if (this.screenNum !== screenAtStart) {
-      this.initScreen();
+      sideEffects = sideEffects.concat(this.initScreen());
     }
     return sideEffects;
   });

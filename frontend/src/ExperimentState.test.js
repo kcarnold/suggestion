@@ -67,6 +67,142 @@ function tapKeys(state, keys) {
   );
 }
 
+it("requests suggestions at appropriate times", () => {
+  // Testing strategy:
+  // - test that init should make first request
+  // - test that all main user events cause a new request with a new request id
+  // -- provide a response immediately for each one this time.
+  // - test that suggestions don't get backlogged.
+  // - test that once the backlog clears, suggestions get requested again.
+
+});
+
+it("requests suggestions on init", () => {
+  let sugFlags = {domain: 'test'}
+  let state = new ExperimentStateStore({}, sugFlags);
+  expect(state.init()).toMatchObject({
+    type: 'requestSuggestions',
+    sofar: '',
+    cur_word: [],
+    request_id: 0,
+    flags: expect.any(Object),
+  });
+});
+
+it("requests suggestions following all main user events", () => {
+  let sugFlags = {domain: 'test'}
+  let state = new ExperimentStateStore({}, sugFlags);
+  state.init();
+  expect(state.contextSequenceNum).toEqual(0);
+  state.handleEvent({
+    type: "receivedSuggestions",
+    msg: { request_id: 0, ...recs1 },
+  });
+  expect(state.contextSequenceNum).toEqual(0);
+
+  // Try a sugg tap.
+  let req1 = state.handleEvent({type: 'tapSuggestion', which: 'predictions', slot: 0});
+  expect(req1).toHaveLength(1);
+  expect(req1[0]).toMatchObject({
+    type: 'requestSuggestions',
+    sofar: "one ",
+    cur_word: [],
+    request_id: 1,
+    flags: expect.any(Object),
+  });
+  expect(state.contextSequenceNum).toEqual(1);
+
+  // The non-tapped suggestions should be invalid right now.
+  [1, 2].forEach(i => {
+    expect(state.visibleSuggestions.predictions[i].words).toEqual([]);
+  })
+
+  // Try a keypress.
+  let req2 = state.handleEvent({type: 'tapKey', key: 'a'});
+  expect(req2).toHaveLength(1);
+  expect(req2[0].sofar).toEqual('one ');
+  expect(req2[0].cur_word[0].letter).toEqual('a');
+  expect(req2[0].request_id).toEqual(2);
+  expect(state.contextSequenceNum).toEqual(2);
+
+  // All suggestions should be invalid right now.
+  [0, 1, 2].forEach(i => {
+    expect(state.visibleSuggestions.predictions[i].words).toEqual([]);
+  })
+
+  // Try a backspace. Since there hasn't been a response in two requests,
+  // this should not make a new request.
+  let req3 = state.handleEvent({type: 'tapBackspace'});
+  expect(req3).toHaveLength(0);
+
+  // Now give a response to the first request.
+  // (contents don't matter)
+  let req4 = state.handleEvent({
+    type: 'receivedSuggestions',
+    msg: { request_id: 1, ...recs1 }
+  });
+  // Now we should get the request for the backspace.
+  expect(req4).toHaveLength(1);
+  expect(req4[0]).toMatchObject({
+    sofar: 'one ',
+    cur_word: [],
+    request_id: 3,
+    flags: expect.any(Object),
+  });
+  // But the visible suggestions should still be invalid.
+  [0, 1, 2].forEach(i => {
+    expect(state.visibleSuggestions.predictions[i].words).toEqual([]);
+  });
+
+  // Now the server starts catching up. Give the response for the key tap.
+  let req4A = state.handleEvent({
+    type: 'receivedSuggestions',
+    msg: { request_id: 2, ...recs1 }
+  });
+  // No new requests.
+  expect(req4A).toHaveLength(0);
+  // Still invalid suggestions.
+  [0, 1, 2].forEach(i => {
+    expect(state.visibleSuggestions.predictions[i].words).toEqual([]);
+  });
+
+
+  // Now give the response for the backspace. They should show up now, and no new requests.
+  let req5 = state.handleEvent({
+    type: 'receivedSuggestions',
+    msg: { request_id: 3, ...recs1 }
+  });
+  expect(req5).toHaveLength(0);
+  [0, 1, 2].forEach(i => {
+    expect(state.visibleSuggestions.predictions[i].words.length).toBeGreaterThan(0);
+  });
+
+  expect(state.contextSequenceNum).toEqual(3);
+
+  // Try going far in the future, and we still only get one outstanding request.
+  for (let i=0; i<10; i++) {
+    let request = state.handleEvent({type: 'tapKey', key: 'x'});
+    if (i < 2) {
+      expect(request).toHaveLength(1);
+      expect(request[0].request_id).toEqual(3 + 1 + i);
+    } else {
+      expect(request).toHaveLength(0);
+    }
+  }
+  let req6 = state.handleEvent({
+    type: 'receivedSuggestions',
+    msg: { request_id: 4, ...recs1 }
+  });
+  expect(req6).toHaveLength(1);
+  expect(state.contextSequenceNum).toEqual(13);
+  expect(req6[0].request_id).toEqual(13);
+});
+
+it("doesn't duplicate requests after an auto-space", () => {
+  throw new Error('todo');
+})
+
+
 it("inserts automatic spaces after suggestions", () => {
   var state = new ExperimentStateStore({});
   const curText = "the inside ";
@@ -90,7 +226,8 @@ it("inserts automatic spaces after suggestions", () => {
 });
 
 it("promises a phrase completion even without a server roundtrip", () => {
-  let state = new ExperimentStateStore({});
+  let state = new ExperimentStateStore({}, {});
+  state.init();
   let words = ["this", "is", "my", "favorite", "place"];
   state.handleEvent({
     type: "receivedSuggestions",
@@ -112,7 +249,8 @@ it("promises a phrase completion even without a server roundtrip", () => {
 });
 
 it("doesn't crash when running out of words", () => {
-  let state = new ExperimentStateStore({});
+  let state = new ExperimentStateStore({}, {});
+  state.init();
   let words = ["this", "is", "my", "favorite", "place"];
   state.handleEvent({
     type: "receivedSuggestions",

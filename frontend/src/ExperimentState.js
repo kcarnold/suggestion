@@ -53,9 +53,11 @@ function randChoice(rng, choices) {
 }
 
 export class ExperimentStateStore {
-  constructor(condition) {
+  constructor(condition, sugFlags) {
     this.__version__ = 1;
     this.condition = condition;
+    this.sugFlags = sugFlags;
+    this.outstandingRequests = [];
     M.extendObservable(this, {
       curText: '',
       useConstraints: {},
@@ -150,7 +152,7 @@ export class ExperimentStateStore {
         let result = {
           prefix: sofar.slice(0, lastSpaceIdx + 1),
           curWord,
-          constraints: this.curConstraint
+          // constraints: this.curConstraint
         };
         if (this.activeSuggestion) {
           result.promise = {
@@ -230,14 +232,14 @@ export class ExperimentStateStore {
         }
         this.activeSuggestion = newActiveSuggestion;
 
-        return [this.changedMsg()];
+        return [];
       }),
       tapBackspace: M.action(() => {
         /* Ignore the attention check, don't count this for or against. */
         this.insertText('', 1);
         this.lastSpaceWasAuto = false;
         this.activeSuggestion = null;
-        return [this.changedMsg()];
+        return [];
       }),
       handleTapSuggestion: M.action(event => {
         let {slot, which} = event;
@@ -279,7 +281,7 @@ export class ExperimentStateStore {
           this.insertText(wordToInsert + ' ', charsToDelete, null);
           this.lastSpaceWasAuto = true;
         }
-        return [this.changedMsg()];
+        return [];
       }),
 
       handleSelectAlternative: M.action(event => {
@@ -296,7 +298,7 @@ export class ExperimentStateStore {
         }
         this.insertText(wordToInsert + ' ', charsToDelete, null);
         this.lastSpaceWasAuto = true;
-        return [this.changedMsg()];
+        return [];
       }),
 
       handleTapText: M.action(event => {
@@ -306,40 +308,36 @@ export class ExperimentStateStore {
       updateSuggestions: M.action(event => {
         let {msg} = event;
         // Only update suggestions if the data is valid.
-        if (msg.request_id !== this.contextSequenceNum) {
-          // Only warn if we're more than one context behind.
-          if (this.contextSequenceNum - msg.request_id > 1) {
-            console.warn("Discarding outdated suggestions", msg.request_id, this.contextSequenceNum);
-          }
-          return;
+        if (msg.request_id === this.contextSequenceNum) {
+          this.lastSuggestionsFromServer = msg;
         }
-        this.lastSuggestionsFromServer = msg;
+        let idx = this.outstandingRequests.indexOf(msg.request_id);
+        if (idx !== -1) {
+          this.outstandingRequests.splice(idx, 1);
+        }
+        if (idx !== 0) {
+          console.log('warning: outstandingRequests weird: looking for', msg.request_id, 'in', this.outstandingRequests);
+        }
       }),
     });
   }
 
-  changedMsg() {
-    this.contextSequenceNum++;
+  init() {
+    this.outstandingRequests.push(0);
+    return this.getSuggestionRequest();
+  }
 
-    // Update attn check
-    let rng = seedrandom(this.curText + this.contextSequenceNum);
-    if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
-      let ac = {};
-      let choices = ['text'];
-      if (this.showPredictions) {
-        choices.push('predictions');
-      }
-      if (this.showSynonyms) {
-        choices.push('synonyms');
-      }
-        ac.type = randChoice(rng, choices);
-      let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
-      ac.slot = Math.floor(rng() * numSlots);
-      this.attentionCheck = ac;
-    } else {
-      this.attentionCheck = null;
-    }
-    return {type: 'suggestion_context_changed'};
+  getSuggestionRequest() {
+    let {prefix, curWord, promise} = this.getSuggestionContext();
+
+
+    return {
+      type: 'requestSuggestions',
+      sofar: prefix,
+      cur_word: curWord,
+      flags: {...this.sugFlags, promise,},
+      request_id: this.contextSequenceNum
+    };
   }
 
   getSuggestionContext() {
@@ -385,20 +383,60 @@ export class ExperimentStateStore {
   }
 
   handleEvent = (event) => {
-    switch (event.type) {
-    case 'tapKey':
-      return this.tapKey(event);
-    case 'tapBackspace':
-      return this.tapBackspace();
-    case 'receivedSuggestions':
-      return this.updateSuggestions(event);
-    case 'tapSuggestion':
-      return this.handleTapSuggestion(event);
-    case 'selectAlternative':
-      return this.handleSelectAlternative(event);
-    case 'tapText':
-      return this.handleTapText(event);
-    default:
+    let textBeforeEvent = this.curText;
+    let sideEffects = (() => {
+      switch (event.type) {
+      case 'tapKey':
+        return this.tapKey(event);
+      case 'tapBackspace':
+        return this.tapBackspace();
+      case 'receivedSuggestions':
+        return this.updateSuggestions(event);
+      case 'tapSuggestion':
+        return this.handleTapSuggestion(event);
+      case 'selectAlternative':
+        return this.handleSelectAlternative(event);
+      case 'tapText':
+        return this.handleTapText(event);
+      default:
+      }
+    })();
+    sideEffects = sideEffects || [];
+
+    if (this.curText !== textBeforeEvent) {
+      this.contextSequenceNum++;
+      // Update attn check
+      let rng = seedrandom(this.curText + this.contextSequenceNum);
+      if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
+        let ac = {};
+        let choices = ['text'];
+        if (this.showPredictions) {
+          choices.push('predictions');
+        }
+        if (this.showSynonyms) {
+          choices.push('synonyms');
+        }
+          ac.type = randChoice(rng, choices);
+        let numSlots = ac.type === 'predictions' ? 3 : this.condition.sugFlags.num_alternatives;
+        ac.slot = Math.floor(rng() * numSlots);
+        this.attentionCheck = ac;
+      } else {
+        this.attentionCheck = null;
+      }
     }
+
+    if (this.lastSuggestionsFromServer.request_id !== this.contextSequenceNum) {
+      if (this.outstandingRequests.indexOf(this.contextSequenceNum) !== -1) {
+        // console.log("Already requested", this.contextSequenceNum);
+      } else if (this.outstandingRequests.length < 2) {
+        // console.log(`event ${event.type} triggered request ${this.contextSequenceNum}`)
+        sideEffects = sideEffects.concat([this.getSuggestionRequest()]);
+        this.outstandingRequests.push(this.contextSequenceNum);
+      } else {
+        // console.log(`event ${event.type} would trigger request ${this.contextSequenceNum} but throttled ${this.outstandingRequests}`)
+      }
+    }
+
+    return sideEffects;
   };
 }
