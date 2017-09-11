@@ -580,7 +580,8 @@ def get_all_data_pre_annotation(batch=None):
     trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
     trial_level_data['stars_after_z'] = trial_level_data.groupby('participant_id').stars_after.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
 
-    trial_level_data['positive_experience'] = trial_level_data['stars_after'] >= 4
+    # The experiment asked about positive experiences first.
+    trial_level_data['positive_experience'] = trial_level_data['place_idx'] < 2
 
     def group_standardize(group):
         x = group.loc[:, ['stars_before', 'stars_after']]
