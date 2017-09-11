@@ -198,7 +198,7 @@ it("requests suggestions following all main user events", () => {
   expect(req6[0].request_id).toEqual(13);
 });
 
-it("doesn't duplicate requests after an auto-space", () => {
+xit("doesn't duplicate requests after an auto-space", () => {
   throw new Error('todo');
 })
 
