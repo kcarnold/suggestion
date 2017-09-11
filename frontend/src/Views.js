@@ -362,7 +362,7 @@ export const RevisionComputer = inject('state')(observer(({state}) => <div>
 
   <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
       <div>Word count: {state.experimentState.wordCount}</div>
-      {state.experimentState.wordCount < wordCountTarget ? <div>Please try to write {wordCountTarget} words.</div> : <div>When you're done, click here: <NextBtn /></div>}
+      {state.experimentState.wordCount < wordCountTarget ? <div>Please try to write at least {wordCountTarget} words.</div> : <div>When you're done, click here: <NextBtn /></div>}
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
