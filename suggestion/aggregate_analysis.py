@@ -30,7 +30,7 @@ word_freq_analyzer = WordFreqAnalyzer.get()
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
 
 
-ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'intro4', 'postTask', 'postTask3', 'postExp', 'postExp3', 'postExp4']
+ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'intro4', 'postTask', 'postTask3', 'postTaskSynonyms', 'postExp', 'postExp3', 'postExp4']
 
 
 STUDY_COLUMNS = '''
@@ -206,7 +206,7 @@ def decode_traits(data):
 #%%
 
 def process_survey_data(survey, survey_data_raw):
-    is_repeated = survey in ['postTask', 'postTask3', 'postFreewrite']
+    is_repeated = survey in ['postTask', 'postFreewrite']
     data = survey_data_raw
     data = data.rename(columns={'clientId': 'participant_id'})
     if is_repeated:
@@ -270,7 +270,7 @@ def get_survey_data_processed():
     def concat_rows(*a):
         return pd.concat(*a, axis=0, ignore_index=True)
     intro_data = concat_rows([process_survey_data('intro', raw_survey_data[name]) for name in ['intro', 'intro2', 'intro3', 'intro4']])
-    postTask_data = concat_rows([process_survey_data('postTask', raw_survey_data[name]) for name in ['postTask', 'postTask3']])
+    postTask_data = concat_rows([process_survey_data('postTask', raw_survey_data[name]) for name in ['postTask', 'postTask3', 'postTaskSynonyms']])
     postExp_data = concat_rows([process_survey_data('postExp', raw_survey_data[name]) for name in ['postExp', 'postExp3', 'postExp4']])
 
     survey_data['trial'] = postTask_data
