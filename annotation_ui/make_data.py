@@ -2,8 +2,8 @@
 import json
 import pandas as pd
 import toolz
-todos = json.load(open('../gruntwork/sent4_1_annotations_todo.json'))
-BATCH_SIZE=8
+todos = json.load(open('../gruntwork/sent4_1_annotations_todo.json'))[:10]
+BATCH_SIZE=1
 print("Total:", len(todos))
 batches = list(toolz.partition_all(BATCH_SIZE, todos))
 print(pd.Series([len(batch) for batch in batches]).value_counts())
