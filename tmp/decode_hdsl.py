@@ -50,7 +50,8 @@ participants = [p for p in participants if p['participant_id'] not in TECHNICAL_
 
 # Dump a CSV by Sona participant id:
 participants.sort(key=lambda x: x['pid'])
-print('\n'.join('{pid},{participant_id}'.format(**participant) for participant in participants if participant['num_nexts'] == COMPLETE_NUM_ACTIONS))
+valid_participants = [p for p in participants if p['num_nexts'] == COMPLETE_NUM_ACTIONS]
+print('\n'.join('{pid},{participant_id}'.format(**participant) for participant in valid_participants))
 
 print("\nIncomplete")
 print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for participant in participants if participant['num_nexts'] != COMPLETE_NUM_ACTIONS))
@@ -59,5 +60,6 @@ print('\n'.join('{pid},{participant_id},{num_nexts}'.format(**participant) for p
 # Dump a list of participant_ids
 print()
 participants.sort(key=lambda x: x['timestamp'])
-print(' '.join(participant['participant_id'] for participant in participants if participant['num_nexts'] == COMPLETE_NUM_ACTIONS))
+print(len(valid_participants))
+print(' '.join(participant['participant_id'] for participant in valid_participants))
 
