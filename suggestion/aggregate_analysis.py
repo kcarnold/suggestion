@@ -678,12 +678,20 @@ def get_all_data_with_annotations(batch=None):
     extra_cols = sorted(set(full_data.columns) - desired_cols)
     print(f"Missing {len(missing_cols)} cols", missing_cols)
     print(f"{len(extra_cols)} extra cols", extra_cols)
+
+    annotations_plus_exclusions = clean_merge(
+            participant_level_data.set_index('participant_id').loc[:, ['is_excluded']],
+            annotation_todo,
+            left_index=True, right_on='participant_id')
+    non_excluded_annotations = annotations_plus_exclusions.query('not is_excluded')
+    non_excluded_annotations = non_excluded_annotations.drop('is_excluded', axis=1)
+
     return dict(
             all_data=full_data,
             participant_level_data=participant_level_data,
             trial_level_data=trial_level_data,
             corrections_todo=corrections_todo,
-            annotations_todo=annotation_todo)
+            annotations_todo=non_excluded_annotations)
 
 #%%
 def load_turk_annotations():
