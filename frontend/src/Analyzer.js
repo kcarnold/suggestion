@@ -150,8 +150,9 @@ export function processLogGivenStateStore(StateStoreClass, log) {
   console.assert(
     state.curScreen.screen === "Done" ||
       state.curScreen.screen === "IntroSurvey",
-    "Incomplete log file %s",
+    "Incomplete log file %s (on screen %s)",
     participant_id,
+    state.curScreen.screen || state.curScreen.controllerScreen
   );
 
   let screenTimes = state.screenTimes.map(screen => {
