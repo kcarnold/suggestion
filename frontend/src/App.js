@@ -143,7 +143,10 @@ export function init() {
       try {
         return _dispatch(event);
       } catch (e) {
-        Raven.captureException(e);
+        Raven.captureException(e, {
+          tags: {dispatcher: 'dispatch'},
+          extra: event
+        });
         throw e;
       }
     };
@@ -174,7 +177,10 @@ export function init() {
           state.handleEvent(msg);
           addLogEntry(msg.kind, msg);
         } catch (e) {
-          Raven.captureException(e)
+          Raven.captureException(e, {
+            tags: {dispatcher: 'backlog'},
+            extra: msg
+          });
           throw e;
         }
       });
