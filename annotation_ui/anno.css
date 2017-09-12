@@ -15,8 +15,15 @@ html {
 }
 
 .textSection {
-    border: 1px solid black;
     margin: 30px 0;
+}
+
+.textSection h3 {
+    margin: 0;
+}
+
+.textSection table {
+    border: 1px solid black;
 }
 
 td {
