@@ -1,6 +1,8 @@
 import * as M from "mobx";
 import _ from "lodash";
 
+const INCOMPLETE_BUT_OK = 'hfj33r'.split(/s/);
+
 export function processLogGivenStateStore(StateStoreClass, log) {
   let { participant_id } = log[0];
   let state = new StateStoreClass(participant_id);
@@ -147,13 +149,15 @@ export function processLogGivenStateStore(StateStoreClass, log) {
   });
 
   // One log didn't get to the last
-  console.assert(
-    state.curScreen.screen === "Done" ||
-      state.curScreen.screen === "IntroSurvey",
-    "Incomplete log file %s (on screen %s)",
-    participant_id,
-    state.curScreen.screen || state.curScreen.controllerScreen
-  );
+  if (INCOMPLETE_BUT_OK.indexOf(participant_id) === -1) {
+    console.assert(
+      state.curScreen.screen === "Done" ||
+        state.curScreen.screen === "IntroSurvey",
+      "Incomplete log file %s (on screen %s)",
+      participant_id,
+      state.curScreen.screen || state.curScreen.controllerScreen
+    );
+  }
 
   let screenTimes = state.screenTimes.map(screen => {
     let screenDesc = state.screens[screen.num];
