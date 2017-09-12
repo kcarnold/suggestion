@@ -1,12 +1,6 @@
 import * as M from "mobx";
 import _ from "lodash";
 
-let HACK_TSCODES_TO_SKIP = {};
-const CODES = "p964wg-1504799690416";
-CODES.split(/\s/).forEach(code => {
-  HACK_TSCODES_TO_SKIP[code] = true;
-});
-
 export function processLogGivenStateStore(StateStoreClass, log) {
   let { participant_id } = log[0];
   let state = new StateStoreClass(participant_id);
@@ -34,8 +28,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
   let lastScreenNum = null;
   let tmpSugRequests = null;
-  let lastSugResponseTimestamp = null;
-  let stateMismatches = [];
 
   log.forEach((entry, logIdx) => {
     // We need to track context sequence numbers instead of curText because
@@ -70,11 +62,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       }
     } else if (entry.type === "receivedSuggestions") {
       let msg = { ...entry.msg, responseTimestamp: entry.jsTimestamp };
-      let tscode = `${participant_id}-${msg.timestamp}`;
-      if (HACK_TSCODES_TO_SKIP[tscode]) {
-        return;
-      }
-      lastSugResponseTimestamp = tscode;
       requestsByTimestamp[msg.timestamp].response = msg;
     }
 
@@ -99,30 +86,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       pageData.firstEventTimestamp = entry.jsTimestamp;
     }
     pageData.lastEventTimestamp = entry.jsTimestamp;
-
-    // Assert state consistency
-    if (
-      entry.kind === "meta" &&
-      entry.type === "requestSuggestions" &&
-      entry.request.request_id === expState.contextSequenceNum
-    ) {
-      let requestCurText =
-        entry.request.sofar +
-        entry.request.cur_word.map(ent => ent.letter).join("");
-      if (requestCurText !== expState.curText) {
-        stateMismatches.push(lastSugResponseTimestamp);
-        console.log(
-          participant_id,
-          logIdx,
-          "Correcting curText:",
-          expState.curText,
-          "TO",
-          requestCurText,
-        );
-        expState.curText = requestCurText;
-        // throw new Error(`State mismatch! ${entry.request.sofar} vs ${expState.suggestionContext.prefix} - last sug response ${lastSugResponseTimestamp}`)
-      }
-    }
 
     if (
       [
@@ -182,11 +145,6 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageData.secsOnPage =
       (pageData.lastEventTimestamp - pageData.firstEventTimestamp) / 1000;
   });
-
-  if (stateMismatches.length) {
-    console.error(stateMismatches.join(" "));
-    throw new Error(`State mismatches: ${stateMismatches.join(" ")}`);
-  }
 
   // One log didn't get to the last
   console.assert(
