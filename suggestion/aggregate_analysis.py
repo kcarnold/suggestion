@@ -389,7 +389,7 @@ def merge_sentiment_annotations(task, annotation_results):
 #    topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
     todo_flag = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).pos.apply(lambda group: np.all(group.isnull()))
     todo = clean_merge(task, todo_flag.to_frame('todo'), left_on=['participant_id', 'block'], right_index=True, how='left')
-    todo = todo[todo.todo].drop(['todo', 'WorkerId'], axis=1)
+    todo = todo[todo.todo].drop(['todo'], axis=1)
 
     annos = task.query('sent_idx >= 0').copy()
     for col in ['pos', 'neg', 'nonsense']:
@@ -625,7 +625,8 @@ def get_all_data_with_annotations(batch=None):
 
     # Pull in annotations.
     annotations_task = get_annotations_task(trial_level_data)
-    annotation_results, annotation_todo = merge_sentiment_annotations(annotations_task, load_turk_annotations())
+    turk_annotations_results = load_turk_annotations()
+    annotation_results, annotation_todo = merge_sentiment_annotations(annotations_task, aggregate_turk_annotations(turk_annotations_results))
     #.drop('sent_idx sentence'.split(), axis=1)
     annotation_results['is_mixed'] = (annotation_results['pos'] > 0) & (annotation_results['neg'] > 0)
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense']]
@@ -691,12 +692,16 @@ def get_all_data_with_annotations(batch=None):
             participant_level_data=participant_level_data,
             trial_level_data=trial_level_data,
             corrections_todo=corrections_todo,
-            annotations_todo=non_excluded_annotations)
+            annotations_todo=non_excluded_annotations if False else annotation_todo)
 
 #%%
 def load_turk_annotations():
     meta_header = ['participant_id', 'config', 'condition', 'block']
     result_files = list(paths.parent.joinpath('gruntwork', 'turk_annotations_results').glob("Batch*results.csv"))
+    if not result_files:
+        print("No Turk annotation results found.")
+        return pd.DataFrame([], columns=['WorkerId', 'block', 'condition', 'config', 'neg', 'nonsense', 'participant_id', 'pos', 'sent_idx', 'sentence'])
+
     raw = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True)
     records = raw.loc[:, ['WorkerId', 'Answer.results']].to_dict('records')
     res = []
@@ -707,10 +712,50 @@ def load_turk_annotations():
             meta = dict(dict(zip(meta_header, text_entry['meta'])), WorkerId=worker_id)
             for sent in text_entry['data']:
                 res.append(dict(meta, **sent))
-    res = pd.DataFrame(res).fillna(0)
+    res = pd.DataFrame(res)#.fillna(0)
     assert res['sentIdx'].equals(res['sent_idx'])
     del res['sentIdx']
     return res
+
+def aggregate_turk_annotations(annotations):
+    mean_anno = annotations.groupby(['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence']).mean().loc[:, ['pos', 'neg', 'nonsense']]
+    from nltk.metrics.agreement import AnnotationTask, binary_distance
+    def get_alpha_overall(annos):
+        data = []
+        for idx, row in annos.iterrows():
+            for col in ['pos', 'neg', 'nonsense']:
+                data.append((
+                    row.WorkerId,
+                    '{participant_id}-{block}-{sent_idx}-{col}'.format(**row, col=col),
+                    row[col]))
+        return AnnotationTask(data).alpha()
+    def interval_distance(a, b):
+    #    return abs(a-b)
+        return pow(a-b, 2)
+
+    def get_alpha_single_col(annos, col):
+        if col == 'nonsense':
+            distance = binary_distance
+        else:
+            distance = interval_distance
+        data = [
+            (row.WorkerId, '{participant_id}-{block}-{sent_idx}'.format(**row), row[col])
+            for idx, row in annos.iterrows()
+            if not np.isnan(row[col])]
+        return AnnotationTask(data, distance=interval_distance).alpha()
+    cols = ['pos', 'neg', 'nonsense']
+    base_alphas = {col: get_alpha_single_col(annotations, col) for col in cols}
+    # worker_ids = annotations.WorkerId.unique()
+    # alpha_without = {
+    #     worker_id: {
+    #         col: get_alpha_single_col(annos[annos.WorkerId != worker_id], col)
+    #         for col in cols}
+    #     for worker_id in worker_ids}
+    print(base_alphas)
+    return mean_anno.reset_index()
+
+
+
 #%%
 def reorder_columns(df, desired_order):
     reorder_cols = []
