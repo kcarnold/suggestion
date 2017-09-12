@@ -8,6 +8,8 @@ import re
 COMPLETE_NUM_ACTIONS=18
 
 TECHNICAL_DIFFICULTIES = '7h9r8g p964wg jcqf4w 9qxf5g'.split()
+# Also exclude this person, who wrote about things other than restaurants.
+TECHNICAL_DIFFICULTIES.append('49g68p')
 INCOMPLETE_BUT_OK = 'hfj33r'.split()
 
 def get_log_data(log_file, earliest):
