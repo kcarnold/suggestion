@@ -157,7 +157,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         # There will also be a 'kind', which gets set only when the client connects.
 
     def log(self, event):
-        self.participant.log(dict(event, connection_id=self.connection_id))
+        self.participant.log(dict(event))
 
     def open(self):
         print('ws open, compressed={}'.format(self.ws_connection._compressor is not None), flush=True)
