@@ -632,7 +632,7 @@ def get_all_data_with_annotations(batch=None):
     max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense']]
     total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
     sentiments = clean_merge(
-        max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative'}),
+        max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative', 'nonsense': 'max_nonsense'}),
         total_sentiments.rename(columns={'pos': 'total_positive', 'neg': 'total_negative'}),
         left_index=True, right_index=True)
     sentiments = clean_merge(
@@ -645,7 +645,7 @@ def get_all_data_with_annotations(batch=None):
     trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
     trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
 
-    trial_level_data['has_any_nonsense'] = trial_level_data['nonsense'] > 0
+    trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] > 0.5
 
     participant_level_data = clean_merge(
             participant_level_data,
