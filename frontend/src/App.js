@@ -169,7 +169,7 @@ export function init() {
     if (msg.type === 'suggestions') {
       dispatch({type: 'receivedSuggestions', msg});
     } else if (msg.type === 'backlog') {
-      console.log('Backlog', msg);
+      console.log('Backlog', msg.body.length);
       let firstTime = !didInit;
       state.replaying = true;
       msg.body.forEach(msg => {
