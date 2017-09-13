@@ -150,10 +150,16 @@ def get_participants_by_study(batch=None):
 def get_survey_data_raw():
     # TODO: use the prewrites too?
     # .iloc[1:] is to skip the ImportID row.
-    return {name: pd.read_csv(
-        os.path.join(root_path, 'surveys', name+'_responses.csv'),
-        header=1, parse_dates=['StartDate', 'EndDate']).iloc[1:]
-        for name in ALL_SURVEY_NAMES}
+    res = {}
+    for name in ALL_SURVEY_NAMES:
+        filename = os.path.join(root_path, 'surveys', name+'_responses.csv')
+        df = pd.read_csv(
+            filename,
+            header=1).iloc[1:]
+        # df['StartDate'] = pd.to_datetime(df['StartDate'])
+        # df['EndDate'] = pd.to_datetime(df['EndDate'])
+        res[name] = df
+    return res
 
 #%%
 traits_key = pd.read_csv(paths.parent / 'traits.csv').set_index('item').key.reset_index().dropna().set_index('item').key.to_dict()
