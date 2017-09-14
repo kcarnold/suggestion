@@ -1,4 +1,6 @@
 #!/bin/bash
-for file in anno.{css,js}; do
-    aws --profile kca-s3 s3 cp "$file" "s3://megacomplete.net/anno/$file" --acl public-read
+for basename in anno compare-anno; do
+    for file in ${basename}.{css,js}; do
+        aws --profile kca-s3 s3 cp "$file" "s3://megacomplete.net/anno/$file" --acl public-read
+    done
 done
