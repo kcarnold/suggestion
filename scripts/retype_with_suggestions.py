@@ -24,14 +24,16 @@ def untokenize(s):
     # s = re.sub(r'\bi\b', 'I', s)
     return re.sub(r'(\w) (\W)', r'\1\2', s)
 
-NUM_COMPARISONS = 100
+NUM_COMPARISONS = 500
 
-rs = np.random.RandomState(0)
+rs = np.random.RandomState(1)
 samples = []
 #%%
 progress = tqdm.tqdm(total=NUM_COMPARISONS)
 progress.update(len(samples))
 star = 0
+MIN_WORDS_AT_START = 1
+PHRASE_LEN = 5
 while len(samples) < NUM_COMPARISONS:
     star_review, reviews_with_star = reviews_by_stars[star]
     review_idx = rs.choice(len(reviews_with_star))
@@ -40,12 +42,16 @@ while len(samples) < NUM_COMPARISONS:
     sent_idx = rs.choice(len(sents))
     sent_toks = sents[sent_idx].split()
     sent_len = len(sent_toks)
-    if sent_len < 7: # make sure we have at least one word to start, and don't count final punct
+    if sent_len < MIN_WORDS_AT_START + PHRASE_LEN + 1: # make sure we have at least one word to start, and don't count final punct
         continue
-    word_idx = rs.randint(1, sent_len - 5)
+    use_bos = rs.random_sample() < .5
+    if use_bos:
+        word_idx = 0
+    else:
+        word_idx = rs.randint(MIN_WORDS_AT_START, sent_len - PHRASE_LEN)
     context = ' '.join((' '.join(sents[:sent_idx]).split() + sent_toks[:word_idx])[-6:])
-    true_follows = sent_toks[word_idx:][:5]
-    assert len(true_follows) >= 5
+    true_follows = sent_toks[word_idx:][:PHRASE_LEN]
+    assert len(true_follows) >= PHRASE_LEN
     # try:
     suggestions = [phrase for phrase, probs in suggestion_generator.get_suggestions(
         sofar=context+' ', cur_word=[], **flags)[0]]
