@@ -7,6 +7,7 @@ const participantIds = [
   // "c104c0",
   // "v4w898",
   "r3f4wp",
+  "v9pg6h",
   ];
 let logData = null;
 let analyzed = null;
@@ -86,6 +87,7 @@ it("includes all actions", () => {
         curText: expect.any(String),
       });
     });
-    expect(page.secsOnPage).toEqual(expect.any(Number));
+    expect(page.secsOnPage).toBeGreaterThan(0);
+    expect(page.lastEventTimestamp - page.firstEventTimestamp).toBeGreaterThan(0);
   });
 });

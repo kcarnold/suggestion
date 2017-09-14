@@ -84,10 +84,12 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
     let pageData = getPageData();
 
-    if (pageData.firstEventTimestamp === null) {
-      pageData.firstEventTimestamp = entry.jsTimestamp;
+    if (entry.jsTimestamp) {
+      if (pageData.firstEventTimestamp === null) {
+        pageData.firstEventTimestamp = entry.jsTimestamp;
+      }
+      pageData.lastEventTimestamp = entry.jsTimestamp;
     }
-    pageData.lastEventTimestamp = entry.jsTimestamp;
 
     if (
       [
