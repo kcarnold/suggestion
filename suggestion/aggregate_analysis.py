@@ -505,6 +505,15 @@ def get_all_data_pre_annotation(batch=None):
 
     # Drop out-of-study survey responses.
     participant_level_data = participant_level_data.dropna(subset=['study'], axis=0)
+    trial_survey_data = survey_data['trial']
+    trial_survey_data = trial_survey_data[
+        trial_survey_data.participant_id.isin(participants_by_study.participant_id)]
+
+    # Drop survey responses with bad number of blocks.
+    NUM_BLOCKS_EXPECTED = 4
+    num_surveys_submitted = trial_survey_data.groupby('participant_id').size()
+    bad_num_blocks = num_surveys_submitted[num_surveys_submitted > NUM_BLOCKS_EXPECTED]
+    trial_survey_data = trial_survey_data[~trial_survey_data.participant_id.isin(bad_num_blocks.index)]
 
     # Bin traits by percentile
     for trait in trait_names.values():
@@ -514,7 +523,7 @@ def get_all_data_pre_annotation(batch=None):
         for participant in participants}
 
     trial_level_data = clean_merge(
-            survey_data['trial'],
+            trial_survey_data,
             pd.concat({participant: summarize_trials(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True),
             left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
 
