@@ -660,7 +660,7 @@ def get_all_data_with_annotations(batch=None):
     trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
     trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
 
-    trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] > 0.5
+    trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] >= 0.5
 
     participant_level_data = clean_merge(
             participant_level_data,
