@@ -2,9 +2,9 @@
 import json
 import pandas as pd
 import toolz
-todos = json.load(open('../gruntwork/sent4_1_annotations_todo.json'))
-BATCH_SIZE=4
+todos = json.load(open('../gruntwork/comparisons_existing_reviews.json'))
+BATCH_SIZE=10
 print("Total:", len(todos))
 batches = list(toolz.partition_all(BATCH_SIZE, todos))
 print(pd.Series([len(batch) for batch in batches]).value_counts())
-pd.DataFrame(dict(task=[json.dumps(batch) for batch in batches])).to_csv('anno-task.csv', index=False)
+pd.DataFrame(dict(task=[json.dumps(batch) for batch in batches])).to_csv('compare-anno-task.csv', index=False)

@@ -1,0 +1,28 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+#app {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.pair {
+    margin: 30px 0;
+}
+
+.pair table {
+    width: 100%;
+    border: 1px solid black;
+}
+
+.completion {
+    font-weight: bold;
+}
