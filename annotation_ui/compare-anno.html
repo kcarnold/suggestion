@@ -13,13 +13,13 @@
 
 <div style="background: yellow; padding: 5px;">
     <h3>Instructions</h3>
-    <p>You'll see fragments of text taken from restaurant reviews. <b>Pick which one is more positive</b>.</p>
+    <p>You'll see fragments of text taken from restaurant reviews. <b>Pick which one is more positive</b>  (or less negative, if both are negative).</p>
 
     <p>If a fragment doesn't make sense, or you'd need more context to tell for sure which is more positive, that's ok, make your best guess.</p>
 </div>
 
     <div v-for="(pair, textIdx) in pairs" class="pair">
-        Which is more positive?
+        Which is more positive / less negative?
         <label>
             <input type="radio" v-model="pair.selected" value="left">
             <span class="context">&hellip;{{pair.context}}</span> <span class="completion">{{pair.left}}</span>&hellip;
