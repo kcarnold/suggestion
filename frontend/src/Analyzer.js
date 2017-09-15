@@ -40,6 +40,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let lastContextSeqNum = (state.experimentState || {}).contextSequenceNum;
     let lastText = (state.experimentState || {}).curText;
     let suggestionContext = (state.experimentState || {}).suggestionContext;
+    let visibleSuggestions = (state.experimentState || {}).visibleSuggestions;
 
     let isValidSugUpdate =
       entry.type === "receivedSuggestions" &&
@@ -83,6 +84,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     if (!expState) {
       return;
     }
+    let {curText} = expState;
 
     let pageData = getPageData();
 
@@ -124,15 +126,14 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         annoType,
         curText: lastText,
         timestamp: entry.jsTimestamp,
-        visibleSuggestions: lastDisplayedSuggs,
+        visibleSuggestions: visibleSuggestions,
       };
-      if (entry.type === 'tapSuggestion') {
-        annotatedAction.sugInserted = lastDisplayedSuggs[entry.which][entry.slot].words[0].slice(curWord.length);
+      if (entry.type === 'tapSuggestion' && lastText !== curText) {
+        annotatedAction.sugInserted = visibleSuggestions[entry.which][entry.slot].words[0].slice(curWord.length);
       }
       pageData.actions.push(annotatedAction);
     }
 
-    let {curText} = expState;
     let {annotatedFinalText} = pageData;
     if (lastText !== curText) {
       // Update the annotation.
@@ -149,7 +150,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       });
     }
 
-    let visibleSuggestions = M.toJS(expState.visibleSuggestions);
+    visibleSuggestions = M.toJS(expState.visibleSuggestions);
     if (expState.contextSequenceNum !== lastContextSeqNum) {
       if (pageData.displayedSuggs[lastContextSeqNum]) {
         pageData.displayedSuggs[lastContextSeqNum].action = entry;
