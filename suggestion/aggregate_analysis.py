@@ -298,7 +298,8 @@ def get_survey_data_processed():
 def summarize_trials(log_analysis):
     data = []
     conditions = log_analysis['conditions']
-    base_datum = dict(participant_id=log_analysis['participant_id'],
+    participant_id = log_analysis['participant_id']
+    base_datum = dict(participant_id=participant_id,
                  conditions=','.join(conditions),
                  config=log_analysis['config'],
                  git_rev=log_analysis['git_rev'])
@@ -331,6 +332,42 @@ def summarize_trials(log_analysis):
         displayedSuggs = page_data.pop('displayedSuggs')
         latencies = [rec['latency'] for rec in displayedSuggs if rec]
         datum['latency_75_trial'] = np.percentile(latencies, 75)
+
+        # Compute efficiencies.
+        page_data.pop('chunks')
+        words = page_data.pop('words')
+
+        num_inserted_full = num_could_have_inserted_full = num_inserted_sugg = num_could_have_inserted_sugg = 0
+        extra_chars = ',.!? \n'
+        for word in words:
+            could_have_matched_at = None
+            did_insert = False
+            word_text = ''.join(chunk['chars'] for chunk in word['chunks'])
+            word_trim = word_text.strip(extra_chars)
+            for chunk_idx, chunk in enumerate(word['chunks']):
+                predictions = chunk['action']['visibleSuggestions']['predictions']
+                suggested_words = [''.join(pred['words'][:1]) for pred in predictions]
+                if word_trim in suggested_words:
+                    if could_have_matched_at is None:
+                        could_have_matched_at = chunk_idx
+                if chunk['actionClass'].startswith('tapSugg'):
+                    if chunk['action']['sugInserted'].strip(extra_chars) == chunk['chars'].strip(extra_chars) and len(''.join(chunk['chars'] for chunk in word['chunks'][chunk_idx + 1:]).strip(extra_chars)) == 0:
+                    # if word_trim in suggested_words and :
+                        did_insert = True
+                        assert word_trim in suggested_words
+                    else:
+                        print("Inserted but backspaced...", participant_id, chunk['action']['sugInserted'], chunk['chars'].strip(extra_chars))
+            if did_insert:
+                num_inserted_sugg += 1
+                if len(word['chunks']) == 1:
+                    num_inserted_full += 1
+            if could_have_matched_at is not None:
+                if could_have_matched_at == 0:
+                    num_could_have_inserted_full += 1
+                num_could_have_inserted_sugg += 1
+        page_data['efficiency_full'] = num_inserted_full / num_could_have_inserted_full
+        page_data['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg
+
 
         datum.update(flatten_dict(page_data))
         renames = {
@@ -445,16 +482,22 @@ def clean_merge(*a, must_match=[], combine_cols=[], **kw):
     return res
 
 #%%
-@mem.cache
-def get_suggestion_content_stats(analyzed):
-    by_trial = []
+
+def get_log_pages(analyzed):
+    res = []
     for page_name in analyzed['pageSeq']:
         page = analyzed['byExpPage'][page_name]
-        condition = page['condition']
+        res.append((page_name, page['condition'], page['displayedSuggs']))
+    return res
+
+
+@mem.cache
+def get_suggestion_content_stats(pages):
+    by_trial = []
+    for page_name, condition, displayed_suggs in pages:
         if page_name.startswith('pract'):
             #condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg', 'airbnb']:
             continue
-        displayed_suggs = page['displayedSuggs']
         assert len(displayed_suggs) > 0
 
         block_data = []
@@ -542,7 +585,7 @@ def get_all_data_pre_annotation(batch=None):
 
     # Get suggestion content stats by trial.
     content_stats = pd.concat({
-            participant_id: pd.DataFrame(get_suggestion_content_stats(log_analysis))
+            participant_id: pd.DataFrame(get_suggestion_content_stats(get_log_pages(log_analysis)))
             for participant_id, log_analysis in log_analysis_data_raw.items()}, names=['participant_id', 'block']).reset_index()
     trial_level_data = clean_merge(
             trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
