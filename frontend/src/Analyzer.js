@@ -92,6 +92,11 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       pageData.lastEventTimestamp = entry.jsTimestamp;
     }
 
+    let annotatedAction = {};
+    if (!lastText) {
+      lastText = '';
+    }
+
     if (
       [
         "connected",
@@ -100,18 +105,28 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         "receivedSuggestions",
       ].indexOf(entry.type) === -1
     ) {
-      pageData.actions.push({
+      let annoType = entry.type;
+      if (entry.type === 'tapSuggestion') {
+        let trimtext = lastText.trim();
+        if (trimtext.length === 0 || trimtext.match(/[.?!]$/)) {
+          annoType = 'tapSugg_bos';
+        } else if (!expState.hasPartialWord) {
+          annoType = 'tapSugg_full';
+        } else {
+          annoType = 'tapSugg_part';
+        }
+      }
+      annotatedAction = {
         ...entry,
+        annoType,
         curText: lastText,
         timestamp: entry.jsTimestamp,
-      });
+      };
+      pageData.actions.push(annotatedAction);
     }
 
     let {curText} = expState;
     let {annotatedFinalText} = pageData;
-    if (!lastText) {
-      lastText = '';
-    }
     if (lastText !== curText) {
       // Update the annotation.
       let commonPrefixLen = Math.max(0, lastText.length - 10);
@@ -123,7 +138,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       }
       annotatedFinalText.splice(commonPrefixLen, lastText.length - commonPrefixLen);
       Array.prototype.forEach.call(curText.slice(commonPrefixLen), char => {
-        annotatedFinalText.push({char, action: entry});
+        annotatedFinalText.push({char, action: annotatedAction});
       });
     }
 
@@ -176,7 +191,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let chunks = [];
     annotatedFinalText.forEach(({char, action}) => {
       if (action !== lastAction) {
-        chunks.push({chars: char, action, timestamp: action.jsTimestamp});
+        chunks.push({chars: char, action, timestamp: action.jsTimestamp, actionClass: action.annoType});
         lastAction = action;
       } else {
         chunks[chunks.length - 1].chars += char;

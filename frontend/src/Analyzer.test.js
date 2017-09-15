@@ -100,6 +100,7 @@ it("annotates the final text by the actions that entered it", () => {
     page.chunks.forEach(chunk => {
       expect(chunk).toMatchObject({
         timestamp: expect.any(Number),
+        actionClass: expect.any(String),
         chars: expect.any(String),
         action: expect.objectContaining({type: expect.any(String)})
       });
