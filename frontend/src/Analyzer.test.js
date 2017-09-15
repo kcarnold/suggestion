@@ -104,6 +104,10 @@ it("annotates the final text by the actions that entered it", () => {
         chars: expect.any(String),
         action: expect.objectContaining({type: expect.any(String)})
       });
+      if (chunk.action.type === 'tapSuggestion') {
+        expect(chunk.action.annoType).toMatch(/^tapSugg/);
+        expect(chunk.action.sugInserted).toMatch(/^(([\w']*)|[,!.?])$/);
+      }
       finalText += chunk.chars;
     });
     expect(finalText).toEqual(page.finalText);

@@ -31,6 +31,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
   let lastScreenNum = null;
   let tmpSugRequests = null;
+  let lastDisplayedSuggs = null;
 
   log.forEach((entry, logIdx) => {
     // We need to track context sequence numbers instead of curText because
@@ -38,7 +39,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     // without changing curText.
     let lastContextSeqNum = (state.experimentState || {}).contextSequenceNum;
     let lastText = (state.experimentState || {}).curText;
-    let lastDisplayedSuggs = null;
+    let suggestionContext = (state.experimentState || {}).suggestionContext;
 
     let isValidSugUpdate =
       entry.type === "receivedSuggestions" &&
@@ -103,14 +104,16 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         "init",
         "requestSuggestions",
         "receivedSuggestions",
+        "next",
       ].indexOf(entry.type) === -1
     ) {
+      let {curWord} = suggestionContext;
       let annoType = entry.type;
       if (entry.type === 'tapSuggestion') {
         let trimtext = lastText.trim();
         if (trimtext.length === 0 || trimtext.match(/[.?!]$/)) {
           annoType = 'tapSugg_bos';
-        } else if (!expState.hasPartialWord) {
+        } else if (curWord.length === 0) {
           annoType = 'tapSugg_full';
         } else {
           annoType = 'tapSugg_part';
@@ -121,7 +124,11 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         annoType,
         curText: lastText,
         timestamp: entry.jsTimestamp,
+        visibleSuggestions: lastDisplayedSuggs,
       };
+      if (entry.type === 'tapSuggestion') {
+        annotatedAction.sugInserted = lastDisplayedSuggs[entry.which][entry.slot].words[0].slice(curWord.length);
+      }
       pageData.actions.push(annotatedAction);
     }
 
@@ -199,6 +206,20 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     });
     console.assert(chunks.map(x => x.chars).join('') === pageData.finalText);
     pageData.chunks = chunks;
+
+    // Group chunks into words.
+    let words = [{chunks: []}];
+    chunks.forEach(chunk => {
+      words[words.length - 1].chunks.push(chunk);
+
+      let {chars} = chunk;
+      let endsWord = chars.match(/[-\s.!?,]/);
+      if (endsWord) {
+        words.push({chunks: []});
+      }
+    });
+    words = words.filter(x => x.chunks.length > 0);
+    pageData.words = words;
   });
 
   // One log didn't get to the last
