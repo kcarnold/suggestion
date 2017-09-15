@@ -609,18 +609,17 @@ def get_all_data_pre_annotation(batch=None):
             trial_level_data.groupby('participant_id').latency_75_trial.max().to_frame('latency_75'),
             left_index=True, right_index=True)
 
-    too_much_latency = (participant_level_data['latency_75'] > 500)
-    print(f"Excluding {np.sum(too_much_latency)} for too much latency")
-    too_few_actions = (
+    participant_level_data['too_much_latency'] = (participant_level_data['latency_75'] > 500)
+    print(f"Excluding {np.sum(participant_level_data['too_much_latency'])} for too much latency")
+    participant_level_data['rec_frac_trial_max'] = trial_level_data.groupby('participant_id').rec_frac_trial.max()
+    participant_level_data['too_few_actions'] = (
     #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (participant_level_data.rec_frac_overall < .05) | (participant_level_data.rec_frac_overall > .95)
+        (participant_level_data.rec_frac_trial_max < .05) | (participant_level_data.rec_frac_trial_max > .95)
         )
-    print(f"Excluding {np.sum(too_few_actions)} for too few actions")
-    exclude = too_few_actions | too_much_latency
-    print(f"Excluding {np.sum(exclude)} total")
-    participant_level_data = clean_merge(
-            participant_level_data, exclude.to_frame('is_excluded'),
-            left_index=True, right_index=True, how='left')
+    print(f"Excluding {np.sum(participant_level_data['too_few_actions'])} for too few actions")
+    participant_level_data['is_excluded'] = participant_level_data['too_few_actions'] | participant_level_data['too_much_latency']
+    print(f"Excluding {np.sum(participant_level_data['is_excluded'])} total")
+
     participant_level_data = participant_level_data.reset_index()
 
     if 'attentionCheckStats_passed' in trial_level_data:
