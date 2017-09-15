@@ -10,6 +10,8 @@ import _ from 'lodash';
 let match = window.location.search.slice(1).match(/^(\w+)-(\w+)$/);
 let panopt = match[1], panopticode = match[2];
 
+const SHOW_REPLAY = false;
+
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 ws.setHello([{type: 'init', participantId: panopticode, kind: panopt}]);
 ws.connect();
@@ -34,7 +36,9 @@ export class PanoptStore {
     this.showingIds.push(id);
     if (!this.states.has(id)) {
       this.states.set(id, new MasterStateStore(id));
-      ws.send({type: 'get_logs', participantId: id});
+      if (SHOW_REPLAY) {
+        ws.send({type: 'get_logs', participantId: id});
+      }
       ws.send({type: 'get_analyzed', participantId: id});
     }
   });
@@ -224,7 +228,7 @@ const Panopticon = observer(class Panopticon extends Component {
         return <div key={participantId}>
           <h1>{participantId} {conditions.join(',')}</h1>
           <AnalyzedView store={store} participantId={participantId} />
-          <ReplayView store={store} participantId={participantId} />
+          {SHOW_REPLAY && <ReplayView store={store} participantId={participantId} />}
         </div>;
       })}</div>;
   }
