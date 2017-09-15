@@ -641,15 +641,7 @@ def get_all_data_pre_annotation(batch=None):
     # The experiment asked about positive experiences first.
     trial_level_data['positive_experience'] = trial_level_data['place_idx'] < 2
 
-    def group_standardize(group):
-        x = group.loc[:, ['stars_before', 'stars_after']]
-        if np.any(x.isnull()):
-            print("Oops, found a null star rating for", group.participant_id.unique().tolist()[0])
-        return (x - (x.mean())) / x.std()
-    starz = trial_level_data.loc[:,['participant_id', 'stars_before', 'stars_after']].groupby('participant_id',as_index=False).apply(group_standardize).dropna()
-    trial_level_data['stars_before_groupz'] = starz.stars_before
-    trial_level_data['stars_after_groupz'] = starz.stars_after
-
+    trial_level_data['stars_after-stars_before'] = trial_level_data['stars_after'] - trial_level_data['stars_before']
 
     # For a summary of how many trials there are each:
     # trial_level_data.groupby(['config', 'participant_id']).size().groupby(level=0).value_counts()
