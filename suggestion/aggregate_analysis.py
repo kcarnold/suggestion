@@ -765,6 +765,8 @@ def load_turk_annotations():
     res = pd.DataFrame(res)#.fillna(0)
     assert res['sentIdx'].equals(res['sent_idx'])
     del res['sentIdx']
+    res['pos'] = pd.to_numeric(res['pos'])
+    res['neg'] = pd.to_numeric(res['neg'])
     return res
 
 def aggregate_turk_annotations(annotations):
