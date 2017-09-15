@@ -351,10 +351,13 @@ def summarize_trials(log_analysis):
                     if could_have_matched_at is None:
                         could_have_matched_at = chunk_idx
                 if chunk['actionClass'].startswith('tapSugg'):
-                    if chunk['action']['sugInserted'].strip(extra_chars) == chunk['chars'].strip(extra_chars) and len(''.join(chunk['chars'] for chunk in word['chunks'][chunk_idx + 1:]).strip(extra_chars)) == 0:
+                    stripped_inserted = chunk['action']['sugInserted'].strip(extra_chars)
+                    if stripped_inserted == chunk['chars'].strip(extra_chars) and len(''.join(chunk['chars'] for chunk in word['chunks'][chunk_idx + 1:]).strip(extra_chars)) == 0:
                     # if word_trim in suggested_words and :
                         did_insert = True
-                        assert word_trim in suggested_words
+                        # Things are a bit weird if the sugg inserted a punctuation
+                        assert word_trim in suggested_words or len(stripped_inserted) == 0
+                        break
                     else:
                         print("Inserted but backspaced...", participant_id, chunk['action']['sugInserted'], chunk['chars'].strip(extra_chars))
             if did_insert:
