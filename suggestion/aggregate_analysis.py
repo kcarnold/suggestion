@@ -368,6 +368,11 @@ def summarize_trials(log_analysis):
                 if could_have_matched_at == 0:
                     num_could_have_inserted_full += 1
                 num_could_have_inserted_sugg += 1
+        page_data['num_inserted_full'] = num_inserted_full
+        page_data['num_could_have_inserted_full'] = num_could_have_inserted_full
+        page_data['num_inserted_sugg'] = num_inserted_sugg
+        page_data['num_could_have_inserted_sugg'] = num_could_have_inserted_sugg
+
         page_data['efficiency_full'] = num_inserted_full / num_could_have_inserted_full
         page_data['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg
 
