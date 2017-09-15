@@ -165,6 +165,30 @@ const ShowRecs = ({recs, action}) => <div
   </div>
 </div>;
 
+function getStyle(chunk) {
+  let {actionClass, action, chars} = chunk;
+  let {sugInserted} = action;
+  if (actionClass === 'tapKey') return {};
+  let style = {};
+  let curWord = (action.curText.match(/\w+$/) || [''])[0];
+  console.assert(actionClass.match(/^tapSugg/));
+  if (sugInserted !== chars.trim()) {
+    style['background'] = 'red';
+    console.log('mismatch "%s" vs "%s", context "%s" sug "%s"', sugInserted, chars, action.curText.slice(-15), action.visibleSuggestions[action.which]);
+  } else if (actionClass === 'tapSugg_part') {
+    style['outline'] = '1px solid red';
+  } else {
+    style['background'] = 'green';
+  }
+  return style;
+}
+
+const Chunk = ({chunk}) => <span style={getStyle(chunk)}>{chunk.chars}</span>;
+
+const AnnotatedFinalText = ({chunks}) => <div className="AnnotatedFinalText">
+  {chunks.map((chunk, i) => <Chunk key={i} chunk={chunk} />)}
+</div>;
+
 const AnalyzedView = observer(({store, participantId}) => {
   let analysis = store.analyses.get(participantId);
   if (!analysis) return null;
@@ -173,6 +197,7 @@ const AnalyzedView = observer(({store, participantId}) => {
       let synonymTaps = _.filter(content.displayedSuggs, {'action': {type: 'tapSuggestion', which: 'synonyms'}});
       return <div key={pageName}>
         {pageName}
+        <AnnotatedFinalText chunks={content.chunks} />
         <table>
           <tbody>
             {synonymTaps.map(({context, recs, action}, i) =>
