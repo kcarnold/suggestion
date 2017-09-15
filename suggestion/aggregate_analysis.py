@@ -328,7 +328,8 @@ def summarize_trials(log_analysis):
         # Note that 'displayedSuggs' is actually indexed by context sequence number,
         # and some contexts never have a corresponding displayed suggestion
         # if the latency is too high.
-        latencies = [rec['latency'] for rec in page_data['displayedSuggs'] if rec]
+        displayedSuggs = page_data.pop('displayedSuggs')
+        latencies = [rec['latency'] for rec in displayedSuggs if rec]
         datum['latency_75_trial'] = np.percentile(latencies, 75)
 
         datum.update(flatten_dict(page_data))
