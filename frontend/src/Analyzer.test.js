@@ -91,3 +91,20 @@ it("includes all actions", () => {
     expect(page.lastEventTimestamp - page.firstEventTimestamp).toBeGreaterThan(0);
   });
 });
+
+it("annotates the final text by the actions that entered it", () => {
+  analyzed.forEach(([participantId, result]) => {
+    let page = result.byExpPage['final-0'];
+    expect(page.chunks).toEqual(expect.any(Array));
+    let finalText = ''
+    page.chunks.forEach(chunk => {
+      expect(chunk).toMatchObject({
+        timestamp: expect.any(Number),
+        chars: expect.any(String),
+        action: expect.objectContaining({type: expect.any(String)})
+      });
+      finalText += chunk.chars;
+    });
+    expect(finalText).toEqual(page.finalText);
+  });
+});

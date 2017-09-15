@@ -19,6 +19,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         place: state.curPlace,
         finalText: "",
         actions: [],
+        annotatedFinalText: [],
         firstEventTimestamp: null,
         lastEventTimestamp: null,
       };
@@ -106,6 +107,26 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       });
     }
 
+    let {curText} = expState;
+    let {annotatedFinalText} = pageData;
+    if (!lastText) {
+      lastText = '';
+    }
+    if (lastText !== curText) {
+      // Update the annotation.
+      let commonPrefixLen = Math.max(0, lastText.length - 10);
+      while (lastText.slice(0, commonPrefixLen) !== curText.slice(0, commonPrefixLen)) {
+        commonPrefixLen--;
+      }
+      while (lastText.slice(0, commonPrefixLen + 1) === curText.slice(0, commonPrefixLen + 1)) {
+        commonPrefixLen++;
+      }
+      annotatedFinalText.splice(commonPrefixLen, lastText.length - commonPrefixLen);
+      Array.prototype.forEach.call(curText.slice(commonPrefixLen), char => {
+        annotatedFinalText.push({char, action: entry});
+      });
+    }
+
     let visibleSuggestions = M.toJS(expState.visibleSuggestions);
     if (expState.contextSequenceNum !== lastContextSeqNum) {
       if (pageData.displayedSuggs[lastContextSeqNum]) {
@@ -148,6 +169,21 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     };
     pageData.secsOnPage =
       (pageData.lastEventTimestamp - pageData.firstEventTimestamp) / 1000;
+
+    let {annotatedFinalText} = pageData;
+    delete pageData['annotatedFinalText'];
+    let lastAction = null;
+    let chunks = [];
+    annotatedFinalText.forEach(({char, action}) => {
+      if (action !== lastAction) {
+        chunks.push({chars: char, action, timestamp: action.jsTimestamp});
+        lastAction = action;
+      } else {
+        chunks[chunks.length - 1].chars += char;
+      }
+    });
+    console.assert(chunks.map(x => x.chars).join('') === pageData.finalText);
+    pageData.chunks = chunks;
   });
 
   // One log didn't get to the last
