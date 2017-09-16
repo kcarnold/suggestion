@@ -332,6 +332,9 @@ def summarize_trials(log_analysis):
         displayedSuggs = page_data.pop('displayedSuggs')
         latencies = [rec['latency'] for rec in displayedSuggs if rec]
         datum['latency_75_trial'] = np.percentile(latencies, 75)
+        datum['num_displayed_suggs'] = len(latencies)
+        datum['num_missing_suggs'] = len([rec for rec in displayedSuggs if not rec])
+        datum['frac_missing_suggs'] = datum['num_missing_suggs'] / len(displayedSuggs)
 
         # Compute efficiencies.
         page_data.pop('chunks')
@@ -612,20 +615,22 @@ def get_all_data_pre_annotation(batch=None):
     if 'attentionCheckStats_passed' in taps_agg:
         participant_level_data['attention_check_frac_passed_overall'] = taps_agg.pop('attentionCheckStats_passed') / taps_agg.pop('attentionCheckStats_total')
 
-    participant_level_data = clean_merge(
-            participant_level_data,
-            trial_level_data.groupby('participant_id').latency_75_trial.max().to_frame('latency_75'),
-            left_index=True, right_index=True)
+    for col in ['rec_frac_trial', 'efficiency_all', 'efficiency_full', 'latency_75_trial']:
+        participant_level_data[f'{col}_max'] = trial_level_data.groupby('participant_id')[col].max()
+        participant_level_data[f'{col}_min'] = trial_level_data.groupby('participant_id')[col].min()
 
-    participant_level_data['too_much_latency'] = (participant_level_data['latency_75'] > 500)
-    print(f"Excluding {np.sum(participant_level_data['too_much_latency'])} for too much latency")
-    participant_level_data['rec_frac_trial_max'] = trial_level_data.groupby('participant_id').rec_frac_trial.max()
-    participant_level_data['too_few_actions'] = (
-    #        (by_participant['total_sugg'] < 5) | (by_participant['num_tapKey'] < 5) |
-        (participant_level_data.rec_frac_trial_max < .05) | (participant_level_data.rec_frac_trial_max > .95)
-        )
-    print(f"Excluding {np.sum(participant_level_data['too_few_actions'])} for too few actions")
-    participant_level_data['is_excluded'] = participant_level_data['too_few_actions'] | participant_level_data['too_much_latency']
+    # participant_level_data['too_much_latency'] = (participant_level_data['latency_75'] > 500)
+    # print(f"Excluding {np.sum(participant_level_data['too_much_latency'])} for too much latency")
+    participant_level_data['too_much_rec_use'] = (
+        participant_level_data.rec_frac_trial_max > .95)
+    print(f"Excluding {np.sum(participant_level_data['too_much_rec_use'])} for too much rec use")
+
+    lower_quartile_efficiency_all = np.percentile(trial_level_data.efficiency_all, 25)
+    participant_level_data['too_little_efficiency'] = (
+        participant_level_data.efficiency_all_min < lower_quartile_efficiency_all)
+    print(f"Excluding {np.sum(participant_level_data['too_little_efficiency'])} for a trial with less than {lower_quartile_efficiency_all:.2f} efficiency")
+
+    participant_level_data['is_excluded'] = participant_level_data['too_much_rec_use'] | participant_level_data['too_little_efficiency']
     print(f"Excluding {np.sum(participant_level_data['is_excluded'])} total")
 
     participant_level_data = participant_level_data.reset_index()
@@ -702,6 +707,8 @@ def get_all_data_with_annotations(batch=None):
             left_on=['participant_id', 'config', 'block', 'condition'], right_on=['participant_id', 'config', 'block', 'condition'], how='left')
     trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
     trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
+    trial_level_data['any_positive'] = trial_level_data['max_positive'] >= 1
+    trial_level_data['any_negative'] = trial_level_data['max_negative'] >= 1
 
     trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] >= 0.5
 
