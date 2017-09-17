@@ -26,7 +26,7 @@ def untokenize(s):
 
 NUM_COMPARISONS = 500
 
-rs = np.random.RandomState(1)
+rs = np.random.RandomState(2)
 samples = []
 #%%
 progress = tqdm.tqdm(total=NUM_COMPARISONS)
@@ -34,6 +34,7 @@ progress.update(len(samples))
 star = 0
 MIN_WORDS_AT_START = 1
 PHRASE_LEN = 5
+NUM_TO_SHOW = 1
 while len(samples) < NUM_COMPARISONS:
     star_review, reviews_with_star = reviews_by_stars[star]
     review_idx = rs.choice(len(reviews_with_star))
@@ -59,6 +60,8 @@ while len(samples) < NUM_COMPARISONS:
     #     continue
     sug_idx = rs.choice(len(suggestions))
     picked_sugg = suggestions[sug_idx]
+    picked_sugg = picked_sugg[:NUM_TO_SHOW]
+    true_follows = true_follows[:NUM_TO_SHOW]
     if picked_sugg == true_follows:
         continue
     samples.append(dict(
@@ -73,4 +76,4 @@ while len(samples) < NUM_COMPARISONS:
     star += 1
     star = star % len(reviews_by_stars)
 
-json.dump(samples, open(paths.parent / 'gruntwork' / 'comparisons_existing_reviews.json', 'w'), default=lambda x: x.tolist())
+json.dump(samples, open(paths.parent / 'gruntwork' / f'comparisons_existing_reviews_{NUM_TO_SHOW}words.json', 'w'), default=lambda x: x.tolist())
