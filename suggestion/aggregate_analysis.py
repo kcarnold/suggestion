@@ -651,8 +651,10 @@ def get_all_data_pre_annotation(batch=None):
     trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
     trial_level_data['stars_after_z'] = trial_level_data.groupby('participant_id').stars_after.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
 
-    # The experiment asked about positive experiences first.
-    trial_level_data['positive_experience'] = trial_level_data['place_idx'] < 2
+    # The experiment asked about positive experiences first. Supposedly.
+    # trial_level_data['positive_experience'] = trial_level_data['place_idx'] < 2
+    # But they actually ended up giving many positive experiences.
+    trial_level_data['positive_experience'] = trial_level_data['stars_before'] >= 4
 
     trial_level_data['stars_after-stars_before'] = trial_level_data['stars_after'] - trial_level_data['stars_before']
 
