@@ -762,9 +762,10 @@ def get_all_data_with_annotations(batch=None):
             annotations_todo=non_excluded_annotations if False else annotation_todo)
 
 #%%
-def load_turk_annotations():
+def load_turk_annotations(result_files=None):
     meta_header = ['participant_id', 'config', 'condition', 'block']
-    result_files = list(paths.parent.joinpath('gruntwork', 'turk_annotations_results').glob("Batch*results.csv"))
+    if result_files is None:
+        result_files = list(paths.parent.joinpath('gruntwork', 'turk_annotations_results').glob("Batch*results.csv"))
     if not result_files:
         print("No Turk annotation results found.")
         return pd.DataFrame([], columns=['WorkerId', 'block', 'condition', 'config', 'neg', 'nonsense', 'participant_id', 'pos', 'sent_idx', 'sentence'])
@@ -859,6 +860,21 @@ def main(args):
                   default=lambda x: x.tolist())
     return x
 #%%
+
+def get_arnold16_annotation_json():
+    arnold16 = pd.read_csv('data/arnold16_full_participant_data.csv')
+    by_sentence = []
+    for (participant_id, condition, block), text in arnold16.sample(frac=1.0).set_index(['participant_id', 'condition', 'idx']).reviewText.items():
+        config = 'arnold16'
+        participant_id = str(participant_id)
+        by_sentence.append((participant_id, config, condition, block, -1, text))
+        for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
+            by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
+    res = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
+    json.dump(get_annotation_json(res), open(f'gruntwork/arnold16_annotations_todo.json', 'w'),
+          default=lambda x: x.tolist())
+    return res
+
 
 
 if __name__ == '__main__':
