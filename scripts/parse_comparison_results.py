@@ -2,8 +2,8 @@ import pandas as pd
 import json
 from suggestion.paths import paths
 
-def load_comparison_results():
-    result_files = list(paths.parent.joinpath('gruntwork', 'turk_comparison_data').glob("Batch*results.csv"))
+def load_comparison_results(basename='turk_comparison_data'):
+    result_files = list(paths.parent.joinpath('gruntwork', basename).glob("Batch*results.csv"))
     raw = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True)
     records = raw.loc[:, ['WorkerId', 'Answer.results']].to_dict('records')
     res = []
@@ -27,12 +27,35 @@ def load_comparison_results():
                 rec_selected = None
             res.append(dict(entry, worker_id=worker_id, rec_selected=rec_selected))
     res = pd.DataFrame(res)
-    res['rec_selected'] = res['rec_selected'].astype(float)
+    # res['rec_selected'] = res['rec_selected'].astype(float)
     return res
 
+def aggregate_selected(group):
+    from collections import Counter
+    if hasattr(group, 'tolist'):
+        group = group.tolist()
+    counts = Counter(group)
+    if counts[True] > counts[None] and counts[True] > counts[False]:
+        return 1
+    if counts[False] > counts[None] and counts[False] > counts[True]:
+        return -1
+    return 0
+
+for tester, proper in [
+    ([True] * 10, 1),
+    ([False] * 10, -1),
+    ([None] * 10, 0),
+    ([True] * 5 + [False] * 5, 0),
+    ([True] * 2 + [None] * 2, 0),
+    ([True] * 2 + [None] * 1 + [False] * 2, 0)]:
+    print(f'{tester}: {aggregate_selected(tester)}')
+    assert aggregate_selected(tester) == proper
+
 if __name__ == '__main__':
-    res = load_comparison_results()
-    count_chosen = res[~res.rec_selected.isnull()].groupby(['context', 'pairIdx', 'review_idx',
-       'sent_idx', 'star_review', 'sugg', 'true_follows', 'word_idx']).rec_selected.agg(['count', 'sum']).reset_index()
+    basename = 'turk_comparison_data_1word'
+    res = load_comparison_results(basename=basename)
+    count_chosen = res.groupby(['context', 'pairIdx', 'review_idx',
+       'sent_idx', 'star_review', 'sugg', 'true_follows', 'word_idx']).rec_selected.agg(aggregate_selected).reset_index()
     count_chosen['is_bos'] = count_chosen['word_idx'] == 0
-    count_chosen.to_csv('comparison_annotation_parsed.csv', index=True)
+    count_chosen['rec_won'] = (count_chosen['rec_selected'] > 0).astype(float)
+    count_chosen.to_csv(f'{basename}_parsed.csv', index=True)
