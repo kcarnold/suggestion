@@ -268,5 +268,5 @@ window.store = store;
 
 // store.addViewers('c104c0 feebe1 50b0c9 50b80b 99c66d')
 // store.addViewers('2wr5j9 v4w898 7jqggr')
-store.addViewers('9qxf5g hfj33r jcqf4w')
-
+// store.addViewers('9qxf5g hfj33r jcqf4w')
+store.addViewers('7jqggr');
