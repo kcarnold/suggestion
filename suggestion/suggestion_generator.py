@@ -36,8 +36,7 @@ yelp_train-4star
 yelp_train-5star
 yelp_topic_seqs
 airbnb_train
-yelp_lowfreq
-yelp_hifreq'''.split()
+'''.split()
 
 '''
 yelp_train-stars12
@@ -59,7 +58,7 @@ sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for sta
 
 enable_sufarr = False
 enable_bos_suggs = False
-use_word_vecs = False
+use_word_vecs = True
 
 if enable_sufarr:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
