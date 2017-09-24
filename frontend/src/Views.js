@@ -2,9 +2,12 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import {observer, inject} from 'mobx-react';
 import classNames from 'classnames';
-import StarRatingComponent from 'react-star-rating-component';
 import {Keyboard} from './Keyboard';
+import {NextBtn} from './BaseViews';
+import {ControlledInput, ControlledStarRating} from './ControlledInputs';
 import Consent from './Consent';
+
+export {PostTaskSurvey} from './Surveys';
 
 const hostname = window.location.host;
 
@@ -152,35 +155,6 @@ const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesB
     </div>;
   }
 }));
-
-
-function advance(state, dispatch) {
-  dispatch({type: 'next'})
-}
-
-const NextBtn = inject('dispatch', 'state')((props) => <button onClick={() => {
-  if (!props.confirm || window.confirm("Are you sure?")) {
-    advance(props.state, props.dispatch);
-  }
-  }} disabled={props.disabled}>{props.children || "Next"}</button>);
-
-
-const ControlledInput = inject('dispatch', 'state')(observer(function ControlledInput({state, dispatch, name, ...props}) {
-  return <input
-    name={name}
-    onChange={evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}}
-    value={state.controlledInputs.get(name) || ''}
-    autoComplete="off" autoCorrect="off" autoCapitalize="on" spellCheck="false"
-    {...props} />;
-  }));
-
-const ControlledStarRating = inject('dispatch', 'state')(observer(({state, dispatch, name}) => <div>
-  <StarRatingComponent
-    name={name} starCount={5} value={state.controlledInputs.get(name) || 0}
-    onStarClick={value => {dispatch({type: 'controlledInputChanged', name, value});}}
-    renderStarIcon={(idx, value) => <i style={{fontStyle: 'normal'}}>{idx<=value ? '\u2605' : '\u2606'}</i>} />
-  {state.controlledInputs.get(name)}
-  </div>));
 
 
 const qualtricsPrefix = 'https://harvard.az1.qualtrics.com/SE/?SID=';
@@ -553,7 +527,7 @@ export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}
 
 export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
 export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
-export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
+// export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
 export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
 export const Done = inject('clientId', 'state')(observer(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
   {state.isHDSL && <p>Your participation has been logged. Expect to receive a gift certificate by email in the next few days. Thanks!
