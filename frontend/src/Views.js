@@ -393,9 +393,16 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
       PracticeComputer: PracticeComputer,
       TutorialInstructions: TutorialInstructions,
       RevisionComputer: RevisionComputer,
+      PracticeAlternativesInstructions: PracticeAlternativesInstructions,
     }
     let instructionsScreenName = state.screens[state.screenNum].controllerScreen;
-    let instructionEltProto = state.isDemo ? 'div' : instructionsScreens[instructionsScreenName];
+    let instructionEltProto;
+    if (state.isDemo) {
+      instructionEltProto = 'div';
+    } else {
+      console.assert(instructionsScreenName in instructionsScreens, instructionsScreenName);
+      instructionEltProto = instructionsScreens[instructionsScreenName];
+    }
     let instructionElt = React.createElement(
       instructionEltProto,
       {ref: elt => this.ref = elt});
