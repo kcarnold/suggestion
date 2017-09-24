@@ -107,12 +107,12 @@ unigram_llk_mean
 unigram_llk_std
 contextual_llk_mean
 contextual_llk_std
-total_positive
-total_negative
-max_positive
-max_negative
-mean_positive
-mean_negative
+total_pos
+total_neg
+max_pos
+max_neg
+mean_pos
+mean_neg
 num_topics
 mtld
 pairdist_words_mean
@@ -694,11 +694,16 @@ def get_all_data_with_annotations(batch=None):
     annotation_results, annotation_todo = merge_sentiment_annotations(annotations_task, aggregate_turk_annotations(turk_annotations_results))
     #.drop('sent_idx sentence'.split(), axis=1)
     annotation_results['is_mixed'] = (annotation_results['pos'] > 0) & (annotation_results['neg'] > 0)
-    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense']]
-    total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg']]
+    annotation_results['intensity'] = annotation_results['pos'] + annotation_results['neg']
+    annotation_results['polarity'] = annotation_results['pos'] - annotation_results['neg']
+    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense', 'intensity', 'polarity']]
+    total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg', 'intensity', 'polarity']]
+    def prefix_columns(df, prefix, cols):
+        return df.rename(columns={col: f'{prefix}{col}' for col in cols})
+
     sentiments = clean_merge(
-        max_sentiments.rename(columns={'pos': 'max_positive', 'neg': 'max_negative', 'nonsense': 'max_nonsense'}),
-        total_sentiments.rename(columns={'pos': 'total_positive', 'neg': 'total_negative'}),
+        prefix_columns(max_sentiments, 'max_', 'pos neg intensity polarity nonsense'.split()),
+        prefix_columns(total_sentiments, 'total_', 'pos neg intensity polarity'.split()),
         left_index=True, right_index=True)
     sentiments = clean_merge(
         sentiments,
@@ -707,10 +712,10 @@ def get_all_data_with_annotations(batch=None):
     trial_level_data = clean_merge(
             trial_level_data, sentiments.reset_index(),
             left_on=['participant_id', 'config', 'block', 'condition'], right_on=['participant_id', 'config', 'block', 'condition'], how='left')
-    trial_level_data['mean_positive'] = trial_level_data['total_positive'] / trial_level_data['num_sentences']
-    trial_level_data['mean_negative'] = trial_level_data['total_negative'] / trial_level_data['num_sentences']
-    trial_level_data['any_positive'] = trial_level_data['max_positive'] >= 1
-    trial_level_data['any_negative'] = trial_level_data['max_negative'] >= 1
+    for col in 'pos neg intensity polarity'.split():
+        trial_level_data[f'mean_{col}'] = trial_level_data[f'total_{col}'] / trial_level_data['num_sentences']
+    trial_level_data['any_positive'] = trial_level_data['max_pos'] >= 1
+    trial_level_data['any_negative'] = trial_level_data['max_neg'] >= 1
 
     trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] >= 0.5
 
@@ -719,7 +724,7 @@ def get_all_data_with_annotations(batch=None):
             trial_level_data.groupby('participant_id').has_any_nonsense.max().to_frame('participant_wrote_any_nonsense'),
             left_on='participant_id', right_index=True, how='left')
 
-    trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
+    # trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
     trial_level_data['stars_before_rank'] = trial_level_data.groupby('participant_id').stars_before.rank(method='average')
     trial_level_data['stars_after_rank'] = trial_level_data.groupby('participant_id').stars_after.rank(method='average')
