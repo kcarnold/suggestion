@@ -7,6 +7,7 @@ import {MasterView} from './MasterView';
 const fakeClientId = 'zzzzzz';
 
 let externalAction = window.location.hash.slice(1);
+const showController = false;
 
 let states = [];
 let eventsSoFar = [];
@@ -59,9 +60,9 @@ const ShowAllScreens = observer(class ShowAllScreens extends Component {
         <div style={{overflow: 'hidden', width: 360, height: 599, border: '1px solid black'}}>
           {innerView(i, state, 'p')}
         </div>
-        <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black'}}>
+        {showController && <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black'}}>
           {innerView(i, state, 'c')}
-        </div>
+        </div>}
       </div>)
     }</div>;
   }
