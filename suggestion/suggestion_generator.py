@@ -748,7 +748,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     constraints={},
     promise=None,
     sentiment=None,
-    use_sentence_enders=True,
+    use_sentence_enders=False,
     **kw):
 
     if SENTIMENT_METHOD == 'simple':
