@@ -175,7 +175,7 @@ const closingSurveyQuestions = [
   },
 
   {
-    text: "Demographics",
+    text: <h2>Demographics</h2>,
     responseType: null,
   },
 
