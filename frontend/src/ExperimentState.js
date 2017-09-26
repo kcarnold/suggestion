@@ -168,11 +168,20 @@ export class ExperimentStateStore {
       },
 
       get showSynonyms() {
-        return this.condition.showSynonyms && this.curText.length > 0 && this.suggestionContext.curWord.length === 0;
+        if (this.condition.showSynonyms) {
+          if (this.condition.showSynonymsXorPredictions) {
+            return this.curText.length > 0 && this.suggestionContext.curWord.length === 0;
+          }
+          return true;
+        }
+        return false;
       },
 
       get showPredictions() {
-        return !this.showSynonyms;
+        if (this.condition.showSynonyms && this.condition.showSynonymsXorPredictions) {
+          return !this.showSynonyms;
+        }
+        return true;
       },
 
       get showReplacement() {

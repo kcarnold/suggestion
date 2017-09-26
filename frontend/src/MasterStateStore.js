@@ -240,6 +240,7 @@ export const namedConditions = {
       num_alternatives: 3,
     },
     showSynonyms: true,
+    showSynonymsXorPredictions: false,
     showReplacement: true,
     // useAttentionCheck: .1,
     hideFullwordPredictions: true,
@@ -252,6 +253,7 @@ export const namedConditions = {
       domain: 'airbnb_train'
     },
     showSynonyms: true,
+    showSynonymsXorPredictions: false,
     showReplacement: true,
     hideFullwordPredictions: true,
   },
