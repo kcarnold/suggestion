@@ -34,7 +34,6 @@ yelp_train-2star
 yelp_train-3star
 yelp_train-4star
 yelp_train-5star
-yelp_topic_seqs
 airbnb_train
 '''.split()
 
