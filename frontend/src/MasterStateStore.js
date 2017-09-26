@@ -536,6 +536,7 @@ export class MasterStateStore {
         }));
         if (this.masterConfigName === 'sent4') {
           // Sort places special: pick two good, then two bad, or vice versa.
+          console.assert(res.length === 4);
           return specialSent4PlaceSort(this.clientId, res);
         } else {
           return seededShuffle(`${this.clientId}-places`, res);
