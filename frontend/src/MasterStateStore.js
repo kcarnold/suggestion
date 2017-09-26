@@ -395,7 +395,6 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   }
   result = result.concat([
     {controllerScreen: 'ShowReviews', screen: 'PostExpSurvey'},
-    {screen: 'IntroSurvey'},
     {screen: 'Done', controllerScreen: 'Done'},
   ]);
   return result;

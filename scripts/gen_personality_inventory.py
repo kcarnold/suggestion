@@ -72,4 +72,8 @@ def gen_inventory(traits_to_use):
 
 
 if __name__ == '__main__':
-    print('\n'.join(gen_inventory(traits_to_use)))
+    items = gen_inventory(traits_to_use)
+    import random
+    random.seed(0)
+    random.shuffle(items)
+    print('\n'.join(items))
