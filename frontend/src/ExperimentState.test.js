@@ -268,7 +268,7 @@ it("doesn't crash when running out of words", () => {
 
 
 it("promises the same word completion as long as the user is typing a prefix", () => {
-  let state = new ExperimentStateStore({});
+  let state = new ExperimentStateStore({showRelevanceHints: true});
   let slot = 1, otherSlot = 0;
   let words = recs1.predictions[slot].words; //["this", "is", "my", "favorite", "place"];
 
@@ -299,8 +299,35 @@ it("promises the same word completion as long as the user is typing a prefix", (
   expect(state.visibleSuggestions.predictions[slot].words).toEqual([]);
 });
 
+
+it("doesn't do any word completion stuff if relevance hints aren't enabled", () => {
+  let state = new ExperimentStateStore({showRelevanceHints: false});
+  let slot = 1, otherSlot = 0;
+  let words = recs1.predictions[slot].words; //["this", "is", "my", "favorite", "place"];
+
+  // Set up the received recommendations
+  state.handleEvent({
+    type: "receivedSuggestions",
+    msg: { request_id: state.contextSequenceNum, ...recs1 },
+  });
+  expect(M.toJS(state.visibleSuggestions.predictions[slot].words)).toEqual(
+    words,
+  );
+
+  // Start typing that word.
+  let word = words[0];
+  state.handleEvent({ type: "tapKey", key: word[0] });
+  // The corresponding slot should still display this word.
+  let shownInSlot = state.visibleSuggestions.predictions[slot];
+  expect(shownInSlot.words).toEqual([]);
+  expect(state.visibleSuggestions.predictions[otherSlot].words).toEqual([]);
+  expect(shownInSlot.highlightChars).toBeUndefined();
+  expect(state.suggestionContext.promise).toBeUndefined();
+});
+
+
 it("doesn't promise the same word completion if the user isn't typing a prefix", () => {
-  let state = new ExperimentStateStore({});
+  let state = new ExperimentStateStore({showRelevanceHints: true});
   let slot = 1;
   let words = recs1.predictions[slot].words; //["this", "is", "my", "favorite", "place"];
 
@@ -329,7 +356,7 @@ it("doesn't promise the same word completion if the user isn't typing a prefix",
 
 it("doesn't promise word completions for punctuation", () => {
   Array.prototype.forEach.call('.!', char => {
-    let state = new ExperimentStateStore({});
+    let state = new ExperimentStateStore({showRelevanceHints: true});
 
     tapKeys(state, "i have never had a bad experience ");
 
