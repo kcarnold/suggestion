@@ -143,18 +143,28 @@ I panic easily.
 I don't talk a lot.
 I am often down in the dumps.
 I like to solve complex problems.
-I keep in the background.`.trim().split(/\n/);
+I keep in the background.`
+  .trim()
+  .split(/\n/);
 
 const personality = [
   {
-    text: <p>Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.</p>,
+    text: (
+      <p>
+        Describe yourself as you generally are now, not as you wish to be in the
+        future. Describe yourself as you honestly see yourself, in relation to
+        other people you know of the same sex as you are, and roughly your same
+        age. So that you can describe yourself in an honest manner, your
+        responses will be kept in absolute confidence.
+      </p>
+    ),
   },
   ...traitItems.map(item => ({
     text: item,
     name: item,
-    responseType: 'likert',
-    options: ["Very Inaccurate", "", "", "", "Very Accurate"]
-  }))
+    responseType: "likert",
+    options: ["Very Inaccurate", "", "", "", "Very Accurate"],
+  })),
 ];
 
 const closingSurveyQuestions = [
@@ -183,7 +193,7 @@ const closingSurveyQuestions = [
     text: "How old are you?",
     responseType: "text",
     name: "age",
-    flags: {type: "number"}
+    flags: { type: "number" },
   },
 
   {
@@ -322,7 +332,8 @@ function Question({ basename, question }) {
       <div className="QText">
         {question.text}
       </div>
-      {responseType && React.createElement(responseType, { basename, question })}
+      {responseType &&
+        React.createElement(responseType, { basename, question })}
     </div>
   );
 }
