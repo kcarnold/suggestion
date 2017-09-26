@@ -178,6 +178,9 @@ export class ExperimentStateStore {
       },
 
       get showPredictions() {
+        if (this.condition.dontRequestSuggestions) {
+          return false;
+        }
         if (this.condition.showSynonyms && this.condition.showSynonymsXorPredictions) {
           return !this.showSynonyms;
         }
@@ -332,6 +335,7 @@ export class ExperimentStateStore {
   }
 
   init() {
+    if (this.condition.dontRequestSuggestions) return null;
     this.outstandingRequests.push(0);
     return this.getSuggestionRequest();
   }
@@ -434,7 +438,7 @@ export class ExperimentStateStore {
       }
     }
 
-    if (this.lastSuggestionsFromServer.request_id !== this.contextSequenceNum) {
+    if (!this.condition.dontRequestSuggestions && this.lastSuggestionsFromServer.request_id !== this.contextSequenceNum) {
       if (this.outstandingRequests.indexOf(this.contextSequenceNum) !== -1) {
         // console.log("Already requested", this.contextSequenceNum);
       } else if (this.outstandingRequests.length < 2) {

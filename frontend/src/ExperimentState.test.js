@@ -202,6 +202,25 @@ xit("doesn't duplicate requests after an auto-space", () => {
   throw new Error('todo');
 })
 
+it("requests suggestions on init", () => {
+  let sugFlags = {domain: 'test'}
+  let state = new ExperimentStateStore({}, sugFlags);
+  expect(state.init()).toMatchObject({
+    type: 'requestSuggestions',
+    sofar: '',
+    cur_word: [],
+    request_id: 0,
+    flags: expect.any(Object),
+  });
+});
+
+it("doesn't request suggestions if we turn that off", () => {
+  let sugFlags = {domain: 'test'}
+  let state = new ExperimentStateStore({dontRequestSuggestions: true}, sugFlags);
+  expect(state.init()).toEqual(null);
+  expect(state.handleEvent({type: 'tapKey', key: 'a'})).toHaveLength(0);
+});
+
 
 it("inserts automatic spaces after suggestions", () => {
   var state = new ExperimentStateStore({});
