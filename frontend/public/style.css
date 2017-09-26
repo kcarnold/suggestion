@@ -268,6 +268,12 @@ span.word {
   margin-bottom: 1em;
 }
 
+.SelectRestaurants blockquote {
+  border: 1px solid black;
+  padding: 5px;
+  margin: 5px;
+}
+
 .Restaurant {
     border-bottom: 1px solid black;
     padding: 12px;

@@ -73,8 +73,18 @@ const texts = {
     brainstormingInstructions: null,
     revisionInstructions: null,
     instructionsQuiz: null,
+  },
+  persuade: {
+    overallInstructions: null
   }
 };
+
+const OverallInstructions = inject('state')(observer(({state}) => {
+  if (state.masterConfig.instructions === 'persuade') {
+    return <p>Write a review that convinces someone to <b>{state.persuadePos ? "check out" : "avoid"} this restaurant</b>. The most convincing reviews will get $0.50 bonuses each!</p>;
+  }
+  return <p>{texts[state.masterConfig.instructions].overallInstructions}</p>;
+}));
 
 const tutorialTaskDescs = {
   typeKeyboard: 'Type a few words by tapping letters on the keyboard.',
@@ -114,7 +124,7 @@ class Suggestion extends Component {
 
 const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
   render() {
-    const {dispatch, suggestions, which, beforeText} = this.props;
+    const {dispatch, suggestions, which, beforeText, showPhrase} = this.props;
     return <div className={"SuggestionsBar " + which}>
       {(suggestions || []).map((sugg, i) => <Suggestion
         key={i}
@@ -125,7 +135,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
         }}
         word={sugg.words[0]}
         beforeText={beforeText || ''}
-        preview={sugg.words.slice(1)}
+        preview={showPhrase ? sugg.words.slice(1) : []}
         highlightChars={sugg.highlightChars}
         isValid={true}
         meta={null} />
@@ -234,7 +244,7 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
 export const Welcome = inject('state')(observer(({state}) => <div>
     <h1>Welcome</h1>
     <p>You should be seeing this page on a touchscreen device. If not, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
-    <Consent timeEstimate={state.timeEstimate} isMTurk={state.isMTurk} />
+    <Consent timeEstimate={state.timeEstimate} isMTurk={state.isMTurk} persuade={state.isPersuade} />
     <p>If you consent to participate, and if you're seenig this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
   </div>));
 
@@ -251,6 +261,49 @@ function RestaurantPrompt({idx}) {
     <ControlledInput name={`knowWhat${idx}`} type="number" min="1" max="5" /></span>}
   </div>;
 }
+
+export const ExperimentOutline = inject('state')(observer(({state}) => {
+  let numPlaces = state.conditions.length;
+  return <div>
+    <h1>Experiment Outline</h1>
+    <p>In this experiment, you'll:</p>
+    <ol>
+      <li>Complete a tutorial to learn how to use a new keyboard,</li>
+      <li>Write short reviews of {numPlaces} restaurants of your choice,</li>
+      <li>Answer a few questions about each review, and some overall questions at the end, and</li>
+      <li>Complete a demographic and personality questionnaire.</li>
+    </ol>
+  </div>;
+}))
+
+export const SelectRestaurantsPersuade = inject('state')(observer(({state}) => {
+  console.assert(state.conditions.length === 3);
+  return <div className="SelectRestaurants">
+    <ExperimentOutline />
+
+    <blockquote>
+      <p>Your task:</p>
+      Suppose someone is just moving to your town and wants to check out some restaurants (or bars, cafes, diners, etc.). Pick <b>two restaurants</b> that you think{" "}
+          <b>they should visit</b>
+          and <b>one</b> that you think <b>they should avoid</b>. As part of
+          this study, we will write reviews of the three restaurants that
+          convince your reader to go, or not go.
+    </blockquote>
+
+    Restaurants <b>they should visit</b>:
+    <ol>
+      {[1, 2].map(idx => <li key={idx}><ControlledInput name={`restaurant${idx}`} /></li>)}
+    </ol>
+
+    Restaurants <b>they should avoid</b>:
+    <ol start="3">
+      {[3].map(idx => <li key={idx}><ControlledInput name={`restaurant${idx}`} /></li>)}
+    </ol>
+
+    <NextBtn disabled={!_.every([1,2,3], x => state.controlledInputs.get(`restaurant${x}`)) }/>
+  </div>
+}));
+
 
 export const SelectRestaurants = inject('state')(observer(({state}) => {
   let numPlaces = state.conditions.length;
@@ -272,16 +325,9 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
   let complete = _.every(allFields, x => state.controlledInputs.get(x))
 
   return <div className="SelectRestaurants">
-    <h1>Experiment Outline</h1>
-    <p>In this experiment, you'll:</p>
-    <ol>
-      <li>Complete a tutorial to learn how to use the new keyboard,</li>
-      <li>Write short reviews of 4 restaurants of your choice,</li>
-      <li>Answer a few questions about each review, and some overall questions at the end, and</li>
-      <li>Complete a demographic and personality questionnaire.</li>
-    </ol>
+    <ExperimentOutline />
 
-    <p>Before we get started, we want to make sure you'll be able to write about 4 different restaurant visits. So  <b>think of {numPlaces} restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
+    <p>Before we get started, we want to make sure you'll be able to write about {numPlaces} different restaurant visits. So  <b>think of {numPlaces} restaurants (or bars, cafes, diners, etc.)</b> you've been to recently that you <b>haven't written about before</b>.</p>
     {state.masterConfigName === 'sent4' && <p>Try to pick 2 above-average experiences and 2 below-average experiences.</p>}
 
     {groups.map(({header, indices: groupIndices}, groupIdx) => <div key={groupIdx} style={{borderLeft: '2px solid black', paddingLeft: '5px'}}>
@@ -299,8 +345,7 @@ export const Instructions = inject('state')(observer(({state}) => {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
     let {isPrewrite} = state;
     return <div>
-      <h1>Let's write about your experience at {state.curPlace.name}!</h1>
-      <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
+      <h1>{state.curPlace.name}!</h1>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
       {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
       {state.prewrite &&  <ol>
@@ -321,9 +366,8 @@ export const Instructions = inject('state')(observer(({state}) => {
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
 export const ReadyPhone = inject('state')(observer(({state}) => <div>
-    <h1>Let's write about your experience at {state.curPlace.name}!</h1>
-    <p>Your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b></p>
-    <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
+    <h1>{state.curPlace.name}</h1>
+    <OverallInstructions />
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     {state.condition.useAttentionCheck && <p>For this study, we need to measure which parts of the screen people are paying attention to. So if you happen to notice an "æ" somewhere, tap it to acknowledge that you saw it. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
     <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
@@ -334,7 +378,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => <div>
 export const RevisionComputer = inject('state')(observer(({state}) => <div>
   <p><b>Your experience at {state.curPlace.name}.</b></p>
 
-  <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
+  <OverallInstructions />
       <div>Word count: {state.experimentState.wordCount}</div>
       {state.experimentState.wordCount < wordCountTarget ? <div>Please try to write at least {wordCountTarget} words.</div> : <div>When you're done, click here: <NextBtn /></div>}
       {state.prewrite && <div>
@@ -403,7 +447,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
           {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={beforeText} />}
-          {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} />}
+          {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} showPhrase={state.condition.showPhrase} />}
         </div>}
         <Keyboard dispatch={dispatch} />
       </div>;
@@ -448,7 +492,7 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
         </li>
       </ul>
 
-      <p>Occasionally, double-tapping may cause your phone to zoom its screen. Unfortunately there's not much we can do about that. If that happens, try double-tapping on an empty area, or reload the page (you won't lose your work).</p>
+      <p>Occasionally, double-tapping may cause your phone to zoom its screen. If that happens, reload the page (you won't lose your work).</p>
 
       Of course, the keys also work. To keep things simple, there's no upper-case, and just a limited amount of punctuation.
       {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}

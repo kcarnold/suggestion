@@ -87,6 +87,12 @@ export const namedConditions = {
     },
     showPhrase: false,
     hideFullwordPredictions: true,
+    showRelevanceHints: false,
+  },
+  zerosugg: {
+    sugFlags: null,
+    showPhrase: null,
+    dontRequestSuggestions: true,
   },
   word: {
     sugFlags: ngramFlags,
@@ -199,7 +205,7 @@ export const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 5,
-    // useAttentionCheck: .1,
+    showRelevanceHints: true,
   },
   sentneg: {
     sugFlags: {
@@ -210,7 +216,7 @@ export const namedConditions = {
     showPhrase: true,
     showSuggsAtBos: true,
     sentiment: 1,
-    // useAttentionCheck: .1,
+    showRelevanceHints: true,
   },
   sentmatch: {
     sugFlags: {
@@ -349,6 +355,10 @@ const MASTER_CONFIGS = {
     baseConditions: ['yelppredict', 'yelpalternatives'],
     instructions: 'yelp',
     showAlternativesPractice: true,
+  },
+  persuade: {
+    baseConditions: ['zerosugg', 'sentpos', 'sentneg'],
+    instructions: 'persuade'
   }
 };
 
@@ -358,9 +368,10 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
   let {showAlternativesPractice} = masterConfig;
   let tutorialCondition = showAlternativesPractice ? 'airbnbPlain' : 'airbnb';
+  let selectionScreen = masterConfigName === 'persuade' ? 'SelectRestaurantsPersuade' : 'SelectRestaurants';
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},
-    {screen: 'SelectRestaurants'},
+    {screen: selectionScreen},
     {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
   if (showAlternativesPractice) {
@@ -455,6 +466,9 @@ export class MasterStateStore {
       get isMTurk() {
         return !this.isHDSL;
       },
+      get isPersuade() {
+        return this.masterConfigName === 'persuade';
+      },
       get timeEstimate() { return this.masterConfig.timeEstimate; },
       get prewrite() { return this.masterConfig.prewrite; },
       prewriteText: '',
@@ -538,8 +552,13 @@ export class MasterStateStore {
       },
       get condition() {
         console.assert(!!this.conditionName);
+        console.assert(this.conditionName in namedConditions);
         return {...CONDITION_DEFAULTS, ...namedConditions[this.conditionName]};
       },
+      get persuadePos() {
+        // For the 'persuade' condition, the first two restaurants are pro, the third is con.
+        return this.curPlace.idx < 2;
+      }
     });
   }
 
@@ -567,7 +586,9 @@ export class MasterStateStore {
 
         let experimentObj = new ExperimentStateStore(this.condition, sugFlags);
         this.experiments.set(preEvent.name, experimentObj);
-        sideEffects.push(experimentObj.init());
+        let initReq = experimentObj.init();
+        if (initReq)
+          sideEffects.push(initReq);
         this.tutorialTasks = new TutorialTasks();
         if (this.masterConfig.useConstraints) {
           this.experimentState.useConstraints = this.masterConfig.useConstraints;
