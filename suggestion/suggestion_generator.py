@@ -749,6 +749,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     promise=None,
     sentiment=None,
     use_sentence_enders=False,
+    use_taboos=True,
     **kw):
 
     if SENTIMENT_METHOD == 'simple':
@@ -930,7 +931,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
                     llk = ent[0]
                     words = ent[1]
                     # Penalize a suggestion that has already been made exactly like this before.
-                    if llk < 0 and is_new_word and ' '.join(words[:3]) in suggested_already_this_tok:
+                    if use_taboos and llk < 0 and is_new_word and ' '.join(words[:3]) in suggested_already_this_tok:
                         print("Taboo:", ' '.join(words))
                         llk -= 5000.
                     active_entities.append((llk, words, {}))
