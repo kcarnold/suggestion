@@ -7,7 +7,7 @@ import {NextBtn} from './BaseViews';
 import {ControlledInput, ControlledStarRating} from './ControlledInputs';
 import Consent from './Consent';
 
-export {PostTaskSurvey} from './Surveys';
+export {PostTaskSurvey, PostExpSurvey} from './Surveys';
 
 const hostname = window.location.host;
 
@@ -572,7 +572,7 @@ export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}
 export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
 export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
 // export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
-export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
+// export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
 export const Done = inject('clientId', 'state')(observer(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
   {state.isHDSL && <p>Your participation has been logged. Expect to receive a gift certificate by email in the next few days. Thanks!
     <img src={`https://harvarddecisionlab.sona-systems.com/webstudy_credit.aspx?experiment_id=440&credit_token=2093214a21504aae88bd36405e5a4e08&survey_code=${state.participantCode}`} alt="" /></p>}

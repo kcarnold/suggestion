@@ -104,6 +104,38 @@ const tlxQuestions = [
 
 const postTaskPersuade = tlxQuestions.concat(miscQuestions);
 
+const closingSurveyQuestions = [
+  {
+    text: "While you were writing, did you speak or whisper what you were writing?",
+    responseType: "options",
+    name: "verbalized_during",
+    options: ["Yes", "No"],
+  },
+
+  {
+    text: "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months? Don't count the reviews from this study.",
+    responseType: "text",
+    name: "reviewing_experience",
+    flags: { type: 'number' },
+  },
+
+  {
+    text:
+      "Did you experience any technical difficulties that you haven't reported already?",
+    responseType: "text",
+    name: "techDiff",
+    flags: { multiline: true },
+  },
+  {
+    text:
+      "Any other comments?",
+    responseType: "text",
+    name: "other",
+    flags: { multiline: true },
+  },
+];
+
+
 function TextResponse({ basename, question }) {
   return (
     <ControlledInput
@@ -219,6 +251,31 @@ export const PostTaskSurvey = inject("state")(
     return (
       <div className="Survey">
         <h1>After-Writing Survey</h1>
+
+        {questions.map(question => {
+          return (
+            <Question
+              key={question.name}
+              basename={basename}
+              question={question}
+            />
+          );
+        })}
+
+        <NextBtn />
+      </div>
+    );
+  }),
+);
+
+export const PostExpSurvey = inject("state")(
+  observer(({ state }) => {
+    let basename = `postExp`;
+    let questions = closingSurveyQuestions;
+
+    return (
+      <div className="Survey">
+        <h1>Closing Survey</h1>
 
         {questions.map(question => {
           return (
