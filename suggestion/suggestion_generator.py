@@ -748,6 +748,7 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
     constraints={},
     promise=None,
     sentiment=None,
+    use_sentence_enders=True,
     **kw):
 
     if SENTIMENT_METHOD == 'simple':
@@ -856,7 +857,8 @@ def get_suggestions_async(executor, *, sofar, cur_word, domain,
         else: # sufarr
 
             # Use beam search on LM.
-            if prefix_logprobs is None:
+
+            if use_sentence_enders and prefix_logprobs is None:
                 sentence_enders = yield executor.submit(get_sentence_enders, domain, toks)
             else:
                 sentence_enders = []
