@@ -245,7 +245,7 @@ export const Welcome = inject('state')(observer(({state}) => <div>
     <h1>Welcome</h1>
     <p>You should be seeing this page on a touchscreen device. If not, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
     <Consent timeEstimate={state.timeEstimate} isMTurk={state.isMTurk} persuade={state.isPersuade} />
-    <p>If you consent to participate, and if you're seenig this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
+    <p>If you consent to participate, and if you're seeing this <b>on a touchscreen device</b>, tap here: <NextBtn /></p>
   </div>));
 
 export const  ProbablyWrongCode = () => <div>
