@@ -237,13 +237,13 @@ export const namedConditions = {
     sugFlags: {
       split: true,
       num_sims: 10,
-      num_alternatives: 3,
+      num_alternatives: 10,
     },
     showSynonyms: true,
     showSynonymsXorPredictions: false,
     showReplacement: true,
     // useAttentionCheck: .1,
-    hideFullwordPredictions: true,
+    hideFullwordPredictions: false,
   },
   airbnbAlternatives: {
     sugFlags: {
