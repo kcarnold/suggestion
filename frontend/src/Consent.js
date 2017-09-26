@@ -15,10 +15,9 @@ const Consent = ({ timeEstimate, isMTurk, persuade }) =>
           <br />
           Suppose someone is just moving to your town and wants to check out
           some restaurants. Pick <b>two restaurants</b> that you think{" "}
-          <b>they should visit</b>
-          and <b>one</b> that you think <b>they should avoid</b>. As part of
-          this study, we will write reviews of the three restaurants that
-          convince your reader to go, or not go.<br />
+          <b>they should visit</b> and <b>one</b> that you think{" "}
+          <b>they should avoid</b>. As part of this study, you will write reviews
+          of the three restaurants that convince your reader to go, or not go.<br />
           <br />
           Bonuses are available for especially persuasive writing!
         </p>

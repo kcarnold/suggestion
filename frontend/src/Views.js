@@ -371,7 +371,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => <div>
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     {state.condition.useAttentionCheck && <p>For this study, we need to measure which parts of the screen people are paying attention to. So if you happen to notice an "æ" somewhere, tap it to acknowledge that you saw it. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
 
-    <p>You'll write this using <b>Keyboard {state.block + 1}</b>. Each keyboard works a little differently.</p>
+    <p>For this writing session, you'll be using <b>Keyboard {state.block + 1}</b>. Each keyboard works a little differently.</p>
 
     <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
 ));
