@@ -3,7 +3,7 @@ import StarRatingComponent from 'react-star-rating-component';
 import {observer, inject} from 'mobx-react';
 
 
-export const ControlledInput = inject('dispatch', 'state')(observer(function ControlledInput({state, dispatch, name, multiline, ...props}) {
+export const ControlledInput = inject('dispatch', 'state', 'spying')(observer(function ControlledInput({state, dispatch, name, multiline, spying, ...props}) {
   let proto = multiline ? 'textarea' : 'input';
   let innerProps = {};
   if (!multiline) {
@@ -15,6 +15,9 @@ export const ControlledInput = inject('dispatch', 'state')(observer(function Con
   innerProps.name = name;
   innerProps.onChange = evt => {dispatch({type: 'controlledInputChanged', name, value: evt.target.value});}
   innerProps.value=state.controlledInputs.get(name) || '';
+  if (spying) {
+    innerProps['title'] = name;
+  }
   return React.createElement(proto, {...innerProps, ...props});
 }));
 

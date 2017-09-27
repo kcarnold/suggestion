@@ -241,8 +241,14 @@ function StarRating({ basename, question }) {
   return <ControlledStarRating name={`${basename}-${name}`} />;
 }
 
-export const OptionsResponse = inject("dispatch", "state")(
-  observer(function OptionsResponse({ state, dispatch, basename, question }) {
+export const OptionsResponse = inject("dispatch", "state", "spying")(
+  observer(function OptionsResponse({
+    state,
+    dispatch,
+    spying,
+    basename,
+    question,
+  }) {
     let name = `${basename}-${question.name}`;
     let choice = state.controlledInputs.get(name) || "";
     function change(newVal) {
@@ -260,6 +266,7 @@ export const OptionsResponse = inject("dispatch", "state")(
               padding: "10px 3px",
               width: "100%",
             }}
+            title={spying && `${name}=${option}`}
           >
             <input
               type="radio"
@@ -276,8 +283,14 @@ export const OptionsResponse = inject("dispatch", "state")(
   }),
 );
 
-export const LikertResponse = inject("dispatch", "state")(
-  observer(function LikertResponse({ state, dispatch, basename, question }) {
+export const LikertResponse = inject("dispatch", "state", "spying")(
+  observer(function LikertResponse({
+    state,
+    dispatch,
+    spying,
+    basename,
+    question,
+  }) {
     let name = `${basename}-${question.name}`;
     let choice = state.controlledInputs.get(name);
     function change(newVal) {
@@ -289,7 +302,7 @@ export const LikertResponse = inject("dispatch", "state")(
       >
         {question.options.map((label, idx) =>
           <div key={idx} style={{ textAlign: "center", flex: "1 1 0" }}>
-            <label>
+            <label title={spying && `${name}=${idx}`}>
               <input
                 type="radio"
                 checked={choice === idx}
