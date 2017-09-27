@@ -26,4 +26,3 @@ def deploy():
 
 def get_data():
     subprocess.run(['./pull-logs'], env=dict(os.environ, SERVER='megacomplete-aws'))
-    subprocess.run(['python', 'scripts/get_surveys.py'])
