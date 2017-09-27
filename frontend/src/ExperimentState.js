@@ -58,6 +58,7 @@ export class ExperimentStateStore {
     this.condition = condition;
     this.sugFlags = sugFlags;
     this.outstandingRequests = [];
+    this.prevState = null;
     M.extendObservable(this, {
       curText: '',
       attentionCheck: null,
@@ -305,6 +306,15 @@ export class ExperimentStateStore {
         return this.validateAttnCheck(event);
       }),
 
+      handleUndo: M.action(event => {
+        if (this.prevState) {
+          this.curText = this.prevState.curText;
+          this.tapLocations = this.prevState.tapLocations;
+          this.activeSuggestion = this.prevState.activeSuggestion;
+          this.prevState = null;
+        }
+      }),
+
       updateSuggestions: M.action(event => {
         let {msg} = event;
         // Only update suggestions if the data is valid.
@@ -405,9 +415,15 @@ export class ExperimentStateStore {
   }
 
   handleEvent = (event) => {
-    let textBeforeEvent = this.curText;
+    let prevState = {
+      curText: this.curText,
+      tapLocations: M.toJS(this.tapLocations.slice()),
+      activeSuggestion: M.toJS(this.activeSuggestion)
+    };
     let sideEffects = (() => {
       switch (event.type) {
+      case 'undo':
+        return this.handleUndo(event);
       case 'tapKey':
         return this.tapKey(event);
       case 'tapBackspace':
@@ -427,8 +443,11 @@ export class ExperimentStateStore {
     })();
     sideEffects = sideEffects || [];
 
-    if (this.curText !== textBeforeEvent) {
+    if (this.curText !== prevState.curText) {
       this.contextSequenceNum++;
+
+      this.prevState = prevState;
+
       // Update attn check
       let rng = seedrandom(this.curText + this.contextSequenceNum);
       if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {
