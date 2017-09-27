@@ -33,6 +33,7 @@ it("includes the overall fields we expect", () => {
         timestamp: expect.any(Number),
       });
     });
+    expect(analysis.allControlledInputs).toEqual(expect.any(Object));
   });
 });
 

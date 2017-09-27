@@ -251,6 +251,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageSeq,
     screenTimes,
     conditions: state.conditions,
+    allControlledInputs: state.controlledInputs.toJS(),
   };
 }
 
