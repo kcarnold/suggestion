@@ -56,9 +56,12 @@ const ShowAllScreens = observer(class ShowAllScreens extends Component {
       ><MasterView kind={kind}/></Provider>;
     }
     return <div style={{display: 'flex', flexFlow: 'row wrap'}}>
-      {states.map((state, i) => <div key={i} style={{display: 'flex', flewFlow: 'row'}}>
+      {states.map((state, i) => <div key={i} style={{display: 'flex', flewFlow: 'row', margin: '5px'}}>
+        <div>
         <div style={{overflow: 'auto', width: 360, height: 599, border: '1px solid black'}}>
           {innerView(i, state, 'p')}
+        </div>
+          <div style={{width: '300px', overflowWrap: 'break-word'}}>{state.curScreen.screen} {JSON.stringify(state.curScreen.preEvent)}</div>
         </div>
         {showController && <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black'}}>
           {innerView(i, state, 'c')}
