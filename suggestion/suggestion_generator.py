@@ -675,16 +675,16 @@ def get_split_recs(sofar, cur_word, flags={}):
 
     result = dict(predictions=predictions)
 
-    if len(predictions) == 0:
-        return result
-
     if rec_alternatives_to_cur_word and len(cur_word) > 0:
         # Offer uncommon synonyms of the most likely next word
-        to_replace = cur_word_letters
-        replacement_start_idx = len(sofar)
-        query_word_idx = next_words[np.argmax(logprobs)]
-        query_state = state
-        query_toks = toks
+        if len(next_words):
+            to_replace = cur_word_letters
+            replacement_start_idx = len(sofar)
+            query_word_idx = next_words[np.argmax(logprobs)]
+            query_state = state
+            query_toks = toks
+        else:
+            query_word_idx = 0
     else:
         to_replace = toks[-1]
         if to_replace[0] not in '.?!<' and to_replace in sofar:
