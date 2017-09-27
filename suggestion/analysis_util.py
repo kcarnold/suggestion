@@ -48,6 +48,7 @@ def get_rev(logpath):
             line = json.loads(line)
             if 'rev' in line:
                 return line['rev']
+    raise ValueError(f"No git revision logged in {logpath}")
 
 def checkout_old_code(git_rev):
     import shutil
@@ -62,7 +63,7 @@ def checkout_old_code(git_rev):
 
 
 @mem.cache
-def get_log_analysis_raw(logpath, logfile_size, git_rev=None, analysis_files=None):
+def get_log_analysis_raw(logpath, logfile_size, git_rev, analysis_files=None):
     # Ignore analysis_files; just use them to know when to invalidate the cache.
     checkout_old_code(git_rev)
     analyzer_path = os.path.join(paths.parent, 'frontend', 'analysis')
