@@ -128,6 +128,7 @@ export function init() {
     // Run side-effects after all handlers have had at it.
     sideEffects.forEach(sideEffect => {
       if (sideEffect.type === 'requestSuggestions') {
+        console.log(sideEffect)
         ws.send(sideEffect);
       } else {
         if (sideEffect.type !== 'suggestion_context_changed') {
