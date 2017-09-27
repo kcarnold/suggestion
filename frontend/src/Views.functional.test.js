@@ -16,7 +16,7 @@ function mockStateAndDispatch(participantId, masterConfig) {
 describe('<SelectRestaurants>', () => {
   it('gives instructions', () => {
     let {store, dispatch} = mockStateAndDispatch('zzzzzz', 'sent4');
-    let component = <Provider state={store} dispatch={dispatch}><SelectRestaurants /></Provider>;
+    let component = <Provider state={store} dispatch={dispatch} spying={false}><SelectRestaurants /></Provider>;
     let wrapper = mount(component);
     expect(wrapper).toIncludeText('restaurants');
     let places = wrapper.find('.Restaurant');
