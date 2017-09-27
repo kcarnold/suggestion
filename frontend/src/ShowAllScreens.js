@@ -55,7 +55,7 @@ const ShowAllScreens = observer(class ShowAllScreens extends Component {
         spying={true}
       ><MasterView kind={kind}/></Provider>;
     }
-    return <div>
+    return <div style={{display: 'flex', flexFlow: 'row wrap'}}>
       {states.map((state, i) => <div key={i} style={{display: 'flex', flewFlow: 'row'}}>
         <div style={{overflow: 'auto', width: 360, height: 599, border: '1px solid black'}}>
           {innerView(i, state, 'p')}
