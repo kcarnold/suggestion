@@ -11,20 +11,6 @@ export {IntroSurvey, PostTaskSurvey, PostExpSurvey} from './Surveys';
 
 const hostname = window.location.host;
 
-const surveyURLs = {
-  // intro: 'SV_9GiIgGOn3Snoxwh',
-  // intro: 'SV_9mGf4CUxHYIg56d', // new intro with personality
-  // intro: 'SV_aa5ZP3K39GLFSzr',
-  intro: "SV_3Rb0qjF0w4YdLNz",
-  postFreewrite: 'SV_0OCqAQl6o7BiidT',
-  // postTask: 'SV_5yztOdf3SX8EtOl',
-  // postTask: 'SV_7OPqWyf4iipivwp',
-  postTask: 'SV_2tOuIDt9pSwtKIt',
-  // postExp: 'SV_8HVnUso1f0DZExv',
-  // postExp: 'SV_eQbXXnoiDBWeww5',
-  postExp: 'SV_3K1BKZMz3O0miZT', // postExp4
-}
-
 const wordCountTarget = 75;
 const askKnowWhatToSay = false;
 
@@ -174,49 +160,6 @@ const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesB
   }
 }));
 
-
-const qualtricsPrefix = 'https://harvard.az1.qualtrics.com/SE/?SID=';
-
-const RedirectToSurvey = inject('state', 'clientId', 'clientKind', 'spying')(class RedirectToSurvey extends Component {
-  getRedirectURL() {
-    let afterEvent =  this.props.afterEvent || 'completeSurvey';
-    let nextURL = `${window.location.protocol}//${window.location.host}/?${this.props.clientId}-${this.props.clientKind}#${afterEvent}`;
-    let url = nextURL;
-    if (this.props.url) {
-      url = `${qualtricsPrefix}${this.props.url}&clientId=${this.props.clientId}&nextURL=${encodeURIComponent(nextURL)}`;
-      if (this.props.extraParams) {
-        url += '&' + _.map(this.props.extraParams, (v, k) => `${k}=${v}`).join('&');
-      }
-    }
-    return url;
-  }
-
-  componentDidMount() {
-    if (this.props.spying) return;
-    // This timeout is necessary to give the current page enough time to log the event that caused this render.
-    // 2 seconds is probably overdoing it, but on the safe side.
-    this.timeout = setTimeout(() => {
-      window.location.href = this.getRedirectURL();
-      if (!this.props.url) {
-        // reload to trigger the event.
-        window.location.reload();
-      }
-    }, 2000);
-  }
-
-  componentWillUnmount() {
-    // Just in case.
-    clearTimeout(this.timeout);
-  }
-
-  render() {
-    if (this.props.spying) {
-      let url = this.getRedirectURL();
-      return <div>(survey: {this.props.state.curScreen.controllerScreen || this.props.state.curScreen.screen}) <a href={url}>{url}</a></div>;
-    }
-    return <div>redirecting...</div>;
-  }
-});
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
 
@@ -582,11 +525,6 @@ export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}
     <NextBtn/>
   </div>));
 
-
-// export const IntroSurvey = () => <RedirectToSurvey url={surveyURLs.intro} />;
-// export const PostFreewriteSurvey = () => <RedirectToSurvey url={surveyURLs.postFreewrite} />;
-// export const PostTaskSurvey = inject('state')(({state}) => <RedirectToSurvey url={surveyURLs.postTask} extraParams={{prewrite: state.prewrite}} />);
-// export const PostExpSurvey = () => <RedirectToSurvey url={surveyURLs.postExp} />;
 
 export const Done = inject('clientId', 'state')(observer(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
   {state.isHDSL && <p>Your participation has been logged. Expect to receive a gift certificate by email in the next few days. Thanks!

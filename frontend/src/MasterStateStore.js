@@ -504,7 +504,6 @@ export class MasterStateStore {
       timerDur: null,
       tutorialTasks: null,
       screenTimes: [],
-      passedQuiz: false,
       lastFailedAttnCheck: 0,
       get showAttnCheckFailedMsg() {
         return this.lastEventTimestamp && this.lastEventTimestamp - this.lastFailedAttnCheck < 3000;
@@ -629,10 +628,6 @@ export class MasterStateStore {
           this.setMasterConfig(action.slice(2));
         } else if (action.slice(0, 2) === 'p=') {
           this.participantCode = action.slice(2);
-        } else if (action === 'completeSurvey') {
-          this.screenNum++;
-        } else if (action === 'passedQuiz') {
-          this.passedQuiz = true;
         } else {
           alert("Unknown externalAction: "+action);
         }
