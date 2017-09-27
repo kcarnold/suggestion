@@ -57,7 +57,7 @@ const ShowAllScreens = observer(class ShowAllScreens extends Component {
     }
     return <div>
       {states.map((state, i) => <div key={i} style={{display: 'flex', flewFlow: 'row'}}>
-        <div style={{overflow: 'hidden', width: 360, height: 599, border: '1px solid black'}}>
+        <div style={{overflow: 'auto', width: 360, height: 599, border: '1px solid black'}}>
           {innerView(i, state, 'p')}
         </div>
         {showController && <div style={{overflow: 'hidden', width: 500, height: 700, border: '1px solid black'}}>
