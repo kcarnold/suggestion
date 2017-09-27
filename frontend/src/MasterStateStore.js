@@ -256,7 +256,7 @@ export const namedConditions = {
     sugFlags: {
       split: true,
       num_sims: 10,
-      num_alternatives: 3,
+      num_alternatives: 10,
       domain: 'airbnb_train'
     },
     showSynonyms: true,
