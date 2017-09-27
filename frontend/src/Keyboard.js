@@ -4,7 +4,7 @@ import _ from 'lodash';
 var KEYLABELS = {
     ' ': 'space',
     '⌫': '',
-    '\n': 'return',
+    '\r': 'undo',
 };
 
 function getClosestKey(keyRects, touchX, touchY) {
@@ -41,9 +41,9 @@ export class Keyboard extends Component {
     }
 
     let key = getClosestKey(this.keyRects, clientX, clientY);
-    if (key === '⏎')
-      key = '\n';
-    if (key === '⌫') {
+    if (key === '\r') {
+      dispatch({type: 'undo'});
+    } else if (key === '⌫') {
       this.setState({deleteZeroX: clientX + 5, lastUpdateDelta: -1});
       dispatch({type: 'updateDeleting', msg: {type: 'start', delta: -1}});
     } else {
@@ -78,13 +78,13 @@ export class Keyboard extends Component {
       onTouchMove={this.handleTouchMove}
       onTouchEnd={this.handleTouchEnd}
     >{
-      ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\n'].map(function(row, i) {
+      ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\r'].map(function(row, i) {
           return <div key={i} className="row">{
             _.map(row, function(key, j) {
               // if (layer === 'upper') key = key.toUpperCase();
               var label = key in KEYLABELS ? KEYLABELS[key] : key;
               var className = 'key';
-              if ('\n⌫\'-!,.?'.indexOf(key) !== -1) className += ' key-reverse';
+              if ('\r⌫\'-!,.?'.indexOf(key) !== -1) className += ' key-reverse';
               return <div key={key} className={className} data-key={key} ref={node => keyNodes[key] = node}>{label}</div>;
           })}</div>
           })}
