@@ -357,6 +357,7 @@ const MASTER_CONFIGS = {
     baseConditions: ['zerosugg', 'yelppredict', 'yelpalternatives'],
     instructions: 'persuade',
     showAlternativesPractice: true,
+    timeEstimate: '30 to 45 minutes'
   },
   persuade: {
     baseConditions: ['zerosugg', 'sentpos', 'sentneg'],
