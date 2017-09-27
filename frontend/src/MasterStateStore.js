@@ -353,8 +353,8 @@ const MASTER_CONFIGS = {
     timeEstimate: '45 to 75 minutes',
   },
   synonyms: {
-    baseConditions: ['yelppredict', 'yelpalternatives'],
-    instructions: 'yelp',
+    baseConditions: ['zerosugg', 'yelppredict', 'yelpalternatives'],
+    instructions: 'persuade',
     showAlternativesPractice: true,
   },
   persuade: {
