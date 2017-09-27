@@ -48,6 +48,7 @@ const ngramFlags = {
 
 const CONDITION_DEFAULTS = {
   showPhrase: true,
+  showPredictions: true,
   showSuggsAtBos: true,
 }
 
@@ -261,6 +262,7 @@ export const namedConditions = {
     },
     showSynonyms: true,
     showSynonymsXorPredictions: false,
+    showPredictions: false,
     showReplacement: true,
     hideFullwordPredictions: true,
   },
@@ -368,7 +370,7 @@ const MASTER_CONFIGS = {
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
   let {showAlternativesPractice} = masterConfig;
-  let tutorialCondition = showAlternativesPractice ? 'airbnbPlain' : 'airbnb';
+  let tutorialCondition = 'airbnb';
   let selectionScreen = masterConfigName === 'persuade' ? 'SelectRestaurantsPersuade' : 'SelectRestaurants';
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},
@@ -376,10 +378,9 @@ function getScreens(masterConfigName: string, conditions: string[]) {
     {screen: "IntroSurvey"},
     {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
+  result.push({preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'TutorialInstructions'});
   if (showAlternativesPractice) {
-    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbAlternatives', name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeAlternativesInstructions'});
-  } else {
-    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice-2'}, screen: 'ExperimentScreen', controllerScreen: 'TutorialInstructions'});
+    result.push({preEvent: {type: 'setupExperiment', block: 0, condition: 'airbnbAlternatives', name: 'practice-3'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeAlternativesInstructions'});
   }
   if (masterConfigName === 'infoSource') {
     conditions.forEach((conditionName, block) => {
