@@ -187,9 +187,11 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     let pageData = byExpPage[pageName];
     let expState = state.experiments.get(pageName);
     pageData.finalText = expState.curText;
-    pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {
-      type: "next",
-    };
+    if (pageData.displayedSuggs[pageData.displayedSuggs.length - 1]) {
+      pageData.displayedSuggs[pageData.displayedSuggs.length - 1].action = {
+        type: "next",
+      };
+    }
     pageData.secsOnPage =
       (pageData.lastEventTimestamp - pageData.firstEventTimestamp) / 1000;
 
