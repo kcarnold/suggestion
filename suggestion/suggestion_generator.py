@@ -654,6 +654,7 @@ def get_split_recs(sofar, cur_word, flags={}):
     domain = flags.get('domain', 'yelp_train-balanced')
     num_sims = flags.get('num_sims', 5)
     num_alternatives = flags.get('num_alternatives', 5)
+    rec_alternatives_to_cur_word = flags.get('rec_alternatives_to_cur_word', False)
 
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -677,7 +678,7 @@ def get_split_recs(sofar, cur_word, flags={}):
     if len(predictions) == 0:
         return result
 
-    if len(cur_word) > 0:
+    if rec_alternatives_to_cur_word and len(cur_word) > 0:
         # Offer uncommon synonyms of the most likely next word
         to_replace = cur_word_letters
         replacement_start_idx = len(sofar)

@@ -264,6 +264,8 @@ export class ExperimentStateStore {
         if (which === 'synonyms') {
           // Replace the _previous_ word.
           let [startIdx, endIdx] = this.visibleSuggestions['replacement_range'];
+          // Actually, kill all remaining text.
+          endIdx = this.curText.length;
           let autoSpace = endIdx === this.curText.length;
           this.spliceText(startIdx, endIdx - startIdx, wordToInsert);
           if (autoSpace) {

@@ -227,13 +227,18 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
 
   render() {
     let {text, replacementRange, state, dispatch} = this.props;
+    let {experimentState} = state;
+    let {showSynonyms} = experimentState;
+
     if (!replacementRange) {
       replacementRange = [0, 0];
     }
     if (state.experimentState.attentionCheck && state.experimentState.attentionCheck.type === 'text')
       text = text + 'æ';
     let [hiStart, hiEnd] = replacementRange;
-    return <div className="CurText" onTouchEnd={evt => {dispatch({type: 'tapText'});}}><span>
+    return <div className="CurText" onTouchEnd={evt => {dispatch({type: 'tapText'});}}>
+    {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={""} />}
+    <span>
       <span>{text.slice(0, hiStart)}</span>
       <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
       <span>{text.slice(hiEnd)}</span>
@@ -449,7 +454,6 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         <ExperimentHead key={state.screens[state.screenNum].controllerScreen} />
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
-          {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={beforeText} />}
           {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} showPhrase={state.condition.showPhrase} />}
         </div>}
         <Keyboard dispatch={dispatch} />

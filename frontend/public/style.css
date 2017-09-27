@@ -68,6 +68,7 @@ html, body {
     display: flex;
     align-items: flex-end;
     background: #ccc;
+    position: relative;
 }
 
 .CurText > span {
@@ -156,7 +157,7 @@ html, body {
 
 /******* SUGGESTIONS BAR *****/
 
-.SuggestionsBar {
+.SuggestionsBar.predictions {
     background-color: #ADB5BD;
     height: 42px;
     user-select: none;
@@ -169,12 +170,16 @@ html, body {
 .SuggestionsBar.synonyms {
   background: #a1c9a1;
   /* font-size: 14px; */
+  position: absolute;
+  bottom: 20px;
+  width: 180px;
+  display: flex;
+  flex-flow: row wrap;
 }
 
 .Suggestion {
     display: block;
     color: white;
-    border-right: 1px solid white;
     text-align: center;
     font-family: sans-serif;
     overflow: hidden;
@@ -185,6 +190,17 @@ html, body {
     cursor: pointer;
     height: 100%;
     flex: 1 0 0;
+}
+
+.predictions .Suggestion {
+    border-right: 1px solid white;
+}
+
+.synonyms .Suggestion {
+  border-top: 1px solid white;
+  width: 90px;
+  flex: 0 0 auto;
+  border-left: 1px solid white;
 }
 
 .Suggestion:last-child {
