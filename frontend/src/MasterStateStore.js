@@ -371,7 +371,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
   let {showAlternativesPractice} = masterConfig;
   let tutorialCondition = 'airbnb';
-  let selectionScreen = masterConfigName === 'persuade' ? 'SelectRestaurantsPersuade' : 'SelectRestaurants';
+  let selectionScreen = masterConfig.instructions === 'persuade' ? 'SelectRestaurantsPersuade' : 'SelectRestaurants';
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},
     {screen: selectionScreen},
@@ -469,7 +469,7 @@ export class MasterStateStore {
         return !this.isHDSL;
       },
       get isPersuade() {
-        return this.masterConfigName === 'persuade';
+        return this.masterConfig.instructions === 'persuade';
       },
       get timeEstimate() { return this.masterConfig.timeEstimate; },
       get prewrite() { return this.masterConfig.prewrite; },
