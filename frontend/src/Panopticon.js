@@ -170,7 +170,7 @@ function getStyle(chunk) {
   let {sugInserted} = action;
   if (actionClass === 'tapKey') return {};
   let style = {};
-  let curWord = (action.curText.match(/\w+$/) || [''])[0];
+  // let curWord = (action.curText.match(/\w+$/) || [''])[0];
   console.assert(actionClass.match(/^tapSugg/));
   if (sugInserted !== chars.trim()) {
     style['background'] = 'red';

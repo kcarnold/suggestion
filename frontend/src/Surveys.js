@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { ControlledInput, ControlledStarRating } from "./ControlledInputs";
 import { observer, inject } from "mobx-react";
 import { NextBtn } from "./BaseViews";

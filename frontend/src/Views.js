@@ -154,7 +154,7 @@ const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar
 
 const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesBar extends Component {
   render() {
-    const {state, dispatch} = this.props;
+    const {state} = this.props;
     let expState = state.experimentState;
     let recs = expState.visibleSuggestions;
     let heldCluster = 2;
@@ -452,8 +452,7 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
-      let {showReplacement, showSynonyms, showPredictions} = state.experimentState;
-      let beforeText = ''; // experimentState.curText.slice(0, (state.experimentState.visibleSuggestions['replacement_range'] || [0])[0]).slice(-20);
+      let {showReplacement, showPredictions} = state.experimentState;
       if (state.phoneSize.width > state.phoneSize.height) {
         return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
       }

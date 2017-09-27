@@ -1,7 +1,6 @@
 // @flow
 
 import * as M from 'mobx';
-import _ from 'lodash';
 import {ExperimentStateStore} from './ExperimentState';
 import TutorialTasks from './TutorialTasks';
 import {seededShuffle} from './shuffle';
