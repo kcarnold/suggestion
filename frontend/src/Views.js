@@ -81,7 +81,15 @@ const texts = {
 
 const OverallInstructions = inject('state')(observer(({state}) => {
   if (state.masterConfig.instructions === 'persuade') {
-    return <p>Write a review that convinces someone to <b>{state.persuadePos ? "check out" : "avoid"} this restaurant</b>. The most convincing reviews will get $0.50 bonuses each!</p>;
+    return <div>Write a review that convinces someone to <b>{state.persuadePos ? "check out" : "avoid"} this restaurant</b>. The most convincing reviews will get $0.50 bonuses each!
+    <br/><br/>
+    Tips to make your review more persuasive:
+    <ul>
+      <li>Give both positives and negatives</li>
+      <li>Be as specific and descriptive as possible</li>
+      <li>Evaluate the entire experience</li>
+    </ul>
+    </div>;
   }
   return <p>{texts[state.masterConfig.instructions].overallInstructions}</p>;
 }));
@@ -288,9 +296,9 @@ export const SelectRestaurantsPersuade = inject('state')(observer(({state}) => {
 
     <blockquote>
       <p>Your task:</p>
-      Suppose someone is just moving to your town and wants to check out some restaurants (or bars, cafes, diners, etc.). Pick <b>two restaurants</b> that you think{" "}
-          <b>they should visit</b>
-          and <b>one</b> that you think <b>they should avoid</b>. As part of
+      Suppose someone is just moving to your town and wants to check out some restaurants (or bars, cafes, diners, etc.). Pick <b>two restaurants</b> that{" "}
+          <b>they should visit</b>{" "}
+          and <b>one</b> that <b>they should avoid</b>. As part of
           this study, we will write reviews of the three restaurants that
           convince your reader to go, or not go.
     </blockquote>
