@@ -372,6 +372,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},
     {screen: selectionScreen},
+    {screen: "IntroSurvey"},
     {preEvent: {type: 'setupExperiment', block: 0, condition: tutorialCondition, name: 'practice'}, screen: 'ExperimentScreen', controllerScreen: 'PracticeComputer'},
   ];
   if (showAlternativesPractice) {

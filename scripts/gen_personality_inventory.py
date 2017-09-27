@@ -1,3 +1,6 @@
+import random
+random.seed(0)
+
 personality_data = {
     "NFC": [[
         "Like to solve complex problems.", "Need things explained only once.",
@@ -64,16 +67,20 @@ def grammaticalize(item):
 
 def gen_inventory(traits_to_use):
     items = {
-        grammaticalize(item)
-        for trait in traits_to_use for posneg in personality_data[trait]
-        for item in posneg
+        (trait, pn_idx, item_idx, grammaticalize(item))
+        for trait in traits_to_use
+        for pn_idx, posneg in enumerate(personality_data[trait])
+        for item_idx, item in enumerate(posneg)
     }
-    return sorted(items)
+    # Each batch should have:
+    #  an even division between traits
+    #  for each trait, an even division of positive and negative
+    return sorted(items, key=lambda x: (x[2], x[1], random.random()))
+
+
 
 
 if __name__ == '__main__':
     items = gen_inventory(traits_to_use)
-    import random
-    random.seed(0)
-    random.shuffle(items)
-    print('\n'.join(items))
+    # print('\n'.join('|'.join(str(x) for x in item) for item in items))
+    print('\n'.join(item[-1] for item in items))

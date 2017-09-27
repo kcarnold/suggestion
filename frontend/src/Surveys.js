@@ -3,6 +3,21 @@ import { ControlledInput, ControlledStarRating } from "./ControlledInputs";
 import { observer, inject } from "mobx-react";
 import { NextBtn } from "./BaseViews";
 
+function likert(name, text, degrees, labels) {
+  let options = [];
+  for (let i = 0; i < degrees; i++) {
+    options.push("");
+  }
+  options[0] = labels[0];
+  options[degrees - 1] = labels[1];
+  return {
+    text,
+    name,
+    responseType: "likert",
+    options,
+  };
+}
+
 const miscQuestions = [
   {
     text:
@@ -20,7 +35,8 @@ const miscQuestions = [
   },
 ];
 
-const postTaskQuestions = [
+/*
+const postTaskBaseQuestions = [
   {
     text:
       "Now that you've had a chance to write about it, how many stars would you give your experience at this restaurant?",
@@ -48,22 +64,8 @@ const postTaskQuestions = [
     name: "sentimentManipCheck",
     options: ["More negative", "More positive", "Mixed", "Neutral"],
   },
-].concat(miscQuestions);
-
-function likert(name, text, degrees, labels) {
-  let options = [];
-  for (let i = 0; i < degrees; i++) {
-    options.push("");
-  }
-  options[0] = labels[0];
-  options[degrees - 1] = labels[1];
-  return {
-    text,
-    name,
-    responseType: "likert",
-    options,
-  };
-}
+];
+*/
 
 const tlxQuestions = [
   likert("mental", "Mental Demand: How mentally demanding was the task?", 7, [
@@ -102,70 +104,97 @@ const tlxQuestions = [
   ),
 ];
 
-const postTaskPersuade = tlxQuestions.concat(miscQuestions);
-
 const traitItems = `
-I am not easily bothered by things.
-I try to avoid complex people.
+I like to solve complex problems.
+I often feel blue.
+I feel comfortable around people.
+I believe in the importance of art.
+I rarely get irritated.
+I am not interested in abstract ideas.
+I have little to say.
+I have difficulty understanding abstract ideas.
+I make friends easily.
+I need things explained only once.
+I have a vivid imagination.
 I dislike myself.
 I seldom feel blue.
-I love to read challenging material.
-I tend to vote for liberal political candidates.
-I make friends easily.
 I do not like art.
-I do not enjoy going to art museums.
-I have a vivid imagination.
-I avoid difficult reading material.
-I am the life of the party.
-I can handle a lot of information.
-I am not interested in abstract ideas.
-I love to think up new ways of doing things.
-I have difficulty understanding abstract ideas.
-I have little to say.
-I have frequent mood swings.
-I enjoy hearing new ideas.
-I avoid philosophical discussions.
-I rarely get irritated.
-I am quick to understand things.
-I would describe my experiences as somewhat dull.
-I believe in the importance of art.
+I keep in the background.
+I try to avoid complex people.
+I tend to vote for liberal political candidates.
 I am skilled in handling social situations.
-I tend to vote for conservative political candidates.
-I am very pleased with myself.
-I feel comfortable around people.
+I can handle a lot of information.
+I am often down in the dumps.
+I would describe my experiences as somewhat dull.
+I avoid difficult reading material.
+I avoid philosophical discussions.
+I feel comfortable with myself.
+I am the life of the party.
+I have frequent mood swings.
+I love to think up new ways of doing things.
 I carry the conversation to a higher level.
 I don't like to draw attention to myself.
-I need things explained only once.
-I feel comfortable with myself.
+I avoid philosophical discussions.
+I do not enjoy going to art museums.
+I am not easily bothered by things.
 I know how to captivate people.
-I often feel blue.
+I enjoy hearing new ideas.
+I am quick to understand things.
 I panic easily.
+I tend to vote for conservative political candidates.
+I am very pleased with myself.
 I don't talk a lot.
-I am often down in the dumps.
-I like to solve complex problems.
-I keep in the background.`
+I love to read challenging material.
+`
   .trim()
   .split(/\n/);
 
-const personality = [
-  {
-    text: (
-      <p>
-        Describe yourself as you generally are now, not as you wish to be in the
-        future. Describe yourself as you honestly see yourself, in relation to
-        other people you know of the same sex as you are, and roughly your same
-        age. So that you can describe yourself in an honest manner, your
-        responses will be kept in absolute confidence.
-      </p>
-    ),
-  },
-  ...traitItems.map(item => ({
-    text: item,
-    name: item,
-    responseType: "likert",
-    options: ["Very Inaccurate", "", "", "", "Very Accurate"],
-  })),
-];
+function personalityBlock(blockIdx) {
+  const traitsPerBatch = 8;
+  let traitBatch = traitItems.slice(
+    traitsPerBatch * blockIdx,
+    traitsPerBatch * (blockIdx + 1),
+  );
+  return [
+    {
+      text: (
+        <p>
+          <b>Personality</b>
+          <br />
+          <br />
+          Describe yourself as you generally are now, not as you wish to be in
+          the future. Describe yourself as you honestly see yourself, in
+          relation to other people you know of the same sex as you are, and
+          roughly your same age. So that you can describe yourself in an honest
+          manner, your responses will be kept in absolute confidence.
+        </p>
+      ),
+    },
+    ...traitBatch.map(item => ({
+      text: item,
+      name: item,
+      responseType: "likert",
+      options: ["Very Inaccurate", "", "", "", "Very Accurate"],
+    })),
+    {
+      text: "",
+    },
+  ];
+}
+
+function getIntroSurveyQuestions() {
+  return [
+    {
+      text:
+        "There will be several short surveys like this as breaks from the writing task.",
+    },
+    ...personalityBlock(0),
+  ];
+}
+
+function getPostTaskQuestions(block) {
+  return [...tlxQuestions, ...personalityBlock(block + 1), ...miscQuestions];
+}
 
 const closingSurveyQuestions = [
   {
@@ -210,7 +239,7 @@ const closingSurveyQuestions = [
     options: ["Basic", "Conversational", "Fluent", "Native or bilingual"],
   },
 
-  ...personality,
+  ...personalityBlock(4),
 
   {
     text:
@@ -351,52 +380,47 @@ function Question({ basename, question }) {
   );
 }
 
+export const Survey = ({ title, basename, questions }) =>
+  <div className="Survey">
+    <h1>
+      {title}
+    </h1>
+
+    {questions.map((question, idx) => {
+      return (
+        <Question
+          key={question.name || idx}
+          basename={basename}
+          question={question}
+        />
+      );
+    })}
+
+    <NextBtn />
+  </div>;
+
+export const IntroSurvey = () =>
+  <Survey
+    title="Opening Survey"
+    basename="intro"
+    questions={getIntroSurveyQuestions()}
+  />;
+
 export const PostTaskSurvey = inject("state")(
   observer(({ state }) => {
-    let basename = `postTask-${state.block}`;
-    let questions = state.isPersuade ? postTaskPersuade : postTaskQuestions;
-
     return (
-      <div className="Survey">
-        <h1>After-Writing Survey</h1>
-
-        {questions.map(question => {
-          return (
-            <Question
-              key={question.name}
-              basename={basename}
-              question={question}
-            />
-          );
-        })}
-
-        <NextBtn />
-      </div>
+      <Survey
+        title="After-Writing Survey"
+        basename={`postTask-${state.block}`}
+        questions={getPostTaskQuestions(state.block)}
+      />
     );
   }),
 );
 
-export const PostExpSurvey = inject("state")(
-  observer(({ state }) => {
-    let basename = `postExp`;
-    let questions = closingSurveyQuestions;
-
-    return (
-      <div className="Survey">
-        <h1>Closing Survey</h1>
-
-        {questions.map((question, idx) => {
-          return (
-            <Question
-              key={question.name || idx}
-              basename={basename}
-              question={question}
-            />
-          );
-        })}
-
-        <NextBtn />
-      </div>
-    );
-  }),
-);
+export const PostExpSurvey = () =>
+  <Survey
+    title="Closing Survey"
+    basename="postExp"
+    questions={closingSurveyQuestions}
+  />;
