@@ -211,6 +211,11 @@ const AnalyzedView = observer(({store, participantId}) => {
         </table>
       </div>;
     }))}
+    <table>
+      <tbody>
+        {Object.entries(analysis.allControlledInputs).map(([k, v]) => <tr key={k}><td>{k}</td><td>{v}</td></tr>)}
+      </tbody>
+    </table>
   </div>;
 });
 
