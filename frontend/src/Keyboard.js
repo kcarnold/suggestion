@@ -23,8 +23,9 @@ function getClosestKey(keyRects, touchX, touchY) {
 
 export class Keyboard extends Component {
   lastKbdRect = null;
+  state = {};
 
-  handleClick = (evt) => {
+  handleTouchStart = (evt) => {
     let {dispatch} = this.props;
     let {clientX, clientY} = evt.type === 'touchstart' ? evt.targetTouches[0] : evt;
     let {top, left, width, height} = this.node.getBoundingClientRect();
@@ -43,18 +44,40 @@ export class Keyboard extends Component {
     if (key === '⏎')
       key = '\n';
     if (key === '⌫') {
-      dispatch({type: 'tapBackspace'});
+      this.setState({deleteZeroX: clientX + 5, lastUpdateDelta: -1});
+      dispatch({type: 'updateDeleting', msg: {type: 'start', delta: -1}});
     } else {
       dispatch({type: 'tapKey', key, x: clientX, y: clientY});
     }
-    evt.preventDefault();
-    evt.stopPropagation();
+  };
+
+  handleTouchMove = (evt) => {
+    let {deleteZeroX, lastUpdateDelta} = this.state;
+    if (deleteZeroX) {
+      let delta = Math.round((evt.targetTouches[0].clientX - deleteZeroX) / 5);
+      if (delta !== lastUpdateDelta) {
+        console.log('delta', delta)
+        this.props.dispatch({type: 'updateDeleting', msg: {type: 'update', delta: delta}});
+        this.setState({lastUpdateDelta: delta});
+      }
+    }
+  }
+
+  handleTouchEnd = (evt) => {
+    if (this.state.deleteZeroX) {
+      this.props.dispatch({type: 'updateDeleting', msg: {type: 'done'}});
+      this.setState({deleteZeroX: null, lastUpdateDelta: null});
+    }
   };
 
   render() {
     var keyNodes = {};
     this.keyNodes = keyNodes;
-    return <div className="Keyboard" ref={node => this.node = node} onTouchStart={this.handleClick} onTouchEnd={evt => {evt.preventDefault();}}>{
+    return <div className="Keyboard" ref={node => this.node = node}
+      onTouchStart={this.handleTouchStart}
+      onTouchMove={this.handleTouchMove}
+      onTouchEnd={this.handleTouchEnd}
+    >{
       ['qwertyuiop', 'asdfghjkl', '\'?zxcvbnm⌫', '-!, .\n'].map(function(row, i) {
           return <div key={i} className="row">{
             _.map(row, function(key, j) {

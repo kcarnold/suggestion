@@ -179,8 +179,14 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
   render() {
     let {text, replacementRange, state, dispatch} = this.props;
     let {experimentState} = state;
-    let {showSynonyms} = experimentState;
+    let {showSynonyms, deleting} = experimentState;
+    let afterCursor = '';
 
+    if (deleting) {
+      replacementRange = null;
+      afterCursor = text.slice(deleting.liveChars);
+      text = text.slice(0, deleting.liveChars);
+    }
     if (!replacementRange) {
       replacementRange = [0, 0];
     }
@@ -193,7 +199,9 @@ const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText ext
       <span>{text.slice(0, hiStart)}</span>
       <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
       <span>{text.slice(hiEnd)}</span>
-      <span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
+      <span className={classNames("Cursor", deleting && "deleting")} ref={elt => {this.cursor = elt;}}></span>
+      <span className="afterCursor">{afterCursor}</span>
+    </span></div>;
   }
 }));
 
