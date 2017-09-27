@@ -87,7 +87,7 @@ export class ExperimentStateStore {
       },
       get visibleSuggestions() {
         let fromServer = this.lastSuggestionsFromServer;
-        let serverIsValid = !this.showPredictions || fromServer.request_id === this.contextSequenceNum;
+        let serverIsValid = (this.condition.showPredictions === false) || fromServer.request_id === this.contextSequenceNum;
         if (!serverIsValid) {
           // Fill in the promised suggestion.
           let blankRec = {words: []};
