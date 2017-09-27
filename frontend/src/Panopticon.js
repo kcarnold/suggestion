@@ -137,10 +137,10 @@ ws.onmessage = function(msg) {
 
 const nullDispatch = () => {};
 
-const ScreenTimesTable = ({state}) => {
+const ScreenTimesTable = ({screenTimes}) => {
   let lastTime = null;
   let durs = [];
-  state.screenTimes.forEach(({timestamp}) => {
+  screenTimes.forEach(({timestamp}) => {
     let curTime = moment(timestamp);
     if (lastTime !== null) {
       durs.push(curTime.diff(lastTime, 'minutes', true));
@@ -149,10 +149,10 @@ const ScreenTimesTable = ({state}) => {
   });
   return <table>
     <tbody>
-      {state.screenTimes.map(({num, timestamp}, i) => {
+      {screenTimes.map(({name, num, timestamp}, i) => {
         let curTime = moment(timestamp);
         let dur = i < durs.length ? `${Math.round(10 * durs[i]) / 10} min` : null;
-        return <tr key={num}><td>{state.screens[num].controllerScreen || state.screens[num].screen}</td><td>{curTime.format('LTS')}</td><td>{dur}</td></tr>;
+        return <tr key={num}><td>{name}</td><td>{curTime.format('LTS')}</td><td>{dur}</td></tr>;
       })}
     </tbody>
   </table>;
@@ -211,6 +211,7 @@ const AnalyzedView = observer(({store, participantId}) => {
         </table>
       </div>;
     }))}
+    <ScreenTimesTable screenTimes={analysis.screenTimes} />
     <table>
       <tbody>
         {Object.entries(analysis.allControlledInputs).map(([k, v]) => <tr key={k}><td>{k}</td><td>{v}</td></tr>)}
@@ -233,9 +234,6 @@ const ReplayView = observer(({store, participantId}) => {
         <Provider state={state} dispatch={nullDispatch} clientId={participantId} clientKind={'c'} spying={true}>
           <MasterView kind={'c'} />
         </Provider>
-      </div>
-      <div style={{flex: '0 0 auto'}}>
-        <ScreenTimesTable state={state} />
       </div>
       <div style={{flex: '1 1 auto'}}>
         {state.experiments.entries().map(([name, expState]) => <div key={name}>
