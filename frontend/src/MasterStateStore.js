@@ -247,6 +247,7 @@ export const namedConditions = {
     },
     showSynonyms: true,
     showSynonymsXorPredictions: false,
+    showPredictions: false,
     showReplacement: true,
     // useAttentionCheck: .1,
     hideFullwordPredictions: false,
