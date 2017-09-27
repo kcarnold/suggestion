@@ -1,4 +1,3 @@
-import * as M from "mobx";
 import _ from "lodash";
 
 const INCOMPLETE_BUT_OK = 'hfj33r'.split(/s/);
@@ -150,7 +149,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       });
     }
 
-    visibleSuggestions = M.toJS(expState.visibleSuggestions);
+    visibleSuggestions = expState.visibleSuggestions;
     if (expState.contextSequenceNum !== lastContextSeqNum) {
       if (pageData.displayedSuggs[lastContextSeqNum]) {
         pageData.displayedSuggs[lastContextSeqNum].action = entry;
