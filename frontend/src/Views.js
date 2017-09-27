@@ -392,7 +392,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => <div>
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
 
 export const RevisionComputer = inject('state')(observer(({state}) => <div>
-  <p><b>Your experience at {state.curPlace.name}.</b></p>
+  <p><b>{state.curPlace.name}</b></p>
 
   <OverallInstructions />
       <div>Aim for about {wordCountTarget} words (you're at {state.experimentState.wordCount}). Only reviews between {wordCountTarget - 10}  and {wordCountTarget + 10} words are eligible for the competition.
