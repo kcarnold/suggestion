@@ -17,6 +17,8 @@ export default class TutorialTasks {
         quadTap: false,
         typeKeyboard: false,
         backspace: false,
+        megaBackspace: false,
+        undo: false,
         specialChars: false,
         tapPrediction: false,
         tapAlternative: false,
@@ -62,7 +64,13 @@ export default class TutorialTasks {
     case 'tapBackspace':
       this.consectutiveTaps = {};
       this.tasks.backspace = true;
+      if (event.delta < -5) {
+        this.tasks.megaBackspace = true;
+      }
       break;
+    case 'undo':
+      this.consectutiveTaps = {};
+      this.tasks.undo = true;
     default:
     }
   }

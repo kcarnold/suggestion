@@ -84,7 +84,8 @@ const OverallInstructions = inject('state')(observer(({state}) => {
 
 const tutorialTaskDescs = {
   typeKeyboard: 'Type a few words by tapping letters on the keyboard.',
-  backspace: 'Try deleting a few letters.',
+  megaBackspace: 'Try deleting a few letters at a time by swiping the backspace key left or right.',
+  undo: 'Tap the "undo" button (in the lower right) to undo your last action.',
   specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
   tapSuggestion: 'Try tapping a box to insert the word.',
   tapPrediction: 'Try tapping a grey box to insert the word.',
@@ -315,11 +316,11 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
     }));
 
 export const PracticeWord = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-    let allTasksDone = _.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
+    let allTasksDone = _.every(['typeKeyboard', 'megaBackspace', 'specialChars', 'tapSuggestion'].map(name => state.tutorialTasks.tasks[name]));
     return <div>
       <p>For technical reasons, we have to use a special keyboard for this experiment. It will probably feel harder to type with than your ordinary keyboard, and it's missing some characters you may want to type, sorry about that.</p>
       <p>Let's get a little practice with it:</p>
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
+      {['typeKeyboard', 'megaBackspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
 
       <p>Notice the 3 boxes above the keyboard. Each one shows a word, tap a word to insert it.</p>
@@ -356,10 +357,10 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
       <p>Occasionally, double-tapping may cause your phone to zoom its screen. If that happens, reload the page (you won't lose your work).</p>
 
       Of course, the keys also work. To keep things simple, there's no upper-case, and just a limited amount of punctuation.
-      {['typeKeyboard', 'backspace', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
+      {['typeKeyboard', 'megaBackspace', 'undo', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
 
-      <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard.</p>
-      {_.every(['typeKeyboard', 'backspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
+      <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard. And the only way to edit earlier text is to delete and retype it (sorry about that, we're just lowly research programmers!).</p>
+      {_.every(['typeKeyboard', 'megaBackspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
         Ready for the second part of the tutorial? Tap <NextBtn />.</p> : <p>Complete all of the steps above to move on.</p>}
     </div>;
   }));
