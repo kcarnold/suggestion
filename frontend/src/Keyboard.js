@@ -45,7 +45,7 @@ export class Keyboard extends Component {
       dispatch({type: 'undo'});
     } else if (key === '⌫') {
       this.setState({deleteZeroX: clientX + 5, lastUpdateDelta: -1});
-      dispatch({type: 'updateDeleting', msg: {type: 'start', delta: -1}});
+      dispatch({type: 'updateDeleting', delta: -1});
     } else {
       dispatch({type: 'tapKey', key, x: clientX, y: clientY});
     }
@@ -59,7 +59,7 @@ export class Keyboard extends Component {
       let delta = Math.round((evt.targetTouches[0].clientX - deleteZeroX) / 5);
       if (delta !== lastUpdateDelta) {
         console.log('delta', delta)
-        this.props.dispatch({type: 'updateDeleting', msg: {type: 'update', delta: delta}});
+        this.props.dispatch({type: 'updateDeleting', delta: delta});
         this.setState({lastUpdateDelta: delta});
       }
     }
@@ -69,7 +69,7 @@ export class Keyboard extends Component {
 
   handleTouchEnd = (evt) => {
     if (this.state.deleteZeroX) {
-      this.props.dispatch({type: 'updateDeleting', msg: {type: 'done'}});
+      this.props.dispatch({type: 'tapBackspace', delta: this.state.lastUpdateDelta});
       this.setState({deleteZeroX: null, lastUpdateDelta: null});
     }
     evt.preventDefault();

@@ -73,7 +73,7 @@ export class ExperimentStateStore {
       lastSuggestionsFromServer: {},
       activeSuggestion: null,
       lastSpaceWasAuto: false,
-      deleting: null,
+      electricDeleteLiveChars: null,
       get wordCount() {
         return countWords(this.curText);
       },
@@ -236,11 +236,15 @@ export class ExperimentStateStore {
 
         return [];
       }),
-      tapBackspace: M.action(() => {
+      tapBackspace: M.action((event) => {
         /* Ignore the attention check, don't count this for or against. */
-        this.insertText('', 1);
+        let {delta} = event;
+        if (delta === undefined)
+          delta = -1;
+        this.insertText('', -delta);
         this.lastSpaceWasAuto = false;
         this.activeSuggestion = null;
+        this.electricDeleteLiveChars = null;
         return [];
       }),
       handleTapSuggestion: M.action(event => {
@@ -334,24 +338,9 @@ export class ExperimentStateStore {
       }),
 
       handleDeleting: M.action(event => {
-        let {msg} = event;
-        if (msg.type === 'start') {
-          this.attentionCheck = null;
-          this.deleting = {
-            liveChars: this.curText.length + msg.delta
-          };
-        } else if (msg.type === 'update') {
-          console.assert(this.deleting);
-          this.deleting.liveChars = Math.min(Math.max(0, this.curText.length + msg.delta), this.curText.length);
-          // console.log(msg.delta, this.deleting.livech)
-        } else if (msg.type === 'done') {
-          console.assert(this.deleting);
-          this.insertText('', this.curText.length - this.deleting.liveChars);
-          this.lastSpaceWasAuto = false;
-          this.activeSuggestion = null;
-          this.deleting = null;
-          return [];
-        }
+        let {delta} = event;
+        this.electricDeleteLiveChars = Math.min(Math.max(0, this.curText.length + delta), this.curText.length);
+        return [];
       })
     });
   }
@@ -430,7 +419,7 @@ export class ExperimentStateStore {
       case 'tapKey':
         return this.tapKey(event);
       case 'tapBackspace':
-        return this.tapBackspace();
+        return this.tapBackspace(event);
       case 'receivedSuggestions':
         return this.updateSuggestions(event);
       case 'tapSuggestion':

@@ -29,13 +29,13 @@ export const CurText = inject("spying", "state", "dispatch")(
       render() {
         let { text, replacementRange, state, dispatch } = this.props;
         let { experimentState } = state;
-        let { deleting } = experimentState;
+        let { electricDeleteLiveChars } = experimentState;
         let afterCursor = "";
 
-        if (deleting) {
+        if (electricDeleteLiveChars) {
           replacementRange = null;
-          afterCursor = text.slice(deleting.liveChars);
-          text = text.slice(0, deleting.liveChars);
+          afterCursor = text.slice(electricDeleteLiveChars);
+          text = text.slice(0, electricDeleteLiveChars);
         }
         if (!replacementRange) {
           replacementRange = [0, 0];
@@ -59,7 +59,7 @@ export const CurText = inject("spying", "state", "dispatch")(
                 {text.slice(hiEnd)}
               </span>
               <span
-                className={classNames("Cursor", deleting && "deleting")}
+                className={classNames("Cursor", electricDeleteLiveChars && "deleting")}
                 ref={elt => {
                   this.cursor = elt;
                 }}
