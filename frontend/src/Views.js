@@ -4,6 +4,8 @@ import {observer, inject} from 'mobx-react';
 import classNames from 'classnames';
 import {Keyboard} from './Keyboard';
 import {NextBtn} from './BaseViews';
+import {CurText} from './CurText';
+import {SuggestionsBar, AlternativesBar} from './SuggestionViews';
 import {ControlledInput, ControlledStarRating} from './ControlledInputs';
 import Consent from './Consent';
 
@@ -89,113 +91,8 @@ const tutorialTaskDescs = {
   tapAlternative: "Try tapping a green box to replace the highlighted word with it."
 };
 
-class Suggestion extends Component {
-  render() {
-    let {onTap, word, preview, isValid, meta, beforeText, highlightChars} = this.props;
-    let highlighted = '';
-    if (highlightChars) {
-      highlighted = word.slice(0, highlightChars);
-      word = word.slice(highlightChars);
-    }
-    let classes = {
-      invalid: !isValid,
-      bos: isValid && (meta || {}).bos
-    };
-    if (!!highlightChars) {
-      if (highlightChars % 2)
-        classes.hasHighlightOdd = true;
-      else
-        classes.hasHighlightEven = true
-    }
-    return <div
-      className={classNames("Suggestion", classes)}
-      onTouchStart={isValid ? onTap : null}
-      onTouchEnd={evt => {evt.preventDefault();}}>
-      <span className="word"><span className="beforeText">{beforeText}</span><span className="highlighted">{highlighted}</span>{word}</span><span className="preview">{preview.join(' ')}</span>
-    </div>;
-  }
-}
-
-const SuggestionsBar = inject('state', 'dispatch')(observer(class SuggestionsBar extends Component {
-  render() {
-    const {dispatch, suggestions, which, beforeText, showPhrase} = this.props;
-    return <div className={"SuggestionsBar " + which}>
-      {(suggestions || []).map((sugg, i) => <Suggestion
-        key={i}
-        onTap={(evt) => {
-          dispatch({type: 'tapSuggestion', slot: i, which});
-          evt.preventDefault();
-          evt.stopPropagation();
-        }}
-        word={sugg.words[0]}
-        beforeText={beforeText || ''}
-        preview={showPhrase ? sugg.words.slice(1) : []}
-        highlightChars={sugg.highlightChars}
-        isValid={true}
-        meta={null} />
-      )}
-    </div>;
-  }
-}));
-
-const AlternativesBar = inject('state', 'dispatch')(observer(class AlternativesBar extends Component {
-  render() {
-    const {state} = this.props;
-    let expState = state.experimentState;
-    let recs = expState.visibleSuggestions;
-    let heldCluster = 2;
-    let selectedIdx = 9;
-    let clusters = recs.clusters || [];
-    let suggOffset = (idx) => Math.floor(idx * state.phoneSize.width / 3);
-    let suggWidth = Math.floor(state.phoneSize.width / 3);
-    return <div className="SuggestionsContainer">
-      {heldCluster && <div className="Overlay" style={{left: suggOffset(heldCluster), width: suggWidth}}>
-        {(clusters[heldCluster] || []).reverse().map(([word, meta], wordIdx) => <span key={word} className={classNames(wordIdx === selectedIdx && 'selected')}>{word}</span>)}
-        <div className="shiftSpot" />
-      </div>}
-      <div className="SuggestionsBar">
-      {clusters.slice(0, 3).map((cluster, clusterIdx) =>
-        <div className="Suggestion" key={clusterIdx}><span className="word">{cluster[0][0]}</span><span className="preview" /></div>)}</div>
-    </div>;
-  }
-}));
-
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
-
-const CurText = inject('spying', 'state', 'dispatch')(observer(class CurText extends Component {
-  componentDidMount() {
-    if (!this.props.spying) {
-      this.cursor.scrollIntoView();
-    }
-  }
-
-  componentDidUpdate() {
-    if (!this.props.spying) {
-      this.cursor.scrollIntoView();
-    }
-  }
-
-  render() {
-    let {text, replacementRange, state, dispatch} = this.props;
-    let {experimentState} = state;
-    let {showSynonyms} = experimentState;
-
-    if (!replacementRange) {
-      replacementRange = [0, 0];
-    }
-    if (state.experimentState.attentionCheck && state.experimentState.attentionCheck.type === 'text')
-      text = text + 'æ';
-    let [hiStart, hiEnd] = replacementRange;
-    return <div className="CurText" onTouchEnd={evt => {dispatch({type: 'tapText'});}}>
-    {showSynonyms && <SuggestionsBar which="synonyms" suggestions={experimentState.visibleSuggestions['synonyms']} beforeText={""} />}
-    <span>
-      <span>{text.slice(0, hiStart)}</span>
-      <span className="replaceHighlight">{text.slice(hiStart, hiEnd)}</span>
-      <span>{text.slice(hiEnd)}</span>
-      <span className="Cursor" ref={elt => {this.cursor = elt;}}></span></span></div>;
-  }
-}));
 
 export const Welcome = inject('state')(observer(({state}) => <div>
     <h1>Welcome</h1>
