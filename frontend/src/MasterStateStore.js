@@ -78,6 +78,7 @@ export const namedConditions = {
       domain: 'airbnb_train'
     },
     showPhrase: true,
+    showRelevanceHints: true,
   },
   nosugg: {
     sugFlags: {
@@ -241,6 +242,7 @@ export const namedConditions = {
     showPhrase: true,
     // useAttentionCheck: .1,
     hideFullwordPredictions: false,
+    showRelevanceHints: true,
   },
   yelpalternatives: {
     sugFlags: {
