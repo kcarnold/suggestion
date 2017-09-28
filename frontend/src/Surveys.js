@@ -88,7 +88,7 @@ const tlxQuestions = [
     "performance",
     "Performance: How successful were you in accomplishing what you were asked to do?",
     7,
-    ["Perfect :)", "Failure :("],
+    ["Perfect \u{1F601}", "Failure \u{1F641}"],
   ),
   likert(
     "effort",
