@@ -58,7 +58,6 @@ export class Keyboard extends Component {
     if (deleteZeroX) {
       let delta = Math.round((evt.targetTouches[0].clientX - deleteZeroX) / 5);
       if (delta !== lastUpdateDelta) {
-        console.log('delta', delta)
         this.props.dispatch({type: 'updateDeleting', delta: delta});
         this.setState({lastUpdateDelta: delta});
       }
