@@ -230,14 +230,17 @@ export const namedConditions = {
   },
   yelppredict: {
     sugFlags: {
-      split: true,
-      num_sims: 0,
-      num_alternatives: 0,
+      useSufarr: false,
+      rare_word_bonus: 0,
+      null_logprob_weight: 0,
+      use_bos_suggs: false,
+      continuation_length: 17,
     },
     showSynonyms: false,
     showReplacement: false,
+    showPhrase: true,
     // useAttentionCheck: .1,
-    hideFullwordPredictions: true,
+    hideFullwordPredictions: false,
   },
   yelpalternatives: {
     sugFlags: {
