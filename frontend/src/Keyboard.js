@@ -49,6 +49,8 @@ export class Keyboard extends Component {
     } else {
       dispatch({type: 'tapKey', key, x: clientX, y: clientY});
     }
+    evt.preventDefault();
+    evt.stopPropagation();
   };
 
   handleTouchMove = (evt) => {
@@ -61,6 +63,8 @@ export class Keyboard extends Component {
         this.setState({lastUpdateDelta: delta});
       }
     }
+    evt.preventDefault();
+    evt.stopPropagation();
   }
 
   handleTouchEnd = (evt) => {
@@ -68,6 +72,8 @@ export class Keyboard extends Component {
       this.props.dispatch({type: 'updateDeleting', msg: {type: 'done'}});
       this.setState({deleteZeroX: null, lastUpdateDelta: null});
     }
+    evt.preventDefault();
+    evt.stopPropagation();
   };
 
   render() {
