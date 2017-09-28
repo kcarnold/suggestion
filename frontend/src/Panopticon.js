@@ -161,7 +161,7 @@ const ScreenTimesTable = ({screenTimes}) => {
 const ShowRecs = ({recs, action}) => <div
   style={{display: 'flex', flexFlow: 'column nowrap'}}>
   <div style={{display: 'flex', flexFlow: 'row nowrap', justifyContent: 'space-between'}}>
-    {recs.synonyms.map(({word}, i) => <div key={i} style={{padding: '5px', fontWeight: action.slot === i ? 'bold' : null}}>{word}</div>)}
+    {recs.synonyms.map(({words}, i) => <div key={i} style={{padding: '5px', fontWeight: action.slot === i ? 'bold' : null}}>{words.join(' ')}</div>)}
   </div>
 </div>;
 
