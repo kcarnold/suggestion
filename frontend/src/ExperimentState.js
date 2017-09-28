@@ -69,6 +69,7 @@ export class ExperimentStateStore {
         synonyms: {total: 0, passed: 0, force: false},
       },
       tapLocations: [],
+      seqNums: [],
       contextSequenceNum: 0,
       lastSuggestionsFromServer: {},
       activeSuggestion: null,
@@ -191,17 +192,13 @@ export class ExperimentStateStore {
         }
         this.curText = this.curText.slice(0, startIdx) + toInsert + this.curText.slice(startIdx + deleteCount);
         this.tapLocations = this.tapLocations.slice(0, startIdx).concat(taps).concat(this.tapLocations.slice(startIdx + deleteCount));
-      }),
-      insertText: M.action((toInsert, charsToDelete, taps) => {
-        let cursorPos = this.curText.length;
-        let newCursorPos = cursorPos - charsToDelete;
-        this.curText = this.curText.slice(0, newCursorPos) + toInsert;
-        this.tapLocations = this.tapLocations.slice(0, newCursorPos).concat(taps || _.map(toInsert, () => null));
+        this.seqNums = this.seqNums.slice(0, startIdx).concat(_.map(toInsert, () => this.contextSequenceNum)).concat(this.seqNums.slice(startIdx + deleteCount));
       }),
       tapKey: M.action(event => {
         let ac = this.validateAttnCheck(event);
         if (ac.length) return ac;
 
+        let cursorPos = this.curText.length;
         let oldCurWord = this.curText.slice(this.lastSpaceIdx + 1);
 
         let isNonWord = event.key.match(/\W/);
@@ -213,7 +210,8 @@ export class ExperimentStateStore {
           toInsert += " ";
           taps.push({});
         }
-        this.insertText(toInsert, deleteSpace ? 1 : 0, taps);
+        let charsToDelete = deleteSpace ? 1 : 0;
+        this.spliceText(cursorPos - charsToDelete, charsToDelete, toInsert, taps);
         this.lastSpaceWasAuto = autoSpace;
         let newActiveSuggestion = null;
 
@@ -241,7 +239,7 @@ export class ExperimentStateStore {
         let {delta} = event;
         if (delta === undefined)
           delta = -1;
-        this.insertText('', -delta);
+        this.spliceText(this.curText.length + delta, -delta, '');
         this.lastSpaceWasAuto = false;
         this.activeSuggestion = null;
         this.electricDeleteLiveChars = null;
@@ -286,7 +284,7 @@ export class ExperimentStateStore {
           if (deleteSpace) {
             charsToDelete++;
           }
-          this.insertText(wordToInsert + ' ', charsToDelete, null);
+          this.spliceText(this.curText.length - charsToDelete, charsToDelete, wordToInsert + ' ');
           this.lastSpaceWasAuto = true;
         }
         return [];
@@ -304,7 +302,7 @@ export class ExperimentStateStore {
         if (deleteSpace) {
           charsToDelete++;
         }
-        this.insertText(wordToInsert + ' ', charsToDelete, null);
+        this.spliceText(this.curText.length - charsToDelete, charsToDelete, wordToInsert + ' ');
         this.lastSpaceWasAuto = true;
         return [];
       }),
@@ -317,6 +315,7 @@ export class ExperimentStateStore {
         if (this.prevState) {
           this.curText = this.prevState.curText;
           this.tapLocations = this.prevState.tapLocations;
+          this.seqNums = this.prevState.seqNums;
           this.activeSuggestion = this.prevState.activeSuggestion;
           this.prevState = null;
         }
@@ -410,6 +409,7 @@ export class ExperimentStateStore {
     let prevState = {
       curText: this.curText,
       tapLocations: M.toJS(this.tapLocations.slice()),
+      seqNums: M.toJS(this.seqNums),
       activeSuggestion: M.toJS(this.activeSuggestion)
     };
     let sideEffects = (() => {

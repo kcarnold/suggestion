@@ -67,16 +67,6 @@ function tapKeys(state, keys) {
   );
 }
 
-it("requests suggestions at appropriate times", () => {
-  // Testing strategy:
-  // - test that init should make first request
-  // - test that all main user events cause a new request with a new request id
-  // -- provide a response immediately for each one this time.
-  // - test that suggestions don't get backlogged.
-  // - test that once the backlog clears, suggestions get requested again.
-
-});
-
 it("requests suggestions on init", () => {
   let sugFlags = {domain: 'test'}
   let state = new ExperimentStateStore({}, sugFlags);
@@ -111,6 +101,9 @@ it("requests suggestions following all main user events", () => {
     flags: expect.any(Object),
   });
   expect(state.contextSequenceNum).toEqual(1);
+  expect(state.curText).toEqual("one ");
+  // seqNums gives the context sequence number in which the action that inserted that text was performed.
+  expect(state.seqNums.slice()).toEqual([0, 0, 0, 0]);
 
   // The non-tapped suggestions should be invalid right now.
   [1, 2].forEach(i => {
@@ -124,6 +117,8 @@ it("requests suggestions following all main user events", () => {
   expect(req2[0].cur_word[0].letter).toEqual('a');
   expect(req2[0].request_id).toEqual(2);
   expect(state.contextSequenceNum).toEqual(2);
+  expect(state.curText).toEqual('one a');
+  expect(state.seqNums.slice()).toEqual([0,0,0,0,1]);
 
   // All suggestions should be invalid right now.
   [0, 1, 2].forEach(i => {
@@ -134,6 +129,8 @@ it("requests suggestions following all main user events", () => {
   // this should not make a new request.
   let req3 = state.handleEvent({type: 'tapBackspace'});
   expect(req3).toHaveLength(0);
+  expect(state.curText).toEqual('one ');
+  expect(state.seqNums.slice()).toEqual([0,0,0,0]);
 
   // Now give a response to the first request.
   // (contents don't matter)
@@ -196,6 +193,8 @@ it("requests suggestions following all main user events", () => {
   expect(req6).toHaveLength(1);
   expect(state.contextSequenceNum).toEqual(13);
   expect(req6[0].request_id).toEqual(13);
+  expect(state.curText).toEqual('one xxxxxxxxxx');
+  expect(state.seqNums.slice()).toEqual([0,0,0,0,3,4,5,6,7,8,9,10,11,12]);
 });
 
 xit("doesn't duplicate requests after an auto-space", () => {
