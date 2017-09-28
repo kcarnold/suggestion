@@ -25,11 +25,6 @@ export const CurText = inject("spying", "state", "dispatch")(
         if (!replacementRange) {
           replacementRange = [0, 0];
         }
-        if (
-          state.experimentState.attentionCheck &&
-          state.experimentState.attentionCheck.type === "text"
-        )
-          text = text + "æ";
         let [hiStart, hiEnd] = replacementRange;
         return (
           <div
