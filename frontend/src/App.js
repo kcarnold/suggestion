@@ -11,38 +11,7 @@ import * as WSPinger from './WSPinger';
 const MAX_PING_TIME = 200;
 const defaultConfig = 'study1';
 
-export function init() {
-  let externalAction  = window.location.hash.slice(1);
-  window.location.hash = '';
-
-  // Get client id and kind from params or asking the user.
-  var [clientId, clientKind] = (function() {
-    let params = window.location.search.slice(1);
-    let match = params.match(/^(\w+)-(\w+)$/);
-    let clientId, kind;
-    if (match) {
-      clientId = match[1];
-      kind = match[2];
-      return [clientId, kind];
-    }
-    let code = params === 'new' ? '' : prompt("If you have a code alreday, enter it here, otherwise just press OK:");
-    let hash = '';
-    if (!code) {
-      // Generate a code.
-      clientId = _.range(6).map(function(i) { return _.sample('23456789cfghjmpqrvwx'); }).join('');
-      code = clientId + '-p';
-      let config = defaultConfig;
-      if (externalAction.slice(0, 2) === 'c=') {
-        config = externalAction.slice(2);
-      }
-      hash = `#c=${config}`;
-    }
-    code = code.toLowerCase();
-    window.location.replace(`${window.location.protocol}//${window.location.host}/?${code}${hash}`);
-    // That should cause a reload, once the rest of this script finishes.
-    return [null, null];
-  })();
-
+export function init(clientId, clientKind) {
 
   var wsURL = `ws://${window.location.host}`;
   //var ws = new WSClient(`ws://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/ws`);
@@ -185,11 +154,6 @@ export function init() {
           throw e;
         }
       });
-      // This needs to happen here so that we don't temporarily display the redirect page.
-      if (externalAction) {
-        dispatch({type: 'externalAction', externalAction});
-        externalAction = '';
-      }
       state.replaying = false;
       updateBacklog();
       if (firstTime) {

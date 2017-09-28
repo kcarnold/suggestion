@@ -628,16 +628,11 @@ export class MasterStateStore {
 
     let screenAtStart = this.screenNum;
     switch (event.type) {
-    case 'externalAction':
-      event.externalAction.split('&').forEach(action => {
-        if (action.slice(0, 2) === 'c=') {
-          this.setMasterConfig(action.slice(2));
-        } else if (action.slice(0, 2) === 'p=') {
-          this.participantCode = action.slice(2);
-        } else {
-          alert("Unknown externalAction: "+action);
-        }
-      });
+    case 'login':
+      this.setMasterConfig(event.config);
+      if (event.platform_id) {
+        this.participantCode = event.platform_id;
+      }
       break;
     case 'next':
       this.screenNum++;

@@ -6,7 +6,7 @@ import {SelectRestaurants} from './Views';
 
 function mockStateAndDispatch(participantId, masterConfig) {
   let store = new MasterStateStore(participantId);
-  store.handleEvent({type: 'externalAction', externalAction: `c=${masterConfig}`});
+  store.handleEvent({type: 'login', config: masterConfig});
   function dispatch(event) {
     store.handleEvent(event);
   }

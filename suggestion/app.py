@@ -1,4 +1,5 @@
 import re
+import random
 import json
 import time
 import os
@@ -53,6 +54,9 @@ tornado.autoreload.add_reload_hook(process_pool.shutdown)
 known_participants = {}
 
 
+def get_log_file_name(participant_id):
+    return os.path.join(paths.logdir, participant_id + '.jsonl')
+
 class Participant:
     @classmethod
     def get_participant(cls, participant_id):
@@ -66,7 +70,7 @@ class Participant:
         self.participant_id = participant_id
         self.connections = []
 
-        self.log_file_name = os.path.join(paths.logdir, self.participant_id + '.jsonl')
+        self.log_file_name = get_log_file_name(self.participant_id)
         self.log_file = open(self.log_file_name, 'a+')
         self.log_file.seek(0, io.SEEK_END)
 
@@ -292,12 +296,28 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html")
 
+class LoginHandler(tornado.web.RequestHandler):
+    def post(self):
+        print("POST", self.request.body)
+        data = json.loads(self.request.body.decode('utf-8'))
+        while True:
+            participant_id = ''.join(random.choices('23456789cfghjmpqrvwx', k=6))
+            if not os.path.exists(get_log_file_name(participant_id)):
+                print("Successfully allocated", participant_id)
+                break
+        participant = Participant.get_participant(participant_id)
+        params = dict(data['params'])
+        participant.log(dict(kind='p', type='login', config=params.pop('c'), platform_id=params.pop('p', None)))
+        self.set_header('Content-Type', 'application/json')
+        self.write(json.dumps(dict(participant_id=participant_id)))
+
 
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r'/', MainHandler),
             (r"/ws", WebsocketHandler),
+            (r"/login", LoginHandler),
             (r'/ping', WSPingHandler),
             (r"/(style\.css)", tornado.web.StaticFileHandler, dict(path=paths.ui)),
         ]

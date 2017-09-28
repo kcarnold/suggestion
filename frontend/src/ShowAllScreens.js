@@ -6,7 +6,6 @@ import {MasterView} from './MasterView';
 
 const fakeClientId = 'zzzzzz';
 
-let externalAction = window.location.hash.slice(1);
 const showController = false;
 
 let states = [];
@@ -16,6 +15,7 @@ function doEventToLastState(evt) {
   eventsSoFar.push(evt);
   states[states.length - 1].handleEvent(evt);
 }
+
 function copyState() {
   let newState = new MasterStateStore(fakeClientId);
   states.push(newState);
@@ -23,9 +23,9 @@ function copyState() {
   return newState;
 }
 
-if (window.location.search.slice(1) === 'showall') {
+export function init(config) {
   copyState();
-  doEventToLastState({type: 'externalAction', externalAction});
+  doEventToLastState({type: 'login', config});
   let screens = states[0].screens;
   states[0].replaying = false;
   for (let i=1; i<screens.length; i++) {
