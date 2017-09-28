@@ -265,7 +265,6 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
 
   render() {
     let {state} = this.props;
-    let {experimentState} = state;
     let instructionsScreens = {
       PracticeComputer: PracticeComputer,
       TutorialInstructions: TutorialInstructions,

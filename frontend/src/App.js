@@ -9,7 +9,6 @@ import Raven from 'raven-js';
 import * as WSPinger from './WSPinger';
 
 const MAX_PING_TIME = 200;
-const defaultConfig = 'study1';
 
 export function init(clientId, clientKind) {
 

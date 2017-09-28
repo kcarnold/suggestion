@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { observer, inject } from "mobx-react";
-import { SuggestionsBar } from "./SuggestionViews";
 import classNames from "classnames";
 
 export const CurText = inject("spying", "state", "dispatch")(
