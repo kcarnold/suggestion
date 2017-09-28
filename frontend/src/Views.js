@@ -219,14 +219,15 @@ export const Instructions = inject('state')(observer(({state}) => {
 //     <p>{texts[state.masterConfig.instructions].overallInstructions}</p>
 
 export const ReadyPhone = inject('state')(observer(({state}) => <div>
-    <h1>{state.curPlace.name}</h1>
+    <h1>Writing task {state.block + 1} of {state.conditions.length}</h1>
+    <p>We'll be writing about <b>{state.curPlace.name}</b>.</p>
     <OverallInstructions />
     <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
     {state.condition.useAttentionCheck && <p>For this study, we need to measure which parts of the screen people are paying attention to. So if you happen to notice an "æ" somewhere, tap it to acknowledge that you saw it. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
 
     <p>For this writing session, you'll be using <b>Keyboard {state.block + 1}</b>. Each keyboard works a little differently.</p>
 
-    <p>If you need a break, take it before tapping Next. Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
+    <p>Tap Next when you're ready to start.<br/><br/><NextBtn /></p></div>
 ));
 
 /*  InstructionsQuiz: inject('state')(({state}) => state.passedQuiz ? <p>You already passed the quiz the first time, just click <NextBtn /></p> : ),*/
@@ -236,7 +237,7 @@ export const RevisionComputer = inject('state')(observer(({state}) => <div>
 
   <OverallInstructions />
       <div>Aim for about {wordCountTarget} words (you're at {state.experimentState.wordCount}). Only reviews between {wordCountTarget - 10}  and {wordCountTarget + 10} words are eligible for the competition.
-       When you're done, click here: <NextBtn /></div>}
+       When you're done, click here: <NextBtn /></div>
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
