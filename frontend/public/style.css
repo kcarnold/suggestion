@@ -207,7 +207,8 @@ html, body {
 }
 
 .synonyms .Suggestion {
-  min-width: 60px;
+  flex: 0 0 20%;
+  min-width: 20%;
   height: 30px;
 }
 
