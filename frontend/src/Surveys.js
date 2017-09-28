@@ -249,7 +249,7 @@ const closingSurveyQuestions = [
     flags: { multiline: true },
   },
   {
-    text: "Any other comments?",
+    text: "Aaaand... we're done! How was this experiment? What went well? What could have been better? Any ideas?",
     responseType: "text",
     name: "other",
     flags: { multiline: true },
