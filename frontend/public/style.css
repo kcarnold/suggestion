@@ -62,7 +62,7 @@ html, body {
 /*** TEXT ***/
 .CurText {
     white-space: pre-wrap;
-    flex: 1 0 auto;
+    flex: 0 0 auto;
     max-height: 80px;
     padding: 1px;
     overflow-y: scroll;
