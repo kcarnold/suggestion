@@ -58,6 +58,7 @@ export class ExperimentStateStore {
     this.condition = condition;
     this.sugFlags = sugFlags;
     this.outstandingRequests = [];
+    this.prevState = null;
     M.extendObservable(this, {
       curText: '',
       attentionCheck: null,
@@ -72,6 +73,7 @@ export class ExperimentStateStore {
       lastSuggestionsFromServer: {},
       activeSuggestion: null,
       lastSpaceWasAuto: false,
+      deleting: null,
       get wordCount() {
         return countWords(this.curText);
       },
@@ -307,6 +309,15 @@ export class ExperimentStateStore {
         return this.validateAttnCheck(event);
       }),
 
+      handleUndo: M.action(event => {
+        if (this.prevState) {
+          this.curText = this.prevState.curText;
+          this.tapLocations = this.prevState.tapLocations;
+          this.activeSuggestion = this.prevState.activeSuggestion;
+          this.prevState = null;
+        }
+      }),
+
       updateSuggestions: M.action(event => {
         let {msg} = event;
         // Only update suggestions if the data is valid.
@@ -321,6 +332,27 @@ export class ExperimentStateStore {
           console.log('warning: outstandingRequests weird: looking for', msg.request_id, 'in', this.outstandingRequests);
         }
       }),
+
+      handleDeleting: M.action(event => {
+        let {msg} = event;
+        if (msg.type === 'start') {
+          this.attentionCheck = null;
+          this.deleting = {
+            liveChars: this.curText.length + msg.delta
+          };
+        } else if (msg.type === 'update') {
+          console.assert(this.deleting);
+          this.deleting.liveChars = Math.min(Math.max(0, this.curText.length + msg.delta), this.curText.length);
+          // console.log(msg.delta, this.deleting.livech)
+        } else if (msg.type === 'done') {
+          console.assert(this.deleting);
+          this.insertText('', this.curText.length - this.deleting.liveChars);
+          this.lastSpaceWasAuto = false;
+          this.activeSuggestion = null;
+          this.deleting = null;
+          return [];
+        }
+      })
     });
   }
 
@@ -386,9 +418,15 @@ export class ExperimentStateStore {
   }
 
   handleEvent = (event) => {
-    let textBeforeEvent = this.curText;
+    let prevState = {
+      curText: this.curText,
+      tapLocations: M.toJS(this.tapLocations.slice()),
+      activeSuggestion: M.toJS(this.activeSuggestion)
+    };
     let sideEffects = (() => {
       switch (event.type) {
+      case 'undo':
+        return this.handleUndo(event);
       case 'tapKey':
         return this.tapKey(event);
       case 'tapBackspace':
@@ -401,13 +439,18 @@ export class ExperimentStateStore {
         return this.handleSelectAlternative(event);
       case 'tapText':
         return this.handleTapText(event);
+      case 'updateDeleting':
+        return this.handleDeleting(event);
       default:
       }
     })();
     sideEffects = sideEffects || [];
 
-    if (this.curText !== textBeforeEvent) {
+    if (this.curText !== prevState.curText) {
       this.contextSequenceNum++;
+
+      this.prevState = prevState;
+
       // Update attn check
       let rng = seedrandom(this.curText + this.contextSequenceNum);
       if (this.condition.useAttentionCheck && rng() < this.condition.useAttentionCheck) {

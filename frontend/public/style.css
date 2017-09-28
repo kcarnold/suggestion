@@ -79,6 +79,10 @@ html, body {
     background: white;
 }
 
+.CurText .afterCursor {
+  color: #c34242;
+}
+
 .Cursor {
     display: inline-block;
     width: 2px;
@@ -86,6 +90,12 @@ html, body {
     background: blue;
     height: 17px;
     animation: blink-animation 1s steps(2, start) infinite;
+}
+
+.Cursor.deleting {
+  background: red;
+  animation: none;
+  width: 3px;
 }
 
 @keyframes blink-animation {
@@ -107,6 +117,7 @@ html, body {
     cursor: pointer;
     user-select: none;
     padding-bottom: 30px;
+    touch-action: none;
 }
 
 

@@ -94,6 +94,7 @@ const tutorialTaskDescs = {
 
 const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 'red'}}>{done ? '\u2611' : '\u2610'} {children}</div>;
 
+
 export const Welcome = inject('state')(observer(({state}) => <div>
     <h1>Welcome</h1>
     <p>You should be seeing this page on a touchscreen device. If not, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
