@@ -71,6 +71,7 @@ export default class TutorialTasks {
     case 'undo':
       this.consectutiveTaps = {};
       this.tasks.undo = true;
+      break;
     default:
     }
   }
