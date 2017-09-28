@@ -51,8 +51,8 @@ export function init() {
   var state = new MasterStateStore(clientId || '');
 
 
-  var logs = {};
-  window.logs = logs;
+  var messageCount = {};
+  window.messageCount = messageCount;
 
   var browserMeta = {
     userAgent: navigator.userAgent,
@@ -74,15 +74,15 @@ export function init() {
       kind: clientKind,
       browserMeta,
       git_rev: process.env.REACT_APP_GIT_REV,
-      messageCount: _.mapValues(logs, v => v.length),
+      messageCount: messageCount,
       masterConfig: state.masterConfig,
     }]);
   }
 
   function addLogEntry(kind, event) {
-    if (!logs[kind])
-      logs[kind] = [];
-    logs[kind].push(event);
+    if (!messageCount[kind])
+      messageCount[kind] = 0;
+    messageCount[kind] += 1;
     updateBacklog();
   }
 
