@@ -387,3 +387,27 @@ span.word {
 span.replaceHighlight {
     background: #87cc87;
 }
+
+
+.header::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+.header::-webkit-scrollbar:vertical {
+    width: 12px;
+}
+
+.header::-webkit-scrollbar:horizontal {
+    height: 12px;
+}
+
+.header::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .5);
+    border-radius: 10px;
+    border: 2px solid #ffffff;
+}
+
+.header::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: #ffffff;
+}
