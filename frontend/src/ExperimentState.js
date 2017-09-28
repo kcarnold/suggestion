@@ -77,10 +77,10 @@ export class ExperimentStateStore {
       },
       get visibleSuggestions() {
         let fromServer = this.lastSuggestionsFromServer;
+        const blankRec = {words: []};
         let serverIsValid = (this.condition.showPredictions === false) || fromServer.request_id === this.contextSequenceNum;
         if (!serverIsValid) {
           // Fill in the promised suggestion.
-          let blankRec = {words: []};
           let predictions = _.range(3).map(() => blankRec);
           if (this.activeSuggestion) {
             predictions[this.activeSuggestion.slot] = M.toJS(this.activeSuggestion);
@@ -98,6 +98,9 @@ export class ExperimentStateStore {
             result[type] = [];
           } else {
             result[type] = fromServer[type] || [];
+          }
+          while(result[type].length < 3) {
+            result[type].push(blankRec);
           }
         });
 
