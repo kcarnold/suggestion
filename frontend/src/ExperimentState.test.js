@@ -234,7 +234,7 @@ it("inserts automatic spaces after suggestions", () => {
   expect(state.visibleSuggestions.replacement_range).toEqual(
     recs0.replacement_range,
   );
-  expect(state.visibleSuggestions.synonyms).toEqual(recs0.synonyms);
+  expect(state.visibleSuggestions.synonyms.slice(0, 3)).toEqual(recs0.synonyms);
 
   state.handleEvent({ type: "tapSuggestion", which: "synonyms", slot: 1 });
   expect(state.curText).toEqual("the interior ");
