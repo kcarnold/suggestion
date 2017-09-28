@@ -281,8 +281,8 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
     let instructionElt = React.createElement(
       instructionEltProto,
       {ref: elt => this.ref = elt});
-    return <div className="header">
-      <div style={{flex: '0 0 200px', padding: '5px'}}>{instructionElt}</div>
+    return <div className="header scrollable">
+      <div style={{flex: '0 1 200px', padding: '5px'}}>{instructionElt}</div>
       {state.condition.useAttentionCheck && <p>If you notice an æ, tap on it (or nearby, it doesn't matter). Don't worry if you happen to miss a few.</p>}
       {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>There was an æ in an area you haven't noticed yet!<br/>Look for the æ and tap it.<br/>Once you notice it yourself, these messages will stop.</div>}
       {state.condition.usePrewriteText && <OutlineSelector />}
@@ -292,13 +292,19 @@ const ExperimentHead = inject('state')(observer(class ExperimentHead extends Com
 
 export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, dispatch}) => {
       let {experimentState} = state;
-      let {showReplacement, showPredictions} = state.experimentState;
+      let {showReplacement, showPredictions, showSynonyms} = state.experimentState;
       if (state.phoneSize.width > state.phoneSize.height) {
         return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
       }
 
       return <div className="ExperimentScreen">
         <ExperimentHead key={state.screens[state.screenNum].controllerScreen} />
+        {showSynonyms &&
+          <SuggestionsBar
+            which="synonyms"
+            suggestions={experimentState.visibleSuggestions["synonyms"]}
+            beforeText={""}
+          />}
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
           {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} showPhrase={state.condition.showPhrase} />}

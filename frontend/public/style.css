@@ -62,13 +62,15 @@ html, body {
 /*** TEXT ***/
 .CurText {
     white-space: pre-wrap;
-    flex: 1 0 54px;
+    flex: 1 0 auto;
+    max-height: 80px;
     padding: 1px;
     overflow-y: scroll;
     display: flex;
     align-items: flex-end;
     background: #ccc;
     position: relative;
+    border-top: 1px solid black;
 }
 
 .CurText > span {
@@ -157,27 +159,24 @@ html, body {
 
 /******* SUGGESTIONS BAR *****/
 
-.SuggestionsBar.predictions {
-    background-color: #ADB5BD;
-    height: 42px;
+.SuggestionsBar {
     user-select: none;
     flex: 0 0 auto;
     display: flex;
+}
+.SuggestionsBar.predictions {
+    background-color: #ADB5BD;
     flex-flow: row nowrap;
-    border-top: 1px solid white;
 }
 
 .SuggestionsBar.synonyms {
   background: #a1c9a1;
-  /* font-size: 14px; */
-  position: absolute;
-  bottom: 20px;
-  width: 180px;
-  display: flex;
   flex-flow: row wrap;
+  height: 60px;
 }
 
 .Suggestion {
+    border-top: 1px solid white;
     display: block;
     color: white;
     text-align: center;
@@ -188,23 +187,21 @@ html, body {
     /* padding: 0 4px; */
     line-height: normal;
     cursor: pointer;
-    height: 100%;
     flex: 1 0 0;
-}
-
-.predictions .Suggestion {
     border-right: 1px solid white;
 }
 
+.predictions .Suggestion {
+    height: 42px;
+}
+
 .synonyms .Suggestion {
-  border-top: 1px solid white;
-  width: 90px;
-  flex: 0 0 auto;
-  border-left: 1px solid white;
+  min-width: 60px;
+  height: 30px;
 }
 
 .Suggestion:last-child {
-    border-right: none;
+    border-right-color: transparent;
 }
 
 .Suggestion.invalid span {
@@ -383,31 +380,31 @@ span.word {
   left: -5px;
 }
 
-
 span.replaceHighlight {
     background: #87cc87;
 }
 
+/** Show scrollbars on instructions: https://stackoverflow.com/questions/22907777/make-scrollbar-visible-in-mobile-browsers **/
 
-.header::-webkit-scrollbar {
+.scrollable::-webkit-scrollbar {
     -webkit-appearance: none;
 }
 
-.header::-webkit-scrollbar:vertical {
+.scrollable::-webkit-scrollbar:vertical {
     width: 12px;
 }
 
-.header::-webkit-scrollbar:horizontal {
+.scrollable::-webkit-scrollbar:horizontal {
     height: 12px;
 }
 
-.header::-webkit-scrollbar-thumb {
+.scrollable::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, .5);
     border-radius: 10px;
     border: 2px solid #ffffff;
 }
 
-.header::-webkit-scrollbar-track {
+.scrollable::-webkit-scrollbar-track {
     border-radius: 10px;
     background-color: #ffffff;
 }

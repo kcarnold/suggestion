@@ -20,7 +20,6 @@ export const CurText = inject("spying", "state", "dispatch")(
       render() {
         let { text, replacementRange, state, dispatch } = this.props;
         let { experimentState } = state;
-        let { showSynonyms } = experimentState;
 
         if (!replacementRange) {
           replacementRange = [0, 0];
@@ -33,12 +32,6 @@ export const CurText = inject("spying", "state", "dispatch")(
               dispatch({ type: "tapText" });
             }}
           >
-            {showSynonyms &&
-              <SuggestionsBar
-                which="synonyms"
-                suggestions={experimentState.visibleSuggestions["synonyms"]}
-                beforeText={""}
-              />}
             <span>
               <span>
                 {text.slice(0, hiStart)}
