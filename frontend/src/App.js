@@ -174,7 +174,7 @@ export function init(clientId, clientKind) {
     dispatch({type: 'resized', width, height});
   }
 
-  var setSizeDebounced = _.throttle(setSize, 100, {leading: true, trailing: true});
+  var setSizeDebounced = _.throttle(setSize, 100, {leading: false, trailing: true});
 
   window.addEventListener('resize', setSizeDebounced);
 
