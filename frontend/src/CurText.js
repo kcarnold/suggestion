@@ -13,7 +13,7 @@ export const CurText = inject("spying", "state", "dispatch")(
           clearTimeout(this.scrollIntoViewTimeout);
         }
         this.scrollIntoViewTimeout = setTimeout(() => {
-          this.cursor.scrollIntoView();
+          this.cursor && this.cursor.scrollIntoView();
         }, 50);
       }
 
@@ -23,6 +23,13 @@ export const CurText = inject("spying", "state", "dispatch")(
 
       componentDidUpdate() {
         this.scrollCursorIntoView();
+      }
+
+      componentWillUnmount() {
+        if (this.scrollIntoViewTimeout !== null) {
+          clearTimeout(this.scrollIntoViewTimeout);
+          this.scrollIntoViewTimeout = null;
+        }
       }
 
       render() {
