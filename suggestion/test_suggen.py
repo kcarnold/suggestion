@@ -67,3 +67,7 @@ def test_fallback_after_typo():
         sofar='thjs ', cur_word=[],
         **configs['sufarr_and_bos'])
     assert len(result) > 0
+
+
+def test_odd_tokenization():
+    suggestion_generator.tokenize_sofar('. ')
