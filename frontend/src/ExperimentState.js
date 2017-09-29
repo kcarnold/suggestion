@@ -59,6 +59,8 @@ export class ExperimentStateStore {
     this.sugFlags = sugFlags;
     this.outstandingRequests = [];
     this.prevState = null;
+    this.tapLocations = [];
+    this.seqNums = [];
     M.extendObservable(this, {
       curText: '',
       attentionCheck: null,
@@ -68,8 +70,6 @@ export class ExperimentStateStore {
         phrases: {total: 0, passed: 0, force: false},
         synonyms: {total: 0, passed: 0, force: false},
       },
-      tapLocations: [],
-      seqNums: [],
       contextSequenceNum: 0,
       lastSuggestionsFromServer: {},
       activeSuggestion: null,
