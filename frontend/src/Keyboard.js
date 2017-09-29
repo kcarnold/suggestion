@@ -27,7 +27,7 @@ export class Keyboard extends Component {
 
   handleTouchStart = (evt) => {
     let {dispatch} = this.props;
-    let {clientX, clientY} = evt.type === 'touchstart' ? evt.targetTouches[0] : evt;
+    let {clientX, clientY} = evt.type === 'touchstart' ? evt.changedTouches[0] : evt;
     let {top, left, width, height} = this.node.getBoundingClientRect();
     let kbdRect = {top, left, width, height};
     if (!_.isEqual(kbdRect, this.lastKbdRect)) {
