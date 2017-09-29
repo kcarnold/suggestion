@@ -3,14 +3,11 @@ import os
 import json
 import dateutil.parser
 import datetime
-import re
 
 COMPLETE_NUM_ACTIONS=18
 
-TECHNICAL_DIFFICULTIES = '7h9r8g p964wg jcqf4w 9qxf5g'.split()
-# Also exclude this person, who wrote about things other than restaurants.
-TECHNICAL_DIFFICULTIES.append('49g68p')
-INCOMPLETE_BUT_OK = 'hfj33r'.split()
+TECHNICAL_DIFFICULTIES = ''.split()
+INCOMPLETE_BUT_OK = ''.split()
 
 def get_log_data(log_file, earliest):
     size = os.path.getsize(log_file),
@@ -21,22 +18,20 @@ def get_log_data(log_file, earliest):
             if idx > 50 and meta is None:
                 return
             line = json.loads(line)
-            if line.get('type') == 'next' or line.get('externalAction') == 'completeSurvey':
+            if line.get('type') == 'next':
                 num_nexts += 1
-            elif line.get('type') == 'externalAction':
+            elif line.get('type') == 'login':
                 timestamp = dateutil.parser.parse(line['timestamp'])
                 if timestamp < earliest:
                     return
-                match = re.match(r'c=(\w+)&p=(\d+)', line['externalAction'])
-                if not match:
-                    continue
-                config, pid = match.groups()
-                meta = dict(timestamp=timestamp, config=config, pid=int(pid), participant_id=line['participant_id'], size=size)
+                print(line['participant_id'])
+                platform_id = line['platform_id']
+                meta = dict(timestamp=timestamp, config=line['config'], platform_id=platform_id, participant_id=line['participant_id'], size=size)
     if meta:
         return dict(meta, num_nexts=num_nexts)
 
 
-earliest = datetime.datetime(2017, 9, 1)
+earliest = datetime.datetime(2017, 9, 20)
 log_files = []
 for log_file in glob.glob('logs/*.jsonl'):
     data = get_log_data(log_file, earliest)
