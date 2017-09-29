@@ -10,7 +10,7 @@ import _ from 'lodash';
 let match = window.location.search.slice(1).match(/^(\w+)-(\w+)$/);
 let panopt = match[1], panopticode = match[2];
 
-const SHOW_REPLAY = false;
+const SHOW_REPLAY = true;
 
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 ws.setHello([{type: 'init', participantId: panopticode, kind: panopt}]);
@@ -129,7 +129,7 @@ function getStyle(chunk) {
   if (actionClass === 'tapKey') return {};
   let style = {};
   // let curWord = (action.curText.match(/\w+$/) || [''])[0];
-  console.assert(actionClass.match(/^tapSugg/));
+  // console.assert(actionClass.match(/^tapSugg/));
   if (sugInserted !== chars.trim()) {
     style['background'] = 'red';
     console.log('mismatch "%s" vs "%s", context "%s" sug "%s"', sugInserted, chars, action.curText.slice(-15), action.visibleSuggestions[action.which]);
@@ -154,7 +154,7 @@ const AnalyzedView = observer(({store, participantId}) => {
     {_.map(analysis.byExpPage, ((content, pageName) => {
       let synonymTaps = _.filter(content.displayedSuggs, {'action': {type: 'tapSuggestion', which: 'synonyms'}});
       return <div key={pageName}>
-        {pageName}
+        {pageName} ({content.condition}) ({JSON.stringify(content.place)})
         <AnnotatedFinalText chunks={content.chunks} />
         <table>
           <tbody>
@@ -170,7 +170,7 @@ const AnalyzedView = observer(({store, participantId}) => {
       </div>;
     }))}
     <ScreenTimesTable screenTimes={analysis.screenTimes} />
-    <table>
+    <table style={{fontSize: '10px'}}>
       <tbody>
         {Object.entries(analysis.allControlledInputs).map(([k, v]) => <tr key={k}><td>{k}</td><td>{v}</td></tr>)}
       </tbody>
@@ -232,5 +232,10 @@ window.store = store;
 // store.addViewers('9qxf5g hfj33r jcqf4w')
 // store.addViewers('7jqggr');
 // store.addViewers('w5hfrr 376j3q vcgfhq');
-store.addViewers('7x3v6q h72hhj')
+// store.addViewers('7x3v6q h72hhj')
+store.addViewers(
+  // '2vgwmf gfhfhx rwq22w'
+  // 'rwq22w'
+  'w5325r'
+  )
 
