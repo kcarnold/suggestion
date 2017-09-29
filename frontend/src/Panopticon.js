@@ -10,7 +10,7 @@ import _ from 'lodash';
 let match = window.location.search.slice(1).match(/^(\w+)-(\w+)$/);
 let panopt = match[1], panopticode = match[2];
 
-const SHOW_REPLAY = true;
+const SHOW_REPLAY = false;
 
 var ws = new WSClient(`ws://${window.location.host}/ws`);
 ws.setHello([{type: 'init', participantId: panopticode, kind: panopt}]);
@@ -236,6 +236,7 @@ window.store = store;
 store.addViewers(
   // '2vgwmf gfhfhx rwq22w'
   // 'rwq22w'
-  'w5325r'
+  // 'w5325r',
+  'rwq22w 2vgwmf gfhfhx 9mvhv7 c8c75v w5325r 846ch3'
   )
 
