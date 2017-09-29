@@ -329,7 +329,7 @@ span.word {
     text-align: center;
     transform: scale(.5);
   transition: transform 1s, opacity 1s;
-  transition-timing-function: cubic-bezier(0, 2, 0.76, 1.28);, ease
+  transition-timing-function: cubic-bezier(0, 2, 0.76, 1.28);
 }
 
 .missed-attn-check.inactive {
