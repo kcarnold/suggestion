@@ -89,7 +89,7 @@ html, body {
     margin: 0 -2px -3px 0;
     background: blue;
     height: 17px;
-    animation: blink-animation 1s steps(2, start) infinite;
+    animation: blink-animation 1s steps(1, start) infinite;
 }
 
 .Cursor.deleting {
@@ -99,8 +99,11 @@ html, body {
 }
 
 @keyframes blink-animation {
+  from, 50% {
+    opacity: 1;
+  }
   to {
-    visibility: hidden;
+    opacity: 0;
   }
 }
 
