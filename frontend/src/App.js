@@ -170,7 +170,7 @@ export function init(clientId, clientKind) {
   // The handler for the first backlog message calls 'afterFirstMessage'.
   function afterFirstMessage() {
     if (clientKind === 'p') {
-      setSize();
+      setSizeDebounced();
     }
     if (state.pingTime === null || state.pingTime > MAX_PING_TIME) {
       setTimeout(() => WSPinger.doPing(wsURL + '/ping', 5, function(ping) {
@@ -182,19 +182,12 @@ export function init(clientId, clientKind) {
   function setSize() {
     let width = Math.min(document.documentElement.clientWidth, window.screen.availWidth);
     let height = Math.min(document.documentElement.clientHeight, window.screen.availHeight);
-    if (height < 450) {
-      if (width > height) {
-        // alert('Please rotate your phone to be in the portrait orientation.');
-      } else {
-        alert("Your screen is small; things might not work well.");
-      }
-    }
     dispatch({type: 'resized', width, height});
   }
 
-  window.addEventListener('resize', function() {
-      setTimeout(setSize, 10);
-  });
+  var setSizeDebounced = _.throttle(setSize, 100, {leading: true, trailing: true});
+
+  window.addEventListener('resize', setSizeDebounced);
 
 
   // Globals
