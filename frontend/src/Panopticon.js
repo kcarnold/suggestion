@@ -49,9 +49,6 @@ export class PanoptStore {
 }
 
 var store = new PanoptStore();
-var requestTimes = {};
-var rtts = [];
-window.rtts = rtts;
 
 function replay(log, state) {
   if (log.length === 0) return;
@@ -69,20 +66,7 @@ function replay(log, state) {
         debugger;
       }
     }
-    // console.log(toLog);
-    // try {
     state.handleEvent(event);
-    // } catch (e) {
-    //   console.error("Exception while handling event", event, e.message);
-    // }
-    if (event.type === 'receivedSuggestions') {
-      let rtt = event.jsTimestamp - requestTimes[event.participant_id][event.msg.request_id];
-      // if (_.isNaN(rtt)) debugger;
-      if (rtt) {
-        rtts.push(rtt);
-      }
-      console.log('rtt', rtt);
-    }
     if (idx === log.length - 1) return;
     setTimeout(tick, Math.min(1000, (log[idx + 1].jsTimestamp - log[idx].jsTimestamp) / store.acceleration));
     idx++;
@@ -90,37 +74,11 @@ function replay(log, state) {
   tick();
 }
 
-
-function trackRtts(participantId) {
-  // Mimic the autorunner
-  let state = store.states.get(participantId);
-  let times = (requestTimes[participantId] = {});
-
-  // Auto-runner to watch the context and request suggestions.
-  M.autorun(() => {
-    let {suggestionRequest} = state;
-    if (!suggestionRequest) {
-      return;
-    }
-
-    // If we get here, we would have made a request.
-    M.untracked(() => {
-      if (suggestionRequest.request_id === 0) {
-        times = requestTimes[participantId] = {};
-      }
-      // if (suggestionRequest.request_id in times) debugger;
-      times[suggestionRequest.request_id] = state.lastEventTimestamp;
-    });
-
-  });
-}
-
 ws.onmessage = function(msg) {
   if (msg.type === 'logs') {
     let participantId = msg.participant_id;
     logs[participantId] = msg.logs;
     let state = store.states.get(participantId);
-    trackRtts(participantId);
     replay(msg.logs, state);
     state.replaying = false;
     // store.startTimes.set(participantId, msg.logs[0].jsTimestamp);
