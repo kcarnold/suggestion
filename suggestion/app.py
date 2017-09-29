@@ -194,7 +194,12 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 result = dict(type='suggestions', timestamp=request['timestamp'], request_id=request_id)
                 flags = request['flags']
                 if flags.get('split'):
-                    result.update(suggestion_generator.get_split_recs(request['sofar'], request['cur_word'], request['flags']))
+                    try:
+                        result.update(suggestion_generator.get_split_recs(request['sofar'], request['cur_word'], request['flags']))
+                    except Exception:
+                        traceback.print_exc()
+                        print("Failing request:", json.dumps(request))
+                        result['predictions'] = suggestion_generator.phrases_to_suggs([])
                 elif flags.get('alternatives'):
                     result.update(suggestion_generator.get_clustered_recs(request['sofar'], request['cur_word'], request['flags']))
                 else:
