@@ -29,7 +29,7 @@ def xtest_collect_words_in_range():
         assert ref == suggestion_generator.collect_words_in_range(start, end, word_idx, sufarr.docs)
 
 
-DEFAULT_CONFIG = dict(domain='yelp_train', temperature=0.)
+DEFAULT_CONFIG = dict(domain='yelp_train-balanced', temperature=0.)
 configs = dict(
     sufarr_rwb=dict(use_bos_suggs=False, rare_word_bonus=1.0, use_sufarr=True),
     sufarr_nobonus=dict(use_bos_suggs=False, rare_word_bonus=0.0, use_sufarr=True),
@@ -56,7 +56,7 @@ def test_curword_with_no_followers():
     suggestion_generator.get_suggestions(
         sofar='some other foods since the ',
         cur_word=[{'letter': let} for let in 'servic'],
-        domain='yelp_train',
+        domain='yelp_train-balanced',
         rare_word_bonus=1.0,
         use_sufarr=False,
         temperature=0.,
@@ -68,6 +68,10 @@ def test_fallback_after_typo():
         **configs['sufarr_and_bos'])
     assert len(result) > 0
 
+
+def test_tokenization():
+    assert suggestion_generator.tokenize_sofar('this place ') == ['<s>', '<D>', 'this', 'place']
+    assert suggestion_generator.tokenize_sofar('this place. ') == ['<s>', '<D>', 'this', 'place', '.', '</S>', '<S>']
 
 def test_odd_tokenization():
     suggestion_generator.tokenize_sofar('. ')
