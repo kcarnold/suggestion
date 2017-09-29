@@ -460,6 +460,10 @@ def tokenize_sofar(sofar):
     toks = tokenize_mid_document(sofar.lower().replace(' .', '.').replace(' ,', ','))[0]
     if toks[-1] != '':
         print("WEIRD: somehow we got a mid-word sofar:", repr(sofar))
+    if toks[:3] != ["<D>", "<P>", "<S>"]:
+        import string
+        assert len(set(sofar).intersection(set(string.ascii_lowercase))) == 0
+        return ['<s>', '<D>']
     assert toks[0] == "<D>"
     assert toks[1] == "<P>"
     assert toks[2] == "<S>"
