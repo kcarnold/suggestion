@@ -55,8 +55,8 @@ html, body {
     overflow-y: scroll;
     background-color: #ccc;
     color: black;
-    flex: 1 1 auto;
-    /* max-height: 140px; */
+    flex: 1 0 auto;
+    height: 130px;
 }
 
 /*** TEXT ***/
