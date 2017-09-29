@@ -409,9 +409,9 @@ export class ExperimentStateStore {
   handleEvent = (event) => {
     let prevState = {
       curText: this.curText,
-      tapLocations: M.toJS(this.tapLocations.slice()),
-      seqNums: M.toJS(this.seqNums),
-      activeSuggestion: M.toJS(this.activeSuggestion)
+      tapLocations: this.tapLocations.slice(),
+      seqNums: this.seqNums.slice(),
+      activeSuggestion: this.activeSuggestion
     };
     let sideEffects = (() => {
       switch (event.type) {
