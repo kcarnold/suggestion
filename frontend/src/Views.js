@@ -237,9 +237,12 @@ export const ReadyPhone = inject('state')(observer(({state}) => <div>
 export const RevisionComputer = inject('state')(observer(({state}) => <div>
   <p><b>{state.curPlace.name}</b></p>
 
+       (After you're done, scroll back up and click here: <NextBtn disabled={state.experimentState.wordCount < (wordCountTarget - 10)} />)
   <OverallInstructions />
+
       <div>Aim for about {wordCountTarget} words (you're at {state.experimentState.wordCount}). Only reviews between {wordCountTarget - 10}  and {wordCountTarget + 10} words are eligible for the competition.
-       When you're done, click here: <NextBtn /></div>
+
+       </div>
       {state.prewrite && <div>
         <p>Here is what you wrote last time:</p>
         <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
