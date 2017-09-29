@@ -138,8 +138,8 @@ html, body {
     text-align: center;
     border-radius: 4px;
     box-shadow: 0 1px 1px;
-    /* position: absolute; */
-    flex: 2 0 0;
+    min-width: 1em;
+    flex: 1 0 auto;
     margin: 0 4px;
 }
 
@@ -157,6 +157,7 @@ html, body {
     background-size: 1.5em;
     background-repeat: no-repeat;
     background-position: center;
+    width: 2em;
 }
 
 .key[data-key=\A] {
