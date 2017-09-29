@@ -258,9 +258,11 @@ const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch})
   </div>;
 }));
 
-const ExperimentHead = inject('state')(observer(class ExperimentHead extends Component {
+const ExperimentHead = inject('state', 'spying')(observer(class ExperimentHead extends Component {
   componentDidMount() {
-    this.ref.scrollTop = 0;
+    if (!this.props.spying) {
+      this.ref.scrollTop = 0;
+    }
   }
 
   render() {
