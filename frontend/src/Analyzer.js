@@ -254,8 +254,17 @@ export function processLogGivenStateStore(StateStoreClass, log) {
   };
 }
 
+function getRev(log) {
+  for (let i=0; i<log.length; i++) {
+    let entry = log[i];
+    if ('rev' in entry) {
+      return entry['rev'];
+    }
+  }
+}
+
 async function getStateStoreClass(log) {
-  let { rev } = log[0];
+  let rev = getRev(log);
   return (await import(`../../old-code/${rev}/frontend/src/MasterStateStore`))
     .MasterStateStore;
 }
