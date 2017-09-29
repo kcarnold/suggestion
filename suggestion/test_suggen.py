@@ -7,7 +7,7 @@ def collect_words_in_range_slow(start, after_end, word_idx):
     return words
 
 
-def test_collect_words_in_range():
+def xtest_collect_words_in_range():
     sufarr = suggestion_generator.sufarr
     start, end = sufarr.search_range(tuple('<D> my'.split()) + ('',))
     assert [] == suggestion_generator.collect_words_in_range(start, start, 1, sufarr.docs)
