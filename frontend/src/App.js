@@ -59,17 +59,6 @@ export function init(clientId, clientKind) {
     ws.connect();
   }
 
-  /**** Event dispatching
-
-  This is how we split the difference between Flux everything-is-a-big-global-action and mobx just-mutate-stuff:
-  All input comes in as events represented as plain JSON objects. The level of interpretation should be pragmatic:
-  low-level enough to be able to get fine-grained detail about what happened, but high-level enough to be able
-  to read off interesting things without much work. e.g., for a key tap, include the tap x/y position, but also
-  what key we thought it was.
-
-  All server communication comes in this way too.
-   */
-
   var eventHandlers = [];
 
   function registerHandler(fn) {
