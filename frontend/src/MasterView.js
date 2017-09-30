@@ -3,9 +3,11 @@ import {observer, inject} from 'mobx-react';
 import * as Views from './Views';
 
 
-export const MasterView = inject('state')(observer(class MasterView extends Component {
+export const MasterView = inject('state', 'spying')(observer(class MasterView extends Component {
   componentDidUpdate() {
-    window.scrollTo(0, 0);
+    if (!this.props.spying) {
+      window.scrollTo(0, 0);
+    }
   }
 
   render() {
