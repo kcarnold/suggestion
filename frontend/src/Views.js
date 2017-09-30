@@ -11,7 +11,7 @@ import Consent from './Consent';
 
 export {IntroSurvey, PostTaskSurvey, PostExpSurvey} from './Surveys';
 
-const SITE_DOWN = true;
+const SITE_DOWN = false;
 
 const hostname = window.location.host;
 
