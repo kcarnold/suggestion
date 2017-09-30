@@ -11,6 +11,8 @@ import Consent from './Consent';
 
 export {IntroSurvey, PostTaskSurvey, PostExpSurvey} from './Surveys';
 
+const SITE_DOWN = true;
+
 const hostname = window.location.host;
 
 const wordCountTarget = 75;
@@ -97,6 +99,7 @@ const TutorialTodo = ({done, children}) => <div style={{color: done ? 'green' : 
 
 
 export const Welcome = inject('state')(observer(({state}) => <div>
+    {SITE_DOWN && <h1 style={{paddingBottom: "2500px"}}>Site down for maintenance, please try again in a few hours.</h1>}
     <h1>Welcome</h1>
     <p>You should be seeing this page on a touchscreen device. If not, get one and go to this page's URL (<tt>{window.location.href}</tt>).</p>
     <Consent timeEstimate={state.timeEstimate} isMTurk={state.isMTurk} persuade={state.isPersuade} />
