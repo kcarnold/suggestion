@@ -110,6 +110,11 @@ def classify_annotated_event(evt):
         else:
             sugg_mode = 'part'
         return 'tapSugg_' + sugg_mode
+    if typ == 'updateDeleting':
+        return
+    if typ == 'undo':
+        return 'undo'
+
     assert False, typ
 
 

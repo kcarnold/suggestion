@@ -1,9 +1,7 @@
-import os
 import pandas as pd
 import numpy as np
 import re
 import json
-import subprocess
 from collections import Counter
 import nltk
 import argparse
@@ -11,6 +9,7 @@ import argparse
 from suggestion.paths import paths
 root_path = paths.parent
 
+from itertools import zip_longest
 from suggestion.util import mem, flatten_dict
 from suggestion import tokenization
 import string
@@ -28,9 +27,6 @@ from suggestion.analyzers import WordFreqAnalyzer, analyze_readability_measures
 word_freq_analyzer = WordFreqAnalyzer.get()
 
 analyze_readability_measures_cached = mem.cache(analyze_readability_measures)
-
-
-ALL_SURVEY_NAMES = ['intro', 'intro2', 'intro3', 'intro4', 'postTask', 'postTask3', 'postTaskSynonyms', 'postExp', 'postExp3', 'postExp4']
 
 
 STUDY_COLUMNS = '''
@@ -132,34 +128,17 @@ sugg_contextual_llk_mean
 ###
 ### Metadata
 ###
-def get_participants_by_study(batch=None):
+def get_participants_by_study(batches=None):
     import yaml
     participants_table = []
     for study_name, participants in yaml.load(open(root_path / 'participants.yaml')).items():
-        if batch and study_name not in batch:
+        if batches and study_name not in batches:
             continue
         for participant in participants.split():
             participants_table.append((participant, study_name))
     return pd.DataFrame(participants_table, columns=['participant_id', 'study']).drop_duplicates(subset=['participant_id'])
 
 
-
-###
-### Survey data
-###
-def get_survey_data_raw():
-    # TODO: use the prewrites too?
-    # .iloc[1:] is to skip the ImportID row.
-    res = {}
-    for name in ALL_SURVEY_NAMES:
-        filename = os.path.join(root_path, 'surveys', name+'_responses.csv')
-        df = pd.read_csv(
-            filename,
-            header=1).iloc[1:]
-        # df['StartDate'] = pd.to_datetime(df['StartDate'])
-        # df['EndDate'] = pd.to_datetime(df['EndDate'])
-        res[name] = df
-    return res
 
 #%%
 traits_key = pd.read_csv(paths.parent / 'traits.csv').set_index('item').key.reset_index().dropna().set_index('item').key.to_dict()
@@ -173,127 +152,46 @@ trait_names = {
         "LoC": "LocusOfControl",
         "I": "Imagination",
         "A": "Agreeableness"}
-#from collections import Counter
-#sorted(Counter(v for trait in traits_key.key for v in trait.split(',')).most_common())
+
 #%%
-cogstyle_answers = {
- 'A bat and a ball cost $1.10 in total. The bat costs a dollar more than the ball. How much does th': ['5', '05', '.05', '0.05'],
- 'A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. H': ['20'],
- 'If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 day': ['4'],
- 'If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 1': ['5'],
- 'In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 da': ['47'],
- 'Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are': ['29'],
- 'Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he inv': ['has lost money']}
-#%%
-def decode_traits(data):
-    data = data.copy()
-    for item, key in traits_key.items():
-        item = item.rstrip('. ')
-        col_name = f'pers-{item}'
-        if col_name not in data.columns:
+trial_level_renames = {'other': 'other_comments_trial', 'techDiff': 'tech_difficulties_trial'}
+trial_level_renames.update({
+        x: 'tlx_'+x for x in
+        ["mental", "physical", "temporal", "performance", "effort", "frustration"]})
+
+def decode_surveys(log_analysis, active_traits):
+    controlled_inputs = log_analysis['allControlledInputs']
+    personality = {}
+    by_trial = [{} for condition in log_analysis['conditions']]
+    other = {}
+    for k, v in controlled_inputs.items():
+        if k.startswith("restaurant"):
             continue
-        datum = (data.pop(col_name) - 3) / 4
-        for trait in key.split(','):
-            val = {'+': 1, '-': -1}[trait[-1]]
-            name = trait_names[trait[:-1]]
-            num_questions = f'{name}-num-items'
-            present = 1 * (~datum.isnull())
-            if name in data:
-                data[name] += datum * val
-                data[num_questions] += present
-            else:
-                data[name] = datum.copy() * val
-                data[num_questions] = present
-
-    if any(it in data.columns for it in cogstyle_answers.keys()):
-        data['CognitiveReflection'] = sum([data.pop(it).isin(correct) for it, correct in cogstyle_answers.items()])
-    return data
+        assert '-' in k
+        part, item = k.rsplit('-', 1)
+        if item in traits_key or item[:-1] in traits_key:
+            if item not in traits_key:
+                assert item[-1] == '.'
+                item = item[:-1]
+            for trait in traits_key[item].split(','):
+                val = {'+': 1, '-': -1}[trait[-1]]
+                name = trait[:-1]
+                if name in active_traits:
+                    personality.setdefault(name, []).append((item, val * v))
+        elif part.startswith('postTask'):
+            trial_num = int(part.rsplit('-', 1)[1])
+            item = trial_level_renames.get(item, item)
+            by_trial[trial_num][item] = v
+        else:
+            assert k.startswith('postExp')
+            k = k.split('-', 1)[1]
+            other[k] = v
+    return personality, other, by_trial
 
 #%%
-
-def process_survey_data(survey, survey_data_raw):
-    is_repeated = survey in ['postTask', 'postFreewrite']
-    data = survey_data_raw
-    data = data.rename(columns={'clientId': 'participant_id'})
-    if is_repeated:
-        data['block'] = data.groupby(['participant_id']).cumcount()
-    data = data.dropna(subset=['participant_id'])
-
-    # Drop junk columns.
-    cols_to_drop = [col for col in data.columns if skip_col_re.match(col)]
-#    print(cols_to_drop)
-    data = data.drop(cols_to_drop, axis=1)
-
-    # Bulk renames
-    cols_to_rename = {}
-    for col in data.columns:
-        new_name = col
-        for x, y in prefix_subs.items():
-            if col.startswith(x):
-                new_name = col.replace(x, y, 1)
-                break
-        new_name = new_name.rstrip('. ')
-        cols_to_rename[col] = new_name
-    data = data.rename(columns=cols_to_rename)
-
-    data = data.applymap(lambda x: decode_scales.get(x, x))
-
-    # Specific renames
-    if survey in ['intro', 'postExp']:
-        renames = {
-            "How old are you?": ("age", 'numeric'),
-            "What is your gender?": ("gender", None),
-            "How proficient would you say you are in English?": ("english_proficiency", None),
-            "What is the highest level of school you have completed or the highest degree you have received?": ("education", None),
-            "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months?": ("reviewing_experience", None),
-            "About how many online reviews (of restaurants or otherwise) have you written in the past 3 months": ("reviewing_experience", None),
-            "While you were writing, did you speak or whisper what you were writing?": ("verbalized_during", None),
-            "Did you speak or whisper what you were writing while you were writing it?": ("verbalized_during", None)
-        }
-    if survey == 'postTask':
-        renames = {
-            "Now that you've had a chance to write about it, how many stars would you give your experience at...-&nbsp;": ("stars_after", 'numeric'),
-            "Compared with the experience you were writing about, the phrases that the keyboard gave were usua": ("sentiment_manipcheck_posttask", None),
-        }
-    for orig, new in renames.items():
-        if orig not in data.columns:
-            continue
-        col_data = data.pop(orig)
-        new_name = new[0]
-        if new[1] == 'numeric':
-            col_data = pd.to_numeric(col_data)
-        data[new_name] = col_data
-
-    if survey in ['intro', 'postExp']:
-        data = decode_traits(data)
-    return data
-
-
-
-def get_survey_data_processed():
-    survey_data = {}
-    raw_survey_data = get_survey_data_raw()
-    def concat_rows(*a):
-        return pd.concat(*a, axis=0, ignore_index=True)
-    intro_data = concat_rows([process_survey_data('intro', raw_survey_data[name]) for name in ['intro', 'intro2', 'intro3', 'intro4']])
-    postTask_data = concat_rows([process_survey_data('postTask', raw_survey_data[name]) for name in ['postTask', 'postTask3', 'postTaskSynonyms']])
-    postExp_data = concat_rows([process_survey_data('postExp', raw_survey_data[name]) for name in ['postExp', 'postExp3', 'postExp4']])
-
-    survey_data['trial'] = postTask_data
-    traits_that_overlap = [trait for trait in trait_names.values() if trait in intro_data and trait in postExp_data]
-#    traits_that_overlap = ['Neuroticism', 'Imagination', 'Creativity', 'NeedForCognition', 'Extraversion', 'OpennessToExperience']
-    traits_that_overlap.extend([f'{trait}-num-items' for trait in traits_that_overlap])
-    for col in ['reviewing_experience']:
-        if col in intro_data and col in postExp_data:
-            traits_that_overlap.append(col)
-    survey_data['participant'] = clean_merge(
-            intro_data, postExp_data, on=['participant_id'], how='outer', combine_cols=traits_that_overlap)
-    return survey_data
+def aggregate_personality(personality):
+    return {trait_names[trait]: np.mean([val for item, val in items]) for trait, items in personality.items()}
 #%%
-###
-### Log analysis
-###
-
 
 def summarize_trials(log_analysis):
     data = []
@@ -317,6 +215,7 @@ def summarize_trials(log_analysis):
             # FIXME: maybe in the future we'll want to look at practice and prewrite data too?
             continue
         datum['block'] = num
+        datum.update(flatten_dict(page_data))
 
         # Count actions.
         actions = page_data.pop('actions')
@@ -330,57 +229,60 @@ def summarize_trials(log_analysis):
         # and some contexts never have a corresponding displayed suggestion
         # if the latency is too high.
         displayedSuggs = page_data.pop('displayedSuggs')
-        latencies = [rec['latency'] for rec in displayedSuggs if rec]
-        datum['latency_75_trial'] = np.percentile(latencies, 75)
-        datum['num_displayed_suggs'] = len(latencies)
-        datum['num_missing_suggs'] = len([rec for rec in displayedSuggs if not rec])
-        datum['frac_missing_suggs'] = datum['num_missing_suggs'] / len(displayedSuggs)
-
-        # Compute efficiencies.
         page_data.pop('chunks')
         words = page_data.pop('words')
 
-        num_inserted_full = num_could_have_inserted_full = num_inserted_sugg = num_could_have_inserted_sugg = 0
-        extra_chars = ',.!? \n'
-        for word in words:
-            could_have_matched_at = None
-            did_insert = False
-            word_text = ''.join(chunk['chars'] for chunk in word['chunks'])
-            word_trim = word_text.strip(extra_chars)
-            for chunk_idx, chunk in enumerate(word['chunks']):
-                predictions = chunk['action']['visibleSuggestions']['predictions']
-                suggested_words = [''.join(pred['words'][:1]) for pred in predictions]
-                if word_trim in suggested_words:
-                    if could_have_matched_at is None:
-                        could_have_matched_at = chunk_idx
-                if chunk['actionClass'].startswith('tapSugg'):
-                    stripped_inserted = chunk['action']['sugInserted'].strip(extra_chars)
-                    if stripped_inserted == chunk['chars'].strip(extra_chars) and len(''.join(chunk['chars'] for chunk in word['chunks'][chunk_idx + 1:]).strip(extra_chars)) == 0:
-                    # if word_trim in suggested_words and :
-                        did_insert = True
-                        # Things are a bit weird if the sugg inserted a punctuation
-                        assert word_trim in suggested_words or len(stripped_inserted) == 0
-                        break
-                    else:
-                        print("Inserted but backspaced...", participant_id, chunk['action']['sugInserted'], chunk['chars'].strip(extra_chars))
-            if did_insert:
-                num_inserted_sugg += 1
-                if len(word['chunks']) == 1:
-                    num_inserted_full += 1
-            if could_have_matched_at is not None:
-                if could_have_matched_at == 0:
-                    num_could_have_inserted_full += 1
-                num_could_have_inserted_sugg += 1
-        page_data['num_inserted_full'] = num_inserted_full
-        page_data['num_could_have_inserted_full'] = num_could_have_inserted_full
-        page_data['num_inserted_sugg'] = num_inserted_sugg
-        page_data['num_could_have_inserted_sugg'] = num_could_have_inserted_sugg
-
-        page_data['efficiency_full'] = num_inserted_full / num_could_have_inserted_full
-        page_data['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg
+        if len(displayedSuggs):
+            latencies = [rec['latency'] for rec in displayedSuggs if rec]
+            if latencies:
+                datum['latency_75_trial'] = np.percentile(latencies, 75)
+            datum['num_displayed_suggs'] = len(latencies)
+            datum['num_missing_suggs'] = len([rec for rec in displayedSuggs if not rec])
+            datum['frac_missing_suggs'] = datum['num_missing_suggs'] / len(displayedSuggs)
 
 
-        datum.update(flatten_dict(page_data))
+            # Compute efficiencies.
+            num_inserted_full = num_could_have_inserted_full = num_inserted_sugg = num_could_have_inserted_sugg = 0
+            extra_chars = ',.!? \n'
+            for word in words:
+                could_have_matched_at = None
+                did_insert = False
+                word_text = ''.join(chunk['chars'] for chunk in word['chunks'])
+                word_trim = word_text.strip(extra_chars)
+                for chunk_idx, chunk in enumerate(word['chunks']):
+                    predictions = chunk['action']['visibleSuggestions']['predictions']
+                    suggested_words = [''.join(pred['words'][:1]) for pred in predictions]
+                    if word_trim in suggested_words:
+                        if could_have_matched_at is None:
+                            could_have_matched_at = chunk_idx
+                    if chunk['actionClass'].startswith('tapSugg'):
+                        stripped_inserted = chunk['action']['sugInserted'].strip(extra_chars)
+                        if stripped_inserted == chunk['chars'].strip(extra_chars) and len(''.join(chunk['chars'] for chunk in word['chunks'][chunk_idx + 1:]).strip(extra_chars)) == 0:
+                        # if word_trim in suggested_words and :
+                            did_insert = True
+                            # Things are a bit weird if the sugg inserted a punctuation
+                            assert word_trim in suggested_words or len(stripped_inserted) == 0
+                            break
+                        else:
+                            print("Inserted but backspaced...", participant_id, chunk['action']['sugInserted'], chunk['chars'].strip(extra_chars))
+                if did_insert:
+                    num_inserted_sugg += 1
+                    if len(word['chunks']) == 1:
+                        num_inserted_full += 1
+                if could_have_matched_at is not None:
+                    if could_have_matched_at == 0:
+                        num_could_have_inserted_full += 1
+                    num_could_have_inserted_sugg += 1
+            datum['num_inserted_full'] = num_inserted_full
+            datum['num_could_have_inserted_full'] = num_could_have_inserted_full
+            datum['num_inserted_sugg'] = num_inserted_sugg
+            datum['num_could_have_inserted_sugg'] = num_could_have_inserted_sugg
+
+            datum['efficiency_full'] = num_inserted_full / num_could_have_inserted_full
+            datum['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg
+        else:
+            assert page_data['condition'] == 'zerosugg'
+
         renames = {
             'finalText': 'final_text',
             'place_knowWhatToWrite': 'know_what_to_write',
@@ -389,7 +291,7 @@ def summarize_trials(log_analysis):
             if old_name in datum:
                 datum[new_name] = datum.pop(old_name)
         data.append(datum)
-    return pd.DataFrame(data)
+    return data
 
 
 #%% Human tasks
@@ -509,6 +411,9 @@ def get_suggestion_content_stats(pages):
         if page_name.startswith('pract'):
             #condition in ['sotu', 'tweeterinchief', 'trump', 'nosugg', 'airbnb']:
             continue
+        if condition == 'zerosugg':
+            by_trial.append(dict())
+            continue
         assert len(displayed_suggs) > 0
 
         block_data = []
@@ -533,8 +438,6 @@ def get_suggestion_content_stats(pages):
             sugg_sentiment_group_std_mean=block_df.groupby('request_id').sugg_sentiment.std().mean(),
             sugg_contextual_llk_mean=block_df.sugg_contextual_llk.mean()))
     return by_trial
-#get_suggestion_content_stats('55a1db', ['sotu', 'sentpos', 'sentneg', 'sentpos', 'sentneg'])
-#get_suggestion_content_stats('81519e', ['phrase', 'phrase', 'phrase', 'rarePhrase', 'rarePhrase', 'rarePhrase'])
 #%%
 
 def drop_cols_by_prefix(df, prefixes):
@@ -543,63 +446,59 @@ def drop_cols_by_prefix(df, prefixes):
 #%%
 def summarize_times(log_analysis):
    times = log_analysis['screenTimes']
-   return dict(participant_id=log_analysis['participant_id'],
-               total_time_mins=(times[-1]['timestamp'] - times[1]['timestamp']) / 1000 / 60)
+   return dict(total_time_mins=(times[-1]['timestamp'] - times[1]['timestamp']) / 1000 / 60)
 
 #%%
-def get_all_data_pre_annotation(batch=None):
-    participants_by_study = get_participants_by_study(batch=batch)
-    #[participants_by_study.study == 'sent4_0']
+def get_all_data_pre_annotation(batches=None):
+    participants_by_study = get_participants_by_study(batches=batches)
     participants = list(participants_by_study.participant_id)
 
-    survey_data = get_survey_data_processed()
+    participant_level_data = []
+    trial_level_data = []
+    for participant in participants:
+        log_analysis_data_raw = get_log_analysis(participant)
+        personality_raw, other_participant_level, surveys_by_trial = decode_surveys(log_analysis_data_raw, 'N,NfC,OtE,E'.split(','))
+        participant_level_data.append(dict(
+                study=participants_by_study.set_index('participant_id').study.loc[participant],
+                participant_id=participant,
+                **other_participant_level,
+                **aggregate_personality(personality_raw),
+                **summarize_times(log_analysis_data_raw)))
 
-    participant_level_data = clean_merge(
-            survey_data['participant'].drop_duplicates('participant_id'), participants_by_study,
-            on='participant_id', how='outer').set_index('participant_id')
+        log_data_by_trial = summarize_trials(log_analysis_data_raw)
+        suggestion_content_by_trial = get_suggestion_content_stats(get_log_pages(log_analysis_data_raw))
 
-    # Drop out-of-study survey responses.
-    participant_level_data = participant_level_data.dropna(subset=['study'], axis=0)
-    trial_survey_data = survey_data['trial']
-    trial_survey_data = trial_survey_data[
-        trial_survey_data.participant_id.isin(participants_by_study.participant_id)]
 
-    # Drop survey responses with bad number of blocks.
-    NUM_BLOCKS_EXPECTED = 4
-    num_surveys_submitted = trial_survey_data.groupby('participant_id').size()
-    bad_num_blocks = num_surveys_submitted[num_surveys_submitted > NUM_BLOCKS_EXPECTED]
-    trial_survey_data = trial_survey_data[~trial_survey_data.participant_id.isin(bad_num_blocks.index)]
+        for trial_id, (survey_data, log_data, sug_content_data) in enumerate(zip_longest(surveys_by_trial, log_data_by_trial, suggestion_content_by_trial)):
+            assert participant == log_data.pop('participant_id')
+            assert trial_id == log_data.pop('block')
+#            assert participant == sug_content_data.pop('participant_id')
+#            assert trial_id == sug_content_data.pop('block')
+#            assert log_data['condition'] == sug_content_data.pop('condition')
+
+
+            trial_level_data.append(dict(
+                    participant_id=participant,
+                    block=trial_id,
+                    **survey_data,
+                    **log_data))
+
+    # Pandify.
+    participant_level_data = pd.DataFrame(participant_level_data).set_index('participant_id')
+    trial_level_data = pd.DataFrame(trial_level_data)
+
 
     # Bin traits by percentile
     for trait in trait_names.values():
-        participant_level_data[trait+"_hi"] = participant_level_data.groupby('study')[trait].transform(lambda x: x > np.nanpercentile(x, 50))
-
-    log_analysis_data_raw = {participant: get_log_analysis(participant)
-        for participant in participants}
-
-    trial_level_data = clean_merge(
-            trial_survey_data,
-            pd.concat({participant: summarize_trials(data) for participant, data in log_analysis_data_raw.items()}).reset_index(drop=True),
-            left_on=['participant_id', 'block'], right_on=['participant_id', 'block'], how='outer')
+        if trait in participant_level_data.columns:
+            participant_level_data[trait+"_hi"] = participant_level_data.groupby('study')[trait].transform(lambda x: x > np.nanpercentile(x, 50))
 
     trial_level_data['final_length_chars'] = trial_level_data.final_text.str.len()
-
-    participant_level_data = clean_merge(
-            participant_level_data,
-            pd.DataFrame([summarize_times(log_analysis_data_raw[participant]) for participant in participants]).set_index('participant_id'),
-            how='outer', left_index=True, right_index=True)
 
     # Fill missing data in tap counts with zeros
     for col in trial_level_data.columns:
         if col.startswith('num_tap'):
             trial_level_data[col] = trial_level_data[col].fillna(0)
-
-    # Get suggestion content stats by trial.
-    content_stats = pd.concat({
-            participant_id: pd.DataFrame(get_suggestion_content_stats(get_log_pages(log_analysis)))
-            for participant_id, log_analysis in log_analysis_data_raw.items()}, names=['participant_id', 'block']).reset_index()
-    trial_level_data = clean_merge(
-            trial_level_data, content_stats, on=['participant_id', 'block', 'condition'], how='outer')#, must_match=['condition'])
 
     trial_level_data['num_taps_on_recs'] = trial_level_data.num_tapSugg_bos + trial_level_data.num_tapSugg_full + trial_level_data.num_tapSugg_part
     trial_level_data['num_nonbackspace_actions'] = trial_level_data.num_taps_on_recs + trial_level_data.num_tapKey
@@ -619,44 +518,14 @@ def get_all_data_pre_annotation(batch=None):
         participant_level_data[f'{col}_max'] = trial_level_data.groupby('participant_id')[col].max()
         participant_level_data[f'{col}_min'] = trial_level_data.groupby('participant_id')[col].min()
 
-    # participant_level_data['too_much_latency'] = (participant_level_data['latency_75'] > 500)
-    # print(f"Excluding {np.sum(participant_level_data['too_much_latency'])} for too much latency")
-    participant_level_data['too_much_rec_use'] = (
-        participant_level_data.rec_frac_trial_max > .95)
-    print(f"Excluding {np.sum(participant_level_data['too_much_rec_use'])} for too much rec use")
-
-    lower_quartile_efficiency_all = np.percentile(trial_level_data.efficiency_all, 25)
-    participant_level_data['too_little_efficiency'] = (
-        participant_level_data.efficiency_all_min < lower_quartile_efficiency_all)
-    print(f"Excluding {np.sum(participant_level_data['too_little_efficiency'])} for a trial with less than {lower_quartile_efficiency_all:.2f} efficiency")
-
-    participant_level_data['is_excluded'] = participant_level_data['too_much_rec_use'] | participant_level_data['too_little_efficiency']
-    print(f"Excluding {np.sum(participant_level_data['is_excluded'])} total")
-
     participant_level_data = participant_level_data.reset_index()
 
-    if 'attentionCheckStats_passed' in trial_level_data:
-        trial_level_data['attention_check_frac_passed_trial'] = trial_level_data.pop('attentionCheckStats_passed') / trial_level_data.pop('attentionCheckStats_total')
 
     # Filter for valid data.
     trial_level_data = trial_level_data[~trial_level_data.final_text.isnull()]
     participant_level_data = participant_level_data[participant_level_data.participant_id.isin(trial_level_data[~trial_level_data.final_text.isnull()].participant_id.unique())]
 
-
-    # Standardize some measures
-    if 'know_what_to_write' in trial_level_data:
-        trial_level_data['know_what_to_write'] = pd.to_numeric(trial_level_data.know_what_to_write, errors='coerce')
-        trial_level_data['know_what_to_write_z'] = trial_level_data.groupby('participant_id').know_what_to_write.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
-
-    trial_level_data['stars_before_z'] = trial_level_data.groupby('participant_id').stars_before.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
-    trial_level_data['stars_after_z'] = trial_level_data.groupby('participant_id').stars_after.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
-
-    # The experiment asked about positive experiences first. Supposedly.
-    # trial_level_data['positive_experience'] = trial_level_data['place_idx'] < 2
-    # But they actually ended up giving many positive experiences.
-    trial_level_data['positive_experience'] = trial_level_data['stars_before'] >= 4
-
-    trial_level_data['stars_after-stars_before'] = trial_level_data['stars_after'] - trial_level_data['stars_before']
+    trial_level_data['argue_pro'] = trial_level_data['place_idx'] < 2
 
     # For a summary of how many trials there are each:
     # trial_level_data.groupby(['config', 'participant_id']).size().groupby(level=0).value_counts()
@@ -666,8 +535,8 @@ def get_all_data_pre_annotation(batch=None):
             (participant_level_data, trial_level_data))
 
 
-def get_all_data_with_annotations(batch=None):
-    participant_level_data, trial_level_data = get_all_data_pre_annotation(batch=batch)
+def get_all_data_with_annotations(batches=None):
+    participant_level_data, trial_level_data = get_all_data_pre_annotation(batches=batches)
 
     # Manual text corrections
     trial_level_data, corrections_todo = get_corrected_text(trial_level_data)
@@ -726,8 +595,8 @@ def get_all_data_with_annotations(batch=None):
 
     # trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
-    trial_level_data['stars_before_rank'] = trial_level_data.groupby('participant_id').stars_before.rank(method='average')
-    trial_level_data['stars_after_rank'] = trial_level_data.groupby('participant_id').stars_after.rank(method='average')
+#    trial_level_data['stars_before_rank'] = trial_level_data.groupby('participant_id').stars_before.rank(method='average')
+#    trial_level_data['stars_after_rank'] = trial_level_data.groupby('participant_id').stars_after.rank(method='average')
 
     omit_cols_prefixes = ['How much did you say about each topic', 'Roughly how many lines of each', 'brainstorm']
 
@@ -752,12 +621,12 @@ def get_all_data_with_annotations(batch=None):
     print(f"Missing {len(missing_cols)} cols", missing_cols)
     print(f"{len(extra_cols)} extra cols", extra_cols)
 
-    annotations_plus_exclusions = clean_merge(
-            participant_level_data.set_index('participant_id').loc[:, ['is_excluded']],
-            annotation_todo,
-            left_index=True, right_on='participant_id')
-    non_excluded_annotations = annotations_plus_exclusions.query('not is_excluded')
-    non_excluded_annotations = non_excluded_annotations.drop('is_excluded', axis=1)
+#    annotations_plus_exclusions = clean_merge(
+#            participant_level_data.set_index('participant_id').loc[:, ['is_excluded']],
+#            annotation_todo,
+#            left_index=True, right_on='participant_id')
+#    non_excluded_annotations = annotations_plus_exclusions.query('not is_excluded')
+#    non_excluded_annotations = non_excluded_annotations.drop('is_excluded', axis=1)
 
     return dict(
             all_data=full_data,
@@ -853,7 +722,7 @@ def get_annotation_json(annotations_todo):
     return groups
 #%%
 def main(args):
-    x = get_all_data_with_annotations(batch=args.batch)
+    x = get_all_data_with_annotations(batches=args.batch)
     basename = '+'.join(args.batch) if len(args.batch) else 'ALL'
     if args.write_output:
         x['all_data'].to_csv(f'{basename}_all_data.csv', index=False)
@@ -891,27 +760,3 @@ if __name__ == '__main__':
     globals().update(main(args))
 
 #%%
-
-def summarize_freetexts(all_data):
-    stacked = all_data.stack().to_frame('value')
-    text_lens = stacked.groupby(level=-1).value.apply(lambda x: x.str.len().max())
-    answers_to_summarize = text_lens[text_lens > 20].index.tolist()
-    return all_data.loc[:, ['participant_id', 'block'] + answers_to_summarize]
-#for (participant_id, block), data in summarize_freetexts(all_data[all_data.config == 'sent4']).groupby(['participant_id','block']):
-#    print(participant_id, block)
-#    print(data.to_dict(orient='records'))
-#by_question = stacked.reset_index(level=-1).rename(columns={'level_1': 'question'})
-#relevant
-#%%
-#    for (participant_id, block, value), other_data in
-#    for pid, data_to_summarize in pd.merge(all_survey_data, answers_to_summarize.to_frame('mrl').reset_index(), left_on=['survey', 'name'], right_on=['survey', 'name']).groupby('participant_id'):
-#        print(pid)
-#        for (survey, idx), this_survey_data in data_to_summarize.groupby(['survey', 'idx']):
-#            if survey == 'intro':
-#                continue
-#            print(survey, idx)
-#            for row in this_survey_data.itertuples():
-#                print(row.condition, row.name, '===', row.value)
-#            print()
-#        print()
-
