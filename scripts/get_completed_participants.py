@@ -11,6 +11,7 @@ COMPLETE_NUM_ACTIONS={
     }
 
 TECHNICAL_DIFFICULTIES = ''.split()
+TECHNICAL_DIFFICULTIES.append('qgwjch') # A test participant
 INCOMPLETE_BUT_OK = ''.split()
 
 def get_log_data(log_file, earliest):
