@@ -1,0 +1,41 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+#app {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.reviews {
+    display: flex;
+    flex-flow: row wrap;
+    margin: 5px 0;
+}
+
+.restaurant {
+    width: 48%;
+    border: 1px solid black;
+    margin: 3px;
+    padding: 3px;
+}
+
+.votes {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.votes td {
+    border: 1px solid black;
+}
+
+input[type=number] {
+    width: 50px;
+}

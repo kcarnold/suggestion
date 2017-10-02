@@ -11,3 +11,4 @@ def build_hit(basename):
 
 build_hit('anno')
 build_hit('compare-anno')
+build_hit('persuasive')
