@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-const INCOMPLETE_BUT_OK = 'hfj33r'.split(/s/);
+const INCOMPLETE_BUT_OK = "hfj33r".split(/s/);
 
 export function processLogGivenStateStore(StateStoreClass, log) {
   let { participant_id } = log[0];
@@ -83,7 +83,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     if (!expState) {
       return;
     }
-    let {curText} = expState;
+    let { curText } = expState;
 
     let pageData = getPageData();
 
@@ -96,7 +96,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 
     let annotatedAction = {};
     if (!lastText) {
-      lastText = '';
+      lastText = "";
     }
 
     if (
@@ -108,16 +108,16 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         "next",
       ].indexOf(entry.type) === -1
     ) {
-      let {curWord} = suggestionContext;
+      let { curWord } = suggestionContext;
       let annoType = entry.type;
-      if (entry.type === 'tapSuggestion') {
+      if (entry.type === "tapSuggestion") {
         let trimtext = lastText.trim();
         if (trimtext.length === 0 || trimtext.match(/[.?!]$/)) {
-          annoType = 'tapSugg_bos';
+          annoType = "tapSugg_bos";
         } else if (curWord.length === 0) {
-          annoType = 'tapSugg_full';
+          annoType = "tapSugg_full";
         } else {
-          annoType = 'tapSugg_part';
+          annoType = "tapSugg_part";
         }
       }
       annotatedAction = {
@@ -127,26 +127,36 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         timestamp: entry.jsTimestamp,
         visibleSuggestions: visibleSuggestions,
       };
-      if (entry.type === 'tapSuggestion' && lastText !== curText) {
-        annotatedAction.sugInserted = visibleSuggestions[entry.which][entry.slot].words[0].slice(curWord.length);
+      if (entry.type === "tapSuggestion" && lastText !== curText) {
+        annotatedAction.sugInserted = visibleSuggestions[entry.which][
+          entry.slot
+        ].words[0].slice(curWord.length);
       }
       if (state.curScreen.screen === "ExperimentScreen")
         pageData.actions.push(annotatedAction);
     }
 
-    let {annotatedFinalText} = pageData;
+    let { annotatedFinalText } = pageData;
     if (lastText !== curText) {
       // Update the annotation.
       let commonPrefixLen = Math.max(0, lastText.length - 10);
-      while (lastText.slice(0, commonPrefixLen) !== curText.slice(0, commonPrefixLen)) {
+      while (
+        lastText.slice(0, commonPrefixLen) !== curText.slice(0, commonPrefixLen)
+      ) {
         commonPrefixLen--;
       }
-      while (lastText.slice(0, commonPrefixLen + 1) === curText.slice(0, commonPrefixLen + 1)) {
+      while (
+        lastText.slice(0, commonPrefixLen + 1) ===
+        curText.slice(0, commonPrefixLen + 1)
+      ) {
         commonPrefixLen++;
       }
-      annotatedFinalText.splice(commonPrefixLen, lastText.length - commonPrefixLen);
+      annotatedFinalText.splice(
+        commonPrefixLen,
+        lastText.length - commonPrefixLen,
+      );
       Array.prototype.forEach.call(curText.slice(commonPrefixLen), char => {
-        annotatedFinalText.push({char, action: annotatedAction});
+        annotatedFinalText.push({ char, action: annotatedAction });
       });
     }
 
@@ -195,30 +205,35 @@ export function processLogGivenStateStore(StateStoreClass, log) {
     pageData.secsOnPage =
       (pageData.lastEventTimestamp - pageData.firstEventTimestamp) / 1000;
 
-    let {annotatedFinalText} = pageData;
-    delete pageData['annotatedFinalText'];
+    let { annotatedFinalText } = pageData;
+    delete pageData["annotatedFinalText"];
     let lastAction = null;
     let chunks = [];
-    annotatedFinalText.forEach(({char, action}) => {
+    annotatedFinalText.forEach(({ char, action }) => {
       if (action !== lastAction) {
-        chunks.push({chars: char, action, timestamp: action.jsTimestamp, actionClass: action.annoType});
+        chunks.push({
+          chars: char,
+          action,
+          timestamp: action.jsTimestamp,
+          actionClass: action.annoType,
+        });
         lastAction = action;
       } else {
         chunks[chunks.length - 1].chars += char;
       }
     });
-    console.assert(chunks.map(x => x.chars).join('') === pageData.finalText);
+    console.assert(chunks.map(x => x.chars).join("") === pageData.finalText);
     pageData.chunks = chunks;
 
     // Group chunks into words.
-    let words = [{chunks: []}];
+    let words = [{ chunks: [] }];
     chunks.forEach(chunk => {
       words[words.length - 1].chunks.push(chunk);
 
-      let {chars} = chunk;
+      let { chars } = chunk;
       let endsWord = chars.match(/[-\s.!?,]/);
       if (endsWord) {
-        words.push({chunks: []});
+        words.push({ chunks: [] });
       }
     });
     words = words.filter(x => x.chunks.length > 0);
@@ -232,7 +247,7 @@ export function processLogGivenStateStore(StateStoreClass, log) {
         state.curScreen.screen === "IntroSurvey",
       "Incomplete log file %s (on screen %s)",
       participant_id,
-      state.curScreen.screen || state.curScreen.controllerScreen
+      state.curScreen.screen || state.curScreen.controllerScreen,
     );
   }
 
@@ -256,10 +271,10 @@ export function processLogGivenStateStore(StateStoreClass, log) {
 }
 
 function getRev(log) {
-  for (let i=0; i<log.length; i++) {
+  for (let i = 0; i < log.length; i++) {
     let entry = log[i];
-    if ('rev' in entry) {
-      return entry['rev'];
+    if ("rev" in entry) {
+      return entry["rev"];
     }
   }
 }
