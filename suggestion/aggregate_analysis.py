@@ -9,7 +9,7 @@ import argparse
 from suggestion.paths import paths
 root_path = paths.parent
 
-from itertools import zip_longest
+import itertools
 from suggestion.util import mem, flatten_dict
 from suggestion import tokenization
 import string
@@ -327,7 +327,7 @@ def get_corrected_text(trial_level_data):
 # Step 3: store as... some CSV file.
 
 
-def get_annotations_task(trial_level_data):
+def get_sentiment_annotations_task(trial_level_data):
     by_sentence = []
     for (participant_id, config, condition, block), text in trial_level_data.sample(frac=1.0).set_index(['participant_id', 'config', 'condition', 'block']).corrected_text.dropna().items():
         by_sentence.append((participant_id, config, condition, block, -1, text))
@@ -337,12 +337,17 @@ def get_annotations_task(trial_level_data):
     return res
 
 #%%
-def merge_sentiment_annotations(task, annotation_results):
-    task = clean_merge(
-        task,
-        annotation_results.drop(['sentence'], axis=1),
-        how='left', on=['participant_id', 'config', 'condition', 'block', 'sent_idx'])#, must_match=['sentence'])
-
+def merge_sentiment_annotations(task, sent_annotation_results):
+    if len(sent_annotation_results):
+        task = clean_merge(
+            task,
+            sent_annotation_results.drop(['sentence'], axis=1),
+            how='left', on=['participant_id', 'config', 'condition', 'block', 'sent_idx'])#, must_match=['sentence'])
+    else:
+        task = task.copy()
+        task['pos'] = None
+        task['neg'] = None
+        task['nonsense'] = None
 #    topics_todo = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).topics.apply(lambda group: np.all(group.isnull()))
     todo_flag = task[task.sent_idx >= 0].groupby(['participant_id', 'block']).pos.apply(lambda group: np.all(group.isnull()))
     todo = clean_merge(task, todo_flag.to_frame('todo'), left_on=['participant_id', 'block'], right_index=True, how='left')
@@ -353,9 +358,6 @@ def merge_sentiment_annotations(task, annotation_results):
         annos[col] = pd.to_numeric(annos[col])
     return annos, todo
 #%%
-
-
-
 
 MIN_WORD_COUNT = 5
 def analyze_llks(doc, min_word_count=MIN_WORD_COUNT):
@@ -469,7 +471,7 @@ def get_all_data_pre_annotation(batches=None):
         suggestion_content_by_trial = get_suggestion_content_stats(get_log_pages(log_analysis_data_raw))
 
 
-        for trial_id, (survey_data, log_data, sug_content_data) in enumerate(zip_longest(surveys_by_trial, log_data_by_trial, suggestion_content_by_trial)):
+        for trial_id, (survey_data, log_data, sug_content_data) in enumerate(itertools.zip_longest(surveys_by_trial, log_data_by_trial, suggestion_content_by_trial)):
             assert participant == log_data.pop('participant_id')
             assert trial_id == log_data.pop('block')
 #            assert participant == sug_content_data.pop('participant_id')
@@ -558,15 +560,17 @@ def get_all_data_with_annotations(batches=None):
 
 
     # Pull in annotations.
-    annotations_task = get_annotations_task(trial_level_data)
-    turk_annotations_results = load_turk_annotations()
-    annotation_results, annotation_todo = merge_sentiment_annotations(annotations_task, aggregate_turk_annotations(turk_annotations_results))
+    sentiment_annotations_task = get_sentiment_annotations_task(trial_level_data)
+    turk_sentiment_annotations_results = load_turk_sentiment_annotations()
+    sent_annotation_results, sent_annotation_todo = merge_sentiment_annotations(sentiment_annotations_task, aggregate_turk_sentiment_annotations(turk_sentiment_annotations_results))
     #.drop('sent_idx sentence'.split(), axis=1)
-    annotation_results['is_mixed'] = (annotation_results['pos'] > 0) & (annotation_results['neg'] > 0)
-    annotation_results['intensity'] = annotation_results['pos'] + annotation_results['neg']
-    annotation_results['polarity'] = annotation_results['pos'] - annotation_results['neg']
-    max_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense', 'intensity', 'polarity']]
-    total_sentiments = annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg', 'intensity', 'polarity']]
+    sent_annotation_results['is_mixed'] = (sent_annotation_results['pos'] > 0) & (sent_annotation_results['neg'] > 0)
+    sent_annotation_results['intensity'] = sent_annotation_results['pos'] + sent_annotation_results['neg']
+    sent_annotation_results['polarity'] = sent_annotation_results['pos'] - sent_annotation_results['neg']
+    max_sentiments = sent_annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).max().loc[:,['pos', 'neg', 'nonsense', 'intensity', 'polarity']]
+    total_sentiments = sent_annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).sum().loc[:,['pos', 'neg', 'intensity', 'polarity']]
+
+
     def prefix_columns(df, prefix, cols):
         return df.rename(columns={col: f'{prefix}{col}' for col in cols})
 
@@ -576,7 +580,7 @@ def get_all_data_with_annotations(batches=None):
         left_index=True, right_index=True)
     sentiments = clean_merge(
         sentiments,
-        annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).is_mixed.mean().to_frame('mean_sentiment_mixture'),
+        sent_annotation_results.groupby(['config', 'participant_id', 'block', 'condition']).is_mixed.mean().to_frame('mean_sentiment_mixture'),
         left_index=True, right_index=True)
     trial_level_data = clean_merge(
             trial_level_data, sentiments.reset_index(),
@@ -587,11 +591,14 @@ def get_all_data_with_annotations(batches=None):
     trial_level_data['any_negative'] = trial_level_data['max_neg'] >= 1
 
     trial_level_data['has_any_nonsense'] = trial_level_data['max_nonsense'] >= 0.5
-
     participant_level_data = clean_merge(
             participant_level_data,
             trial_level_data.groupby('participant_id').has_any_nonsense.max().to_frame('participant_wrote_any_nonsense'),
             left_on='participant_id', right_index=True, how='left')
+
+#    persuasiveness_annos_task = get_persuasiveness_annotations(trial_level_data)
+    # TODO: merge in results.
+
 
     # trial_level_data['mean_sentiment_diversity'] = (trial_level_data.total_positive + trial_level_data.total_negative - np.abs(trial_level_data.total_positive - trial_level_data.total_negative)) / trial_level_data.num_sentences
 
@@ -623,7 +630,7 @@ def get_all_data_with_annotations(batches=None):
 
 #    annotations_plus_exclusions = clean_merge(
 #            participant_level_data.set_index('participant_id').loc[:, ['is_excluded']],
-#            annotation_todo,
+#            sent_annotation_todo,
 #            left_index=True, right_on='participant_id')
 #    non_excluded_annotations = annotations_plus_exclusions.query('not is_excluded')
 #    non_excluded_annotations = non_excluded_annotations.drop('is_excluded', axis=1)
@@ -633,13 +640,15 @@ def get_all_data_with_annotations(batches=None):
             participant_level_data=participant_level_data,
             trial_level_data=trial_level_data,
             corrections_todo=corrections_todo,
-            annotations_todo=non_excluded_annotations if False else annotation_todo)
+            sent_annotation_todo=sent_annotation_todo,
+#            persuasiveness_annos_todo=persuasiveness_annos_task
+            )
 
 #%%
-def load_turk_annotations(result_files=None):
+def load_turk_sentiment_annotations(result_files=None):
     meta_header = ['participant_id', 'config', 'condition', 'block']
     if result_files is None:
-        result_files = list(paths.parent.joinpath('gruntwork', 'turk_annotations_results').glob("Batch*results.csv"))
+        result_files = list(paths.parent.joinpath('gruntwork', 'turk_sentiment_annotations_results').glob("Batch*results.csv"))
     if not result_files:
         print("No Turk annotation results found.")
         return pd.DataFrame([], columns=['WorkerId', 'block', 'condition', 'config', 'neg', 'nonsense', 'participant_id', 'pos', 'sent_idx', 'sentence'])
@@ -661,7 +670,9 @@ def load_turk_annotations(result_files=None):
     res['neg'] = pd.to_numeric(res['neg'])
     return res
 
-def aggregate_turk_annotations(annotations):
+def aggregate_turk_sentiment_annotations(annotations):
+    if len(annotations) == 0:
+        return pd.DataFrame()
     mean_anno = annotations.groupby(['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence']).mean().loc[:, ['pos', 'neg', 'nonsense']]
     from nltk.metrics.agreement import AnnotationTask, binary_distance
     def get_alpha_overall(annos):
@@ -712,14 +723,25 @@ def reorder_columns(df, desired_order):
     return df.loc[:, reorder_cols]
 
 #%%
-def get_annotation_json(annotations_todo):
+def get_sent_annotation_json(sent_annotation_todo):
     groups = [
         (key, group.loc[:, ['sent_idx', 'sentence']].to_dict(orient='records'))
         for key, group
-        in annotations_todo.groupby(['participant_id', 'config', 'condition', 'block'], sort=False)]
+        in sent_annotation_todo.groupby(['participant_id', 'config', 'condition', 'block'], sort=False)]
     import random
     random.shuffle(groups)
     return groups
+
+
+#%%
+def get_persuasiveness_anno_json(trial_level_data):
+    import toolz
+    rs = np.random.RandomState(0)
+    trial_iters = [(item._asdict() for item in group.loc[:, ['participant_id', 'block', 'final_text']].sample(frac=1.0, random_state=rs).itertuples()) for participant_id, group in trial_level_data.query('argue_pro').groupby('participant_id')]
+    rs.shuffle(trial_iters)
+    return [item for item in toolz.partition_all(4, itertools.chain.from_iterable(trial_iters))]
+
+
 #%%
 def main(args):
     x = get_all_data_with_annotations(batches=args.batch)
@@ -729,8 +751,10 @@ def main(args):
         x['participant_level_data'].to_csv(f'{basename}_participant_level_data.csv', index=False)
         x['trial_level_data'].to_csv(f'{basename}_trial_level_data.csv', index=False)
         x['corrections_todo'].to_csv(f'gruntwork/{basename}_corrections_todo.csv', index=False)
-        x['annotations_todo'].to_csv(f'gruntwork/{basename}_annotations_todo_kca.csv', index=False)
-        json.dump(get_annotation_json(x['annotations_todo']), open(f'gruntwork/{basename}_annotations_todo.json', 'w'),
+        x['sent_annotation_todo'].to_csv(f'gruntwork/{basename}_annotations_todo_kca.csv', index=False)
+        json.dump(get_sent_annotation_json(x['sent_annotation_todo']), open(f'gruntwork/{basename}_annotations_todo.json', 'w'),
+                  default=lambda x: x.tolist())
+        json.dump(get_persuasiveness_anno_json(x['trial_level_data']), open(f'gruntwork/{basename}_persuasive_anno_todo.json', 'w'),
                   default=lambda x: x.tolist())
     return x
 #%%
@@ -745,7 +769,7 @@ def get_arnold16_annotation_json():
         for sent_idx, sentence in enumerate(nltk.sent_tokenize(text)):
             by_sentence.append((participant_id, config, condition, block, sent_idx, sentence))
     res = pd.DataFrame(by_sentence, columns=['participant_id', 'config', 'condition', 'block', 'sent_idx', 'sentence'])
-    json.dump(get_annotation_json(res), open(f'gruntwork/arnold16_annotations_todo.json', 'w'),
+    json.dump(get_sent_annotation_json(res), open(f'gruntwork/arnold16_annotations_todo.json', 'w'),
           default=lambda x: x.tolist())
     return res
 

@@ -15,19 +15,21 @@
 
     <!-- <p>Suppose you have just been given 100 tokens. Each token can be exchanged for a raffle ticket for a restaurant gift certificate--- but you have to choose which restaurant. All of the </p> -->
 
+    <!-- <p>Imagine we're having a raffle for restaurant gift certificates. You get 100 tickets, but for each ticket you have to specify which restaurant you  -->
+
     <p>Suppose you have just been given 100 tickets for a raffle for a gift certificate to one of four restaurants. But before the winning ticket is drawn, you must split your tickets into four piles, one for each restaurant. If one of your tickets wins, the gift certificate you'll get will be for the restaurant you assigned it to.</p>
 
-    <p><b>Example</b>: if you had only 10 tickets, and you put them in piles like this:</p>
+    <p><b>Example</b>: suppose you had only 10 tickets, and you put them in piles like this:</p>
     <ul>
-        <li><b>Restaurant 1</b>: 104, 106, 107, 110</li>
+        <li><b>Restaurant 1</b>: ticket #104, 106, 107, 110</li>
         <li><b>Restaurant 2</b>: (no tickets)</li>
         <li><b>Restaurant 3</b>: 101</li>
         <li><b>Restaurant 4</b>: 100, 102, 103, 105, 108, 109</li>
     </ul>
 
-    <p>If ticket 101 won, you'd get a gift certificate for Restaurant C; if ticket 109 won, you'd get a ticket to Restaurant D.</p>
+    <p>If ticket #101 won, you'd get a gift certificate for Restaurant C; if ticket 109 won, you'd get a ticket to Restaurant D. Note that how you pick restaurants doesn't affect whether or not you win, only what you get if you do win.</p>
 
-    <p>Here are the four restaurants in this raffle. Note: some of the reviews may be for restaurants that aren't actually near you. No worries, if one of those wins, you'd get a gift certificate for a comparable restaurant near you.</p>
+    <p>Here are reviews for the four restaurants in this raffle. (Note: some of the reviews may be for restaurants that aren't actually near you. No worries, if one of those wins, you'd get a gift certificate for a comparable restaurant near you.)</p>
 
     <p>How many tickets would you put towards each of the four restauants below?</p>
 </div>
@@ -35,7 +37,7 @@
     <div class="reviews">
         <div v-for="(text, textIdx) in texts" class="restaurant">
             <h3>Restaurant {{textIdx + 1}}</h3>
-            <p>{{text.review}}</p>
+            <p>{{text.final_text}}</p>
         </div>
     </div>
 
@@ -51,7 +53,7 @@
 
     <p>You should allocate 100 tickets total. You have currently allocated {{texts[0].votes + texts[1].votes + texts[2].votes + texts[3].votes}}.</p>
 
-    <p>(Unfortunately, we can't actually do this raffle. Sorry to get your hopes up!)</p>
+    <p>(Unfortunately, this is just an imaginary raffle. Sorry to make you hungry!)</p>
 
     <br><br><br>
 
