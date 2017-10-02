@@ -130,7 +130,8 @@ export function processLogGivenStateStore(StateStoreClass, log) {
       if (entry.type === 'tapSuggestion' && lastText !== curText) {
         annotatedAction.sugInserted = visibleSuggestions[entry.which][entry.slot].words[0].slice(curWord.length);
       }
-      pageData.actions.push(annotatedAction);
+      if (state.curScreen.screen === "ExperimentScreen")
+        pageData.actions.push(annotatedAction);
     }
 
     let {annotatedFinalText} = pageData;
