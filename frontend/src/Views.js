@@ -440,7 +440,7 @@ export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}
 
 export const Done = inject('clientId', 'state')(observer(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
   {state.isHDSL && <p>Your participation has been logged. Expect to receive a gift certificate by email in the next few days. Thanks!
-    <img src={`https://harvarddecisionlab.sona-systems.com/webstudy_credit.aspx?experiment_id=440&credit_token=2093214a21504aae88bd36405e5a4e08&survey_code=${state.participantCode}`} alt="" /></p>}
+    <img src={state.sonaCreditLink} alt="" /></p>}
   <p>In case you want them, here's what you wrote.</p>
       {state.places.map(({name}, idx) => <div key={idx}>
       <h1>{idx+1}: {name}</h1>

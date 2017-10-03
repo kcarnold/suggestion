@@ -468,7 +468,12 @@ export class MasterStateStore {
       masterConfig: null,
       participantCode: null,
       get isHDSL() {
-        return this.participantCode !== null;
+        return this.participantCode !== null && this.participantCode.slice(0, 4) === 'sona';
+      },
+      get sonaCreditLink() {
+        console.assert(this.isHDSL);
+        let survey_code = this.participantCode.slice(4);
+        return `https://harvarddecisionlab.sona-systems.com/webstudy_credit.aspx?experiment_id=440&credit_token=2093214a21504aae88bd36405e5a4e08&survey_code=${survey_code}`;
       },
       get isMTurk() {
         return !this.isHDSL;
