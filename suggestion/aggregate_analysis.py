@@ -215,7 +215,6 @@ def summarize_trials(log_analysis):
             # FIXME: maybe in the future we'll want to look at practice and prewrite data too?
             continue
         datum['block'] = num
-        datum.update(flatten_dict(page_data))
 
         # Count actions.
         actions = page_data.pop('actions')
@@ -231,6 +230,8 @@ def summarize_trials(log_analysis):
         displayedSuggs = page_data.pop('displayedSuggs')
         page_data.pop('chunks')
         words = page_data.pop('words')
+
+        datum.update(flatten_dict(page_data))
 
         if len(displayedSuggs):
             latencies = [rec['latency'] for rec in displayedSuggs if rec]
@@ -278,8 +279,8 @@ def summarize_trials(log_analysis):
             datum['num_inserted_sugg'] = num_inserted_sugg
             datum['num_could_have_inserted_sugg'] = num_could_have_inserted_sugg
 
-            datum['efficiency_full'] = num_inserted_full / num_could_have_inserted_full
-            datum['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg
+            datum['efficiency_full'] = num_inserted_full / num_could_have_inserted_full if num_could_have_inserted_full else np.nan
+            datum['efficiency_all'] = num_inserted_sugg / num_could_have_inserted_sugg if num_could_have_inserted_sugg else np.nan
         else:
             assert page_data['condition'] == 'zerosugg'
 
