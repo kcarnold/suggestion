@@ -701,7 +701,7 @@ def aggregate_turk_sentiment_annotations(annotations):
             (row.WorkerId, '{participant_id}-{block}-{sent_idx}'.format(**row), row[col])
             for idx, row in annos.iterrows()
             if not np.isnan(row[col])]
-        return AnnotationTask(data, distance=interval_distance).alpha()
+        return AnnotationTask(data, distance=distance).alpha()
     cols = ['pos', 'neg', 'nonsense']
     base_alphas = {col: get_alpha_single_col(annotations, col) for col in cols}
     # worker_ids = annotations.WorkerId.unique()
@@ -712,9 +712,48 @@ def aggregate_turk_sentiment_annotations(annotations):
     #     for worker_id in worker_ids}
     print(base_alphas)
     return mean_anno.reset_index()
+#%%
+def interval_distance(a, b):
+#    return abs(a-b)
+    return pow(a-b, 2)
 
 
+#%%
+from nltk.metrics.agreement import AnnotationTask, binary_distance
 
+def get_alpha(annotations, annotator, item_format, result, distance_type='interval'):
+    if distance_type == 'binary':
+        distance = binary_distance
+    elif distance_type == 'interval':
+        distance = interval_distance
+    else:
+        raise KeyError(f"Unknown type of distance: {distance_type}")
+    data = [
+        (row[annotator], item_format.format(**row), row[result])
+        for idx, row in annotations.iterrows()
+        if not np.isnan(row[result])]
+    return AnnotationTask(data, distance=distance).alpha()
+
+
+def load_turk_persuasiveness_annotations(result_files=None):
+    if result_files is None:
+        result_files = list(paths.parent.joinpath('gruntwork', 'turk_persuasiveness_results').glob('Batch*results.csv'))
+    if not result_files:
+        print("No Turk persuasiveness results found.")
+        return pd.DataFrame([])
+
+    raw = pd.concat([pd.read_csv(str(f)) for f in result_files], axis=0, ignore_index=True)
+    res = []
+    for record in raw.loc[:, ['WorkerId', 'Answer.results']].to_dict('records'):
+        worker_id = record['WorkerId']
+        for entry in json.loads(record['Answer.results']):
+            res.append(dict(worker_id=worker_id, **entry))
+    res = pd.DataFrame(res)
+    del res['Index']
+    return res
+p_anno = load_turk_persuasiveness_annotations()
+p_anno['votes_z'] = p_anno.groupby('worker_id').votes.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
+get_alpha(p_anno, 'worker_id', '{final_text}', 'votes_z')
 #%%
 def reorder_columns(df, desired_order):
     reorder_cols = []
