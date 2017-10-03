@@ -63,7 +63,7 @@ for participant in participants:
         or participant['participant_id'] in INCOMPLETE_BUT_OK)
 
 # For payment:
-paid_pids = {int(line.strip()) for line in open('sona-paid.txt')}
+paid_pids = {f'sona{line.strip()}' for line in open('sona-paid.txt')}
 
 participants.sort(key=lambda x: x['platform_id'] or x['participant_id'])
 not_yet_paid = []
