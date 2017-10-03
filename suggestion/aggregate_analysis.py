@@ -738,13 +738,12 @@ def get_sent_annotation_json(sent_annotation_todo):
 
 
 #%%
-def get_persuasiveness_anno_json(trial_level_data):
-    import toolz
+def get_persuasiveness_anno_json(trial_level_data, avoid):
     rs = np.random.RandomState(0)
-    trial_iters = [(item._asdict() for item in group.loc[:, ['participant_id', 'block', 'final_text']].sample(frac=1.0, random_state=rs).itertuples()) for participant_id, group in trial_level_data.query('argue_pro').groupby('participant_id')]
+    subset = trial_level_data[trial_level_data.argue_pro != avoid]
+    trial_iters = [(item._asdict() for item in group.loc[:, ['participant_id', 'block', 'final_text']].sample(frac=1.0, random_state=rs).itertuples()) for participant_id, group in subset.groupby('participant_id')]
     rs.shuffle(trial_iters)
     return list(
-        # toolz.partition_all(4,
             itertools.chain.from_iterable(trial_iters))
 
 
@@ -760,7 +759,9 @@ def main(args):
         x['sent_annotation_todo'].to_csv(f'gruntwork/{basename}_annotations_todo_kca.csv', index=False)
         json.dump(get_sent_annotation_json(x['sent_annotation_todo']), open(f'gruntwork/{basename}_annotations_todo.json', 'w'),
                   default=lambda x: x.tolist())
-        json.dump(get_persuasiveness_anno_json(x['trial_level_data']), open(f'gruntwork/{basename}_persuasive_anno_todo.json', 'w'),
+        json.dump(get_persuasiveness_anno_json(x['trial_level_data'], avoid=False), open(f'gruntwork/{basename}_persuasive_anno_todo.json', 'w'),
+                  default=lambda x: x.tolist())
+        json.dump(get_persuasiveness_anno_json(x['trial_level_data'], avoid=True), open(f'gruntwork/{basename}_avoid_anno_todo.json', 'w'),
                   default=lambda x: x.tolist())
     return x
 #%%

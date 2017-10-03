@@ -1,0 +1,54 @@
+{% raw %}
+<script src="https://unpkg.com/vue"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js"></script>
+{% endraw %}
+{% if dev %}
+<link rel="stylesheet" href="avoid.css">
+{% else %}
+<link rel="stylesheet" href="https://s3.amazonaws.com/megacomplete.net/anno/avoid.css">
+{% endif %}
+{% raw %}
+<div id="app" v-cloak>
+
+<div style="background: #ffc83e; padding: 10px;">
+    <h1>Imaginary raffle for restaurant gift cards</h1>
+
+    <p>Imagine you just got some <b>good news and bad news</b>. Good news: you just won a $50 restaurant gift card! Bad news: it's to a restaurant that got some bad reviews. Good news: you get a chance to sell your gift card for cash!</p>
+
+    <p>Write down how much you'd be willing to sell the gift card for. (Each gift card has a secret price; if your price is below the secret price, you get to sell it at the price you named, otherwise you keep the gift card and get no cash.)</p>
+
+    <p>If you think you'd actually like the place after all, you'd answer $50 because otherwise you'd get less than $50 cash. But if think you'd hate the place, you'd answer close to $0, because you'd rather have a few dollars than eat at this restaurant.</p>
+
+
+    <p>There will be {{texts.length}} reviews, each for a different restaurant. Answer for each restaurant separately. Assume that you live nearby and could go to the restaurant if you wanted to.</p>
+</div>
+
+    <div class="reviews">
+        <div v-for="(text, textIdx) in texts" class="restaurant">
+            <p>{{text.final_text}}</p>
+            <hr>
+            <p>What price would you accept for <b>selling</b> your $50 gift card for this restaurant?
+            $<input v-model.number="text.votes" type="number" min="0" max="50" step="0.01">
+        </div>
+    </div>
+
+    <p>(Unfortunately, this is just an imaginary raffle. Sorry to make you hungry!)</p>
+
+    <br><br><br>
+
+    <input type="hidden" name="results" v-bind:value="JSON.stringify(texts)">
+
+<p>We&#39;re still refining this HIT, so we&#39;d appreciate your feedback: are the instructions clear? How long did it actually take you? Is the payment fair? Any technical difficulties? Anything else?</p>
+<textarea cols="80" name="feedback" placeholder="totally optional feedback" rows="4"></textarea>
+
+</div>
+
+{% endraw %}
+<script>
+var taskData = {% if dev %}{{task}}{% else %}${task}{% endif %};
+</script>
+{% if dev %}
+<script src="avoid.js"></script>
+{% else %}
+<script src="https://s3.amazonaws.com/megacomplete.net/anno/avoid.js"></script>
+{% endif %}
