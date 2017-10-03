@@ -10,7 +10,7 @@ COMPLETE_NUM_ACTIONS={
     'synonyms': 16,
     }
 
-TECHNICAL_DIFFICULTIES = ''.split()
+TECHNICAL_DIFFICULTIES = '846ch3 rwq22w'.split()
 TECHNICAL_DIFFICULTIES.append('qgwjch') # A test participant
 INCOMPLETE_BUT_OK = ''.split()
 
