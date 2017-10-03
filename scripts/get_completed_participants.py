@@ -69,7 +69,7 @@ participants.sort(key=lambda x: x['platform_id'] or x['participant_id'])
 not_yet_paid = []
 for participant in participants:
     platform_id = participant['platform_id']
-    if platform_id is None:
+    if platform_id is None or platform_id.startswith('turk'):
         if participant['complete']:
             print(f"Assuming Turk is paid, for {participant['participant_id']}")
     elif platform_id not in paid_pids:

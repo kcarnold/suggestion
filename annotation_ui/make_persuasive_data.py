@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import toolz
 todos = json.load(open('../gruntwork/persuade_0_persuasive_anno_todo.json'))
-BATCH_SIZE=4
+BATCH_SIZE=6
 print("Total:", len(todos))
 batches = list(toolz.partition_all(BATCH_SIZE, todos))
 print(pd.Series([len(batch) for batch in batches]).value_counts())
