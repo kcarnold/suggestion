@@ -279,6 +279,18 @@ export const namedConditions = {
       domain: 'yelp_train-balanced',
     },
     showPredictions: true,
+    sugBarClass: 'sixup',
+  },
+  yelpmanypredict: {
+    sugFlags: {
+      split: true,
+      alternative_similarity_threshold: None,
+      num_slots: 6,
+      num_alternatives: 0,
+      domain: 'yelp_train-balanced',
+    },
+    showPredictions: true,
+    sugBarClass: 'sixup',
   },
   airbnbsimildictions: {
     sugFlags: {
@@ -384,6 +396,13 @@ const MASTER_CONFIGS = {
     showAlternativesPractice: true,
     timeEstimate: '30 to 45 minutes'
   },
+  simildictions: {
+    baseConditions: ['zerosugg', 'yelpmanypredict', 'yelpsimildictions'],
+    instructions: 'persuade',
+    showAlternativesPractice: false,
+    tutorialCondition: 'airbnbsimildictions',
+    timeEstimate: '30 to 45 minutes'
+  },
   persuade: {
     baseConditions: ['zerosugg', 'sentpos', 'sentneg'],
     instructions: 'persuade'
@@ -394,8 +413,8 @@ const MASTER_CONFIGS = {
 
 function getScreens(masterConfigName: string, conditions: string[]) {
   let masterConfig = MASTER_CONFIGS[masterConfigName];
-  let {showAlternativesPractice} = masterConfig;
-  let tutorialCondition = 'airbnb';
+  let {showAlternativesPractice, tutorialCondition} = masterConfig;
+  if (!tutorialCondition) tutorialCondition = 'airbnb';
   let selectionScreen = masterConfig.instructions === 'persuade' ? 'SelectRestaurantsPersuade' : 'SelectRestaurants';
   let result = [
     {controllerScreen: 'Welcome', screen: 'Welcome'},

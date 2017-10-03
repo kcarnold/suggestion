@@ -306,6 +306,8 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
         return <h1>Please rotate your phone to be in the portrait orientation.</h1>;
       }
 
+      let sugBarClass = state.condition.sugBarClass || 'three-up';
+
       return <div className="ExperimentScreen">
         <ExperimentHead key={state.screens[state.screenNum].controllerScreen} />
         {showSynonyms &&
@@ -316,7 +318,7 @@ export const ExperimentScreen = inject('state', 'dispatch')(observer(({state, di
           />}
         <CurText text={experimentState.curText} replacementRange={showReplacement && experimentState.visibleSuggestions['replacement_range']} />
         {state.condition.alternatives ? <AlternativesBar /> : <div>
-          {showPredictions && <SuggestionsBar which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} showPhrase={state.condition.showPhrase} />}
+          {showPredictions && <SuggestionsBar cls={sugBarClass} which="predictions" suggestions={experimentState.visibleSuggestions['predictions']} showPhrase={state.condition.showPhrase} />}
         </div>}
         <Keyboard dispatch={dispatch} />
       </div>;
