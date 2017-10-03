@@ -287,5 +287,10 @@ async function getStateStoreClass(log) {
 
 export async function analyzeLog(log) {
   let stateStoreClass = await getStateStoreClass(log);
-  return processLogGivenStateStore(stateStoreClass, log);
+  try {
+    return processLogGivenStateStore(stateStoreClass, log);
+  } catch (e) {
+    console.log(e, e.stack);
+    throw(e);
+  }
 }
