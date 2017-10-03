@@ -743,7 +743,9 @@ def get_persuasiveness_anno_json(trial_level_data):
     rs = np.random.RandomState(0)
     trial_iters = [(item._asdict() for item in group.loc[:, ['participant_id', 'block', 'final_text']].sample(frac=1.0, random_state=rs).itertuples()) for participant_id, group in trial_level_data.query('argue_pro').groupby('participant_id')]
     rs.shuffle(trial_iters)
-    return [item for item in toolz.partition_all(4, itertools.chain.from_iterable(trial_iters))]
+    return list(
+        # toolz.partition_all(4,
+            itertools.chain.from_iterable(trial_iters))
 
 
 #%%

@@ -10,48 +10,22 @@
 {% raw %}
 <div id="app" v-cloak>
 
-<div style="background: yellow; padding: 5px;">
-    <p>Read the restaurant reviews below.</p>
+<div style="background: #ffc83e; padding: 10px;">
+    <h1>Imaginary raffle for restaurant gift cards</h1>
 
-    <!-- <p>Suppose you have just been given 100 tokens. Each token can be exchanged for a raffle ticket for a restaurant gift certificate--- but you have to choose which restaurant. All of the </p> -->
+    <p>There will be four reviews, each for a different restaurant. For each restaurant, write down how much you would pay for a $50 gift card to it, assuming you lived nearby. (Each gift card has a secret price; if your price is above the secret price, you get to buy it at the price you named, otherwise you pay nothing and get nothing.)</p>
 
-    <!-- <p>Imagine we're having a raffle for restaurant gift certificates. You get 100 tickets, but for each ticket you have to specify which restaurant you  -->
-
-    <p>Suppose you have just been given 100 tickets for a raffle for a gift certificate to one of four restaurants. But before the winning ticket is drawn, you must split your tickets into four piles, one for each restaurant. If one of your tickets wins, the gift certificate you'll get will be for the restaurant you assigned it to.</p>
-
-    <p><b>Example</b>: suppose you had only 10 tickets, and you put them in piles like this:</p>
-    <ul>
-        <li><b>Restaurant 1</b>: ticket #104, 106, 107, 110</li>
-        <li><b>Restaurant 2</b>: (no tickets)</li>
-        <li><b>Restaurant 3</b>: 101</li>
-        <li><b>Restaurant 4</b>: 100, 102, 103, 105, 108, 109</li>
-    </ul>
-
-    <p>If ticket #101 won, you'd get a gift certificate for Restaurant C; if ticket 109 won, you'd get a ticket to Restaurant D. Note that how you pick restaurants doesn't affect whether or not you win, only what you get if you do win.</p>
-
-    <p>Here are reviews for the four restaurants in this raffle. (Note: some of the reviews may be for restaurants that aren't actually near you. No worries, if one of those wins, you'd get a gift certificate for a comparable restaurant near you.)</p>
-
-    <p>How many tickets would you put towards each of the four restauants below?</p>
+    <p>If you don't think you'd ever go there, you'd answer $0 because the gift card would be worthless to you. If you think you'd really like it, you'd answer close to $50 to maximize your chances of winning.</p>
 </div>
 
     <div class="reviews">
         <div v-for="(text, textIdx) in texts" class="restaurant">
-            <h3>Restaurant {{textIdx + 1}}</h3>
             <p>{{text.final_text}}</p>
+            <hr>
+            <p>How much would you pay for a $50 gift card for this restaurant?
+            $<input v-model.number="text.votes" type="number" min="0" max="50" step="0.01">
         </div>
     </div>
-
-    How many of your 100 tickets would you put towards each restaurant?
-    <table class="votes">
-        <tbody>
-            <tr v-for="(text, textIdx) in texts">
-                <td>Restaurant {{textIdx + 1}}</td>
-                <td><input v-model.number="text.votes" type="number" min="0" max="100"> tickets</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <p>You should allocate 100 tickets total. You have currently allocated {{texts[0].votes + texts[1].votes + texts[2].votes + texts[3].votes}}.</p>
 
     <p>(Unfortunately, this is just an imaginary raffle. Sorry to make you hungry!)</p>
 
