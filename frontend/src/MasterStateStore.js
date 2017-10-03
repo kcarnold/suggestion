@@ -280,7 +280,16 @@ export const namedConditions = {
     },
     showPredictions: true,
   },
-
+  airbnbsimildictions: {
+    sugFlags: {
+      split: true,
+      alternative_similarity_threshold: .5,
+      num_slots: 6,
+      num_alternatives: 3,
+      domain: 'airbnb_train',
+    },
+    showPredictions: true,
+  },
   airbnbPlain: {
     sugFlags: {
       split: true,
