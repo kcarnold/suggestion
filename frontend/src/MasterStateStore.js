@@ -612,6 +612,7 @@ export class MasterStateStore {
       default:
       }
     }
+    // FIXME: This doesn't get the correct time for the Welcome screen, because the login event doesn't have a jsTimestamp.
     this.screenTimes.push({num: this.screenNum, timestamp: this.lastEventTimestamp});
     if (screen.timer) {
       this.timerStartedAt = this.lastEventTimestamp;
