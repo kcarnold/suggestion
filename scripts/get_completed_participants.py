@@ -12,6 +12,7 @@ COMPLETE_NUM_ACTIONS={
 
 TECHNICAL_DIFFICULTIES = '846ch3 rwq22w'.split()
 TECHNICAL_DIFFICULTIES.append('qgwjch') # A test participant
+TECHNICAL_DIFFICULTIES.append('j92qrh') # In comments, reported that they had written about the wrong restaurant first.
 INCOMPLETE_BUT_OK = ''.split()
 
 def get_log_data(log_file, earliest):
