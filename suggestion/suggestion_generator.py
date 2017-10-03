@@ -114,14 +114,32 @@ if use_word_vecs:
                 pass
         return res
 
-    word_vecs_for_model = {}
-    def get_word_vecs_for_model(model_name):
-        if model_name not in word_vecs_for_model:
-            word_vecs_for_model[model_name] = get_vecs_for_words(cnnb, get_model(model_name).id2str)
-        return word_vecs_for_model[model_name]
+    word_vecs_and_exclusions_by_model = {}
+    def get_word_vecs_and_exclusions_for_model(model_name):
+        import wordfreq
+        if model_name not in word_vecs_and_exclusions_by_model:
+            model = get_model(model_name)
+            word_vecs = get_vecs_for_words(cnnb, model.id2str)
+            # Exclude certain kinds of words from being returned as similarities
+            exclude_from_similarities = np.zeros(len(model.id2str), dtype=bool)
+            for idx, word in enumerate(model.id2str):
+                if len(word) < 3 or wordfreq.word_frequency(word, 'en', 'large') == 0.0:
+                    exclude_from_similarities[idx] = True
+
+            # Also exclude function words.
+            from suggestion.function_words import read_function_words
+            for word in read_function_words():
+                word = word.lower()
+                idx = model.model.vocab_index(word)
+                exclude_from_similarities[idx] = True
+
+            word_vecs_and_exclusions_by_model[model_name] = (word_vecs, exclude_from_similarities)
+        return word_vecs_and_exclusions_by_model[model_name]
     print("Getting word vecs for some models", file=sys.stderr)
-    get_word_vecs_for_model('yelp_train-balanced')
-    get_word_vecs_for_model('airbnb_train')
+    get_word_vecs_and_exclusions_for_model('yelp_train-balanced')
+    get_word_vecs_and_exclusions_for_model('airbnb_train')
+
+
 
 
 sentiment_starters_by_stars_and_sentnum = json.load(open(paths.models / 'yelp_sentiment_starters.json'))
@@ -632,28 +650,6 @@ def Recommendation(words, meta={}):
     return dict(words=words, meta=meta)
 
 
-def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternatives):
-    from sklearn.metrics import pairwise
-    word_vecs = get_word_vecs_for_model(model.name)
-
-    # Get unconditional next words
-    next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
-
-    # Find synonyms that are less likely.
-    query_word_vec = word_vecs[query_word_idx]
-    likelihood_threshold = model.unigram_probs[query_word_idx]
-    less_frequent_indices = [i for i, idx in enumerate(next_words) if model.unigram_probs_wordsonly[idx] < likelihood_threshold]
-    if len(less_frequent_indices) == 0:
-        return []
-    next_words = np.array(next_words)[less_frequent_indices]
-    logprobs = logprobs[less_frequent_indices]
-    vecs_for_words = word_vecs[next_words]
-    sims = pairwise.cosine_similarity(query_word_vec[None, :], vecs_for_words)[0]
-    candidates = np.argsort(sims)[-num_sims:][::-1]
-    relevances = logprobs[candidates]
-    return [Recommendation([model.id2str[next_words[idx]]]) for idx in candidates[np.argsort(relevances)[::-1][:num_alternatives]]]
-
-
 def get_split_recs(sofar, cur_word, flags={}):
     from sklearn.metrics import pairwise
     domain = flags.get('domain', 'yelp_train-balanced')
@@ -699,7 +695,7 @@ def get_split_recs(sofar, cur_word, flags={}):
             less_frequent_indices = [i for i, idx in enumerate(next_words) if uni_probs[idx] < likelihood_threshold]
             if len(less_frequent_indices) > 0:
                 # Find similar words.
-                word_vecs = get_word_vecs_for_model(model.name)
+                word_vecs, exclude_from_similarities = get_word_vecs_and_exclusions_for_model(model.name)
                 good_bad = np.sum([val * word_vecs[model.model.vocab_index(word)] for val, word in [(1., 'good'), (-1, 'bad')]], axis=0)
                 query_word_vec = word_vecs[query_word_idx]
                 query_polarity = good_bad @ query_word_vec > 0
@@ -712,9 +708,13 @@ def get_split_recs(sofar, cur_word, flags={}):
                 for idx in np.argsort(sims)[::-1]:
                     print(f"{model.id2str[next_words[idx]]}: {sims[idx]:.2f}")
                     if sims[idx] > alternative_similarity_threshold:
-                        word = model.id2str[next_words[idx]]
+                        word_idx = next_words[idx]
+                        word = model.id2str[word_idx]
                         if (good_bad @ vecs_for_words[idx] > 0) != query_polarity:
                             print(f"good-bad mismatch: {word}")
+                            continue
+                        if exclude_from_similarities[word_idx]:
+                            print(f"Skipping a function word or misspelling: {word}")
                             continue
                         if word in used_words:
                             continue
