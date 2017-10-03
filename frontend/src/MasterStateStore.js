@@ -270,6 +270,17 @@ export const namedConditions = {
     showReplacement: true,
     hideFullwordPredictions: true,
   },
+  yelpsimildictions: {
+    sugFlags: {
+      split: true,
+      alternative_similarity_threshold: .5,
+      num_slots: 6,
+      num_alternatives: 3,
+      domain: 'yelp_train-balanced',
+    },
+    showPredictions: true,
+  },
+
   airbnbPlain: {
     sugFlags: {
       split: true,

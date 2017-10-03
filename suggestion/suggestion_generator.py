@@ -655,10 +655,11 @@ def get_synonyms(model, state, toks, query_word_idx, *, num_sims, num_alternativ
 
 
 def get_split_recs(sofar, cur_word, flags={}):
+    from sklearn.metrics import pairwise
     domain = flags.get('domain', 'yelp_train-balanced')
-    num_sims = flags.get('num_sims', 5)
+    num_slots = flags.get('num_slots', 3)
     num_alternatives = flags.get('num_alternatives', 5)
-    rec_alternatives_to_cur_word = flags.get('rec_alternatives_to_cur_word', False)
+    alternative_similarity_threshold = flags.get('alternative_similarity_threshold', None)
 
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
@@ -669,41 +670,67 @@ def get_split_recs(sofar, cur_word, flags={}):
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
     logprob_argsort = np.argsort(logprobs)
     predictions = []
+    word_indices = []
+    used_words = set()
     for idx in logprob_argsort[::-1]:
-        word = model.id2str[next_words[idx]]
+        word_idx = next_words[idx]
+        word = model.id2str[word_idx]
         if word[0] in ',.?!<':
             continue
         predictions.append(Recommendation([word]))
-        if len(predictions) == 3:
+        word_indices.append(word_idx)
+        used_words.add(word)
+        if len(predictions) == num_slots:
             break
+
+    while len(predictions) < num_slots:
+        predictions.append(Recommendation([]))
+
+    if alternative_similarity_threshold is not None and len(cur_word) > 0:
+        # Replace some of the predictions with uncommon synonyms of the current word.
+        if len(next_words):
+            query_word_idx = word_indices[0]
+            uni_probs = model.unigram_probs_wordsonly
+            likelihood_threshold = uni_probs[query_word_idx]
+
+            # Get unconditional next words.
+            next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1])
+
+            less_frequent_indices = [i for i, idx in enumerate(next_words) if uni_probs[idx] < likelihood_threshold]
+            if len(less_frequent_indices) > 0:
+                # Find similar words.
+                word_vecs = get_word_vecs_for_model(model.name)
+                good_bad = np.sum([val * word_vecs[model.model.vocab_index(word)] for val, word in [(1., 'good'), (-1, 'bad')]], axis=0)
+                query_word_vec = word_vecs[query_word_idx]
+                query_polarity = good_bad @ query_word_vec > 0
+                print(f"{model.id2str[query_word_idx]} is good? {query_polarity}")
+                next_words = np.array(next_words)[less_frequent_indices]
+                logprobs = logprobs[less_frequent_indices]
+                vecs_for_words = word_vecs[next_words]
+                sims = pairwise.cosine_similarity(query_word_vec[None, :], vecs_for_words)[0]
+                num_substituted = 0
+                for idx in np.argsort(sims)[::-1]:
+                    print(f"{model.id2str[next_words[idx]]}: {sims[idx]:.2f}")
+                    if sims[idx] > alternative_similarity_threshold:
+                        word = model.id2str[next_words[idx]]
+                        if (good_bad @ vecs_for_words[idx] > 0) != query_polarity:
+                            print(f"good-bad mismatch: {word}")
+                            continue
+                        if word in used_words:
+                            continue
+                        num_substituted += 1
+                        predictions[-num_substituted] = Recommendation([word], dict(type="alt"))
+                        if num_substituted == num_alternatives:
+                            break
+                    else:
+                        # We're going in descending order, so none of the remaining words will pass threshold either.
+                        break
+            else:
+                print("No less frequent.")
 
     result = dict(predictions=predictions)
 
-    if rec_alternatives_to_cur_word and len(cur_word) > 0:
-        # Offer uncommon synonyms of the most likely next word
-        if len(next_words):
-            to_replace = cur_word_letters
-            replacement_start_idx = len(sofar)
-            query_word_idx = next_words[np.argmax(logprobs)]
-            query_state = state
-            query_toks = toks
-        else:
-            query_word_idx = 0
-    else:
-        to_replace = toks[-1]
-        if to_replace[0] not in '.?!<' and to_replace in sofar:
-            replacement_start_idx = sofar.rindex(to_replace)
-            query_word_idx = model.model.vocab_index(to_replace)
-            query_toks = toks[:-1]
-            query_state = model.get_state(query_toks)[0]
-        else:
-            query_word_idx = 0
 
-    if query_word_idx != 0:
-        replacement_end_idx = replacement_start_idx + len(to_replace)
-        result['replacement_range'] = [replacement_start_idx, replacement_end_idx]
-        result['synonyms'] = get_synonyms(
-            model, query_state, query_toks, query_word_idx, num_sims=num_sims, num_alternatives=num_alternatives)
 
     return result
 

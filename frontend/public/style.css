@@ -175,16 +175,11 @@ html, body {
     user-select: none;
     flex: 0 0 auto;
     display: flex;
+    height: 60px;
+    background-color: #ADB5BD;
 }
 .SuggestionsBar.predictions {
-    background-color: #ADB5BD;
-    flex-flow: row nowrap;
-}
-
-.SuggestionsBar.synonyms {
-  background: #a1c9a1;
   flex-flow: row wrap;
-  height: 60px;
 }
 
 .Suggestion {
@@ -199,18 +194,14 @@ html, body {
     /* padding: 0 4px; */
     line-height: normal;
     cursor: pointer;
-    flex: 1 0 0;
     border-right: 1px solid white;
+    flex: 0 0 33%;
+    min-width: 33%;
+    height: 30px;
 }
 
-.predictions .Suggestion {
-    height: 42px;
-}
-
-.synonyms .Suggestion {
-  flex: 0 0 20%;
-  min-width: 20%;
-  height: 30px;
+.Suggestion.synonym {
+  background: #a1c9a1;
 }
 
 .Suggestion:last-child {

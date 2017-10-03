@@ -21,6 +21,7 @@ class Suggestion extends Component {
     let classes = {
       invalid: !isValid,
       bos: isValid && (meta || {}).bos,
+      synonym: (meta || {}).type === 'alt'
     };
     if (!!highlightChars) {
       if (highlightChars % 2) classes.hasHighlightOdd = true;
@@ -62,13 +63,19 @@ export const SuggestionsBar = inject("state", "dispatch")(
           beforeText,
           showPhrase,
         } = this.props;
+        let indexedSuggs = suggestions.map((sugg, i) => ({...sugg, idx: i}));
+        let sugReorder = [4, 3, 5, 1, 0, 2].map(idx => (indexedSuggs[idx] || {idx, words: []}));
+        // [
+
+        //   ...indexedSuggs.slice(3),
+        //   indexedSuggs[1], indexedSuggs[0], indexedSuggs[2]]
         return (
           <div className={"SuggestionsBar " + which}>
-            {(suggestions || []).map((sugg, i) =>
+            {sugReorder.map(sugg =>
               <Suggestion
-                key={i}
+                key={sugg.idx}
                 onTap={evt => {
-                  dispatch({ type: "tapSuggestion", slot: i, which });
+                  dispatch({ type: "tapSuggestion", slot: sugg.idx, which });
                   evt.preventDefault();
                   evt.stopPropagation();
                 }}
@@ -77,7 +84,7 @@ export const SuggestionsBar = inject("state", "dispatch")(
                 preview={showPhrase ? sugg.words.slice(1) : []}
                 highlightChars={sugg.highlightChars}
                 isValid={true}
-                meta={null}
+                meta={sugg.meta}
               />,
             )}
           </div>

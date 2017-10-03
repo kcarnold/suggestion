@@ -102,7 +102,7 @@ export class ExperimentStateStore {
           } else {
             result[type] = fromServer[type] || [];
           }
-          let minToReturn = type === 'synonyms' ? 10 : 3;
+          let minToReturn = type === 'synonyms' ? 10 : 6;
           while(result[type].length < minToReturn) {
             result[type].push(blankRec);
           }
