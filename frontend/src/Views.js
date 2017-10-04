@@ -86,7 +86,7 @@ const OverallInstructions = inject('state')(observer(({state}) => {
 
 const tutorialTaskDescs = {
   typeKeyboard: 'Type a few words by tapping letters on the keyboard.',
-  megaBackspace: 'Try deleting a few letters at a time by swiping the backspace key left or right.',
+  megaBackspace: 'Try deleting 3 or more letters at a time by swiping the backspace key left or right.',
   undo: 'Tap the "undo" button (in the lower right) to undo your last action.',
   specialChars: 'Try typing some punctuation (period, comma, apostrophe, etc.)',
   tapSuggestion: 'Try tapping a box to insert the word.',
@@ -347,6 +347,10 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
   } catch (e) {
     previewPhrase3 = '(nothing right now)';
   }
+  let allTasks = ['typeKeyboard', 'megaBackspace', 'specialChars', 'tapSuggestion'];
+  if (state.condition.showPhrase) {
+    allTasks.push('doubleTap');
+  }
     return <div className="Tutorial">
       <h1>Tutorial (part 1 of 2)</h1>
 
@@ -357,19 +361,19 @@ export const PracticeComputer = inject('state', 'dispatch')(observer(({state, di
         <li>Try the shortcut buttons to insert words:<br/>
         <TutorialTodo done={state.tutorialTasks.tasks.tapSuggestion}>Tap one of the boxes to insert that word.</TutorialTodo>
         </li>
-        <li>To help you get used to the shortcuts, if you start typing out a word that you could use a shortcut for, the shortcut will light up. Try it: <b>tap the first few letters of the word in the leftmost box</b> and notice what happens.</li>
-        <li>Each shortcut button shows a preview of the words that it will insert if you tap it repeatedly. For example, if you triple-tap the box on the left, it will insert &ldquo;<tt>{previewPhrase3}</tt>&rdquo;.
+        {state.condition.showRelevanceHints && <li>To help you get used to the shortcuts, if you start typing out a word that you could use a shortcut for, the shortcut will light up. Try it: <b>tap the first few letters of the word in the leftmost box</b> and notice what happens.</li>}
+        {state.condition.showPhrase && <li>Each shortcut button shows a preview of the words that it will insert if you tap it repeatedly. For example, if you triple-tap the box on the left, it will insert &ldquo;<tt>{previewPhrase3}</tt>&rdquo;.
         <TutorialTodo done={state.tutorialTasks.tasks.doubleTap}>Try a <b>double-tap</b> to insert two words.</TutorialTodo>
-        </li>
+        </li>}
       </ul>
 
-      <p>Occasionally, double-tapping may cause your phone to zoom its screen. If that happens, reload the page (you won't lose your work).</p>
+      {state.condition.showPhrase && <p>Occasionally, double-tapping may cause your phone to zoom its screen. If that happens, reload the page (you won't lose your work).</p>}
 
       Of course, the keys also work. To keep things simple, there's no upper-case, and just a limited amount of punctuation.
       {['typeKeyboard', 'megaBackspace', 'undo', 'specialChars'].map(name => <TutorialTodo key={name} done={state.tutorialTasks.tasks[name]}>{tutorialTaskDescs[name]}</TutorialTodo>)}
 
       <p>Don't worry about capitalization, numbers, or anything else that isn't on the keyboard. And the only way to edit earlier text is to delete and retype it (sorry about that, we're just lowly research programmers!).</p>
-      {_.every(['typeKeyboard', 'megaBackspace', 'specialChars', 'tapSuggestion', 'doubleTap'].map(name => state.tutorialTasks.tasks[name])) ? <p>
+      {_.every(allTasks.map(name => state.tutorialTasks.tasks[name])) ? <p>
         Ready for the second part of the tutorial? Tap <NextBtn />.</p> : <p>Complete all of the steps above to move on.</p>}
     </div>;
   }));

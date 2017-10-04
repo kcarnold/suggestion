@@ -279,17 +279,19 @@ export const namedConditions = {
       domain: 'yelp_train-balanced',
     },
     showPredictions: true,
+    showPhrase: false,
     sugBarClass: 'sixup',
   },
   yelpmanypredict: {
     sugFlags: {
       split: true,
-      alternative_similarity_threshold: None,
+      alternative_similarity_threshold: null,
       num_slots: 6,
       num_alternatives: 0,
       domain: 'yelp_train-balanced',
     },
     showPredictions: true,
+    showPhrase: false,
     sugBarClass: 'sixup',
   },
   airbnbsimildictions: {
@@ -301,6 +303,8 @@ export const namedConditions = {
       domain: 'airbnb_train',
     },
     showPredictions: true,
+    showPhrase: false,
+    sugBarClass: 'sixup',
   },
   airbnbPlain: {
     sugFlags: {

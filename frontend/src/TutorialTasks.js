@@ -64,7 +64,7 @@ export default class TutorialTasks {
     case 'tapBackspace':
       this.consectutiveTaps = {};
       this.tasks.backspace = true;
-      if (event.delta < -5) {
+      if (event.delta < -3) {
         this.tasks.megaBackspace = true;
       }
       break;
