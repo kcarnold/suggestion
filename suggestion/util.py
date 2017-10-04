@@ -1,5 +1,6 @@
 import joblib
 import subprocess
+from suggestion.paths import paths
 
 
 def dump_kenlm(model_name, tokenized_sentences, **model_args):
@@ -12,7 +13,6 @@ def dump_kenlm(model_name, tokenized_sentences, **model_args):
 
 
 def make_model(model_name, order=5, prune=2):
-    from suggestion.paths import paths
     model_full_name = str(paths.models / model_name)
     kenlm_bin = paths.parent.parent / 'kenlm' / 'build' / 'bin'
     lmplz_args = ['-o', str(order)]
@@ -36,4 +36,4 @@ def flatten_dict(x, prefix=''):
 
 
 
-mem = joblib.Memory('cache', mmap_mode='r')
+mem = joblib.Memory(str(paths.cache), mmap_mode='r')
