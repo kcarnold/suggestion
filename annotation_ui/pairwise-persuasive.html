@@ -1,0 +1,44 @@
+{% raw %}
+<script src="https://unpkg.com/vue"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js"></script>
+{% endraw %}
+<link rel="stylesheet" href="{{css}}">
+{% raw %}
+<div id="app" v-cloak>
+
+<div style="background: yellow; padding: 5px;">
+    <h3>Instructions</h3>
+    <!-- <p>Suppose we're deciding <b>which restaurants</b> to include in a visitor guide.
+
+        You'll see two restaurant reviews. Based on the review, pick which restaurant we should include.
+
+        If we pick a restaurant, we'll go there ourselves and write a review, so don't worry about the particular review you see.
+    </p> -->
+
+
+    <p>You'll a pair of restaurant reviews. Our friend "J" read these two reviews and then decided to check out one of the restaurants and not the other. Guess which one "J" picked.</p>
+
+    <p>Answer this question for each of the {{pairs.length}} pairs.</p>
+
+</div>
+
+    <div v-for="(pair, pairIdx) in pairs" class="pair">
+        Which of these two restaurants did "J" decide to check out?
+        <label v-for="(text, textIdx) in pair.texts">
+            <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
+            <span>{{text.final_text}}</span>
+        </label>
+    </div>
+
+    <input type="hidden" name="results" v-bind:value="JSON.stringify(pairs)">
+
+<p>We&#39;re still refining this HIT, so we&#39;d appreciate your feedback: are the instructions clear? How long did it actually take you? Is the payment fair? Any technical difficulties? Anything else?</p>
+<textarea cols="80" name="feedback" placeholder="totally optional feedback" rows="4"></textarea>
+
+</div>
+
+{% endraw %}
+<script>
+var taskData = {% if dev %}{{task}}{% else %}${task}{% endif %};
+</script>
+<script src="{{js}}"></script>
