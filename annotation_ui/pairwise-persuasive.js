@@ -12,6 +12,8 @@ var procData = _.map(taskData, function(pair, pairIdx) {
     swap: swap,
     texts: texts,
     selected: null,
+    check_texts: pair.check_texts,
+    check_selected: null
   };
 });
 

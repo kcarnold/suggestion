@@ -23,11 +23,20 @@
 </div>
 
     <div v-for="(pair, pairIdx) in pairs" class="pair">
-        Which of these two restaurants did "J" decide to check out?
-        <label v-for="(text, textIdx) in pair.texts">
-            <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
-            <span>{{text.final_text}}</span>
-        </label>
+        <div v-if="pair.selected === null || pair.check_selected !== null">
+            Which of these two restaurants did "J" decide to check out?
+            <label v-for="(text, textIdx) in pair.texts">
+                <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
+                <span>{{text.final_text}}</span>
+            </label>
+        </div>
+        <div v-else>
+            <p>Which of the following phrases was in one of those two reviews?</p>
+            <label v-for="(text, key) in pair.check_texts">
+                <input type="radio" v-model="pair.check_selected" v-bind:value="key">
+                <span>{{text}}</span>
+            </label>
+        </div>
     </div>
 
     <input type="hidden" name="results" v-bind:value="JSON.stringify(pairs)">
