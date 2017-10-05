@@ -31,7 +31,7 @@
             </label>
         </div>
         <div v-else>
-            <p>Which of the following phrases was in one of those two reviews?</p>
+            <p>Which of the following phrases was in one of those two reviews? (incorrect answers will not result in rejection)</p>
             <label v-for="(text, key) in pair.check_texts">
                 <input type="radio" v-model="pair.check_selected" v-bind:value="key">
                 <span>{{text}}</span>
