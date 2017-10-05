@@ -25,7 +25,7 @@
     <div v-for="(pair, pairIdx) in pairs" class="pair">
         <div v-if="pair.selected === null || pair.check_selected !== null">
             Which of these two restaurants did "J" decide to check out?
-            <label v-for="(text, textIdx) in pair.texts">
+            <label v-for="text in pair.texts">
                 <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
                 <span>{{text.final_text}}</span>
             </label>
