@@ -752,6 +752,7 @@ def load_turk_persuasiveness_annotations(result_files=None):
     del res['Index']
     return res
 p_anno = load_turk_persuasiveness_annotations()
+#p_anno = p_anno[p_anno.groupby('worker_id').votes.transform('std') <= 8]
 p_anno['votes_z'] = p_anno.groupby('worker_id').votes.transform(lambda x: (x-x.mean())/np.maximum(1, x.std()))
 get_alpha(p_anno, 'worker_id', '{final_text}', 'votes_z')
 #%%
