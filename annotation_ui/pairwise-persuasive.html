@@ -29,6 +29,7 @@
                 <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
                 <span>{{text.final_text}}</span>
             </label>
+            <p v-if="pair.check_selected !== null">(Your answer for the attention-check was recorded; you may change your answer above at any time.)</p>
         </div>
         <div v-else>
             <p>Which of the following phrases was in one of those two reviews? (incorrect answers will not result in rejection)</p>
