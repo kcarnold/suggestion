@@ -8,23 +8,24 @@
 
 <div style="background: yellow; padding: 5px;">
     <h3>Instructions</h3>
-    <!-- <p>Suppose we're deciding <b>which restaurants</b> to include in a visitor guide.
 
-        You'll see two restaurant reviews. Based on the review, pick which restaurant we should include.
+    <p><b>Background</b>: Suppose we're deciding <b>which restaurants</b> to include in a visitor guide for our city. We don't have space for detailed reviews, we just need a list of the best restaurants. We'll organize them by cuisine, price, etc. later; for now we're only interested in overall quality.</p>
 
-        If we pick a restaurant, we'll go there ourselves and write a review, so don't worry about the particular review you see.
-    </p> -->
+    <p><b>Task</b>: You'll see two restaurant reviews. Based on the review, pick which <b>restaurant</b> we should include. (Remember that we're not including the reviews themselves.)</p>
+
+    </p>
 
 
-    <p>You'll see a pair of restaurant reviews. Our friend "J" read these two reviews and then decided to check out one of the restaurants and not the other. Guess which one "J" picked.</p>
-
+<!--     <p>You'll see a pair of restaurant reviews. Our friend "J" read these two reviews and then decided to check out one of the restaurants and not the other. Guess which one "J" picked.</p>
+ -->
     <p>Answer this question for each of the {{pairs.length}} pairs.</p>
 
 </div>
 
     <div v-for="(pair, pairIdx) in pairs" class="pair">
         <div v-if="pair.selected === null || pair.check_selected !== null">
-            Which of these two restaurants did "J" decide to check out?
+            <!-- Which of these two restaurants did "J" decide to check out? -->
+            Which of these restaurants should we include in our guide?
             <label v-for="text in pair.texts">
                 <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
                 <span>{{text.final_text}}</span>
