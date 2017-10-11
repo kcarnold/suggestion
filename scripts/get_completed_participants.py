@@ -60,7 +60,7 @@ for platform_id, group in toolz.groupby('platform_id', log_files).items():
 
 for participant in participants:
     participant['complete'] = (
-        participant['num_nexts'] == COMPLETE_NUM_ACTIONS[participant['config']]
+        participant['num_nexts'] == COMPLETE_NUM_ACTIONS.get(participant['config'], None)
         or participant['participant_id'] in INCOMPLETE_BUT_OK)
 
 # For payment:
