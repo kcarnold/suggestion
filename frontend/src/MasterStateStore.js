@@ -129,6 +129,14 @@ export const namedConditions = {
     },
     showPhrase: true
   },
+  yelpmeter: {
+    sugFlags: {
+      continuation_length: 17,
+    },
+    useConstraints: {
+      stresses: true
+    }
+  },
   topicdiverse: {
     sugFlags: {
       useSufarr: false,

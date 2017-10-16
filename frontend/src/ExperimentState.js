@@ -354,12 +354,16 @@ export class ExperimentStateStore {
   getSuggestionRequest() {
     let {prefix, curWord, promise} = this.getSuggestionContext();
 
+    let constraints = {
+      // stress_pattern: '010011',
+      stress_pattern: '10010010101',
+    };
 
     return {
       type: 'requestSuggestions',
       sofar: prefix,
       cur_word: curWord,
-      flags: {...this.sugFlags, promise,},
+      flags: {...this.sugFlags, promise, constraints},
       request_id: this.contextSequenceNum
     };
   }

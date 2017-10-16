@@ -57,7 +57,8 @@ sentiment_classifier = LMClassifier([get_model(f'yelp_train-{star}star') for sta
 
 enable_sufarr = False
 enable_bos_suggs = False
-use_word_vecs = True
+use_word_vecs = False
+use_stresses = True
 
 if enable_sufarr:
     print("Loading docs...", end='', file=sys.stderr, flush=True)
@@ -122,6 +123,17 @@ if use_word_vecs:
     print("Getting word vecs for some models", file=sys.stderr)
     get_word_vecs_for_model('yelp_train-balanced')
     get_word_vecs_for_model('airbnb_train')
+
+
+if use_stresses:
+    stresses = {
+        word: [syl[-1] for syl in pattern if syl[-1] in '012']
+        for word, pattern in nltk.corpus.cmudict.entries()}
+    count_as_stressed = set('e')
+    stresses = {
+        word: stress if len(stress) > 1 else ['1' if set(word).intersection(count_as_stressed) else '0']
+        for word, stress in stresses.items()
+    }
 
 
 sentiment_starters_by_stars_and_sentnum = json.load(open(paths.models / 'yelp_sentiment_starters.json'))
@@ -279,11 +291,27 @@ def generate_diverse_phrases(model, context_toks, n, length, prefix_logprobs=Non
 from collections import namedtuple
 BeamEntry = namedtuple("BeamEntry", 'score, words, done, penultimate_state, last_word_idx, num_chars, extra')
 
-def beam_search_phrases_init(model, start_words, **kw):
+def lookup_stresses(word, stresses):
+    if word not in stresses:
+        return 'x'
+    # xlate = {'0': '_', '1': "'", '2': '_'}
+    xlate = {'0': '0', '1': "1", '2': '0'}
+    return ''.join(xlate[syl[-1]] for syl in stresses[word] if syl[-1] in '012')
+
+
+def beam_search_phrases_init(model, start_words, constraints=None, **kw):
     if isinstance(model, str):
         model = get_model(model)
     start_state, start_score = model.get_state(start_words, bos=False)
-    return [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, None)]
+    meta = {}
+    if constraints.get('stress_pattern'):
+        stress_words = [word for word in start_words if word[0] not in '<!?.']
+        raw_stresses = [
+            lookup_stresses(word, stresses)
+            for word in stress_words]
+        meta['raw_stresses'] = raw_stresses
+        meta['stresses_sofar'] = ''.join(raw_stresses)
+    return [(0., [], False, start_state, model.model.vocab_index(start_words[-1]), 0, meta)]
 
 
 def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length_after_first, prefix_logprobs=None, rare_word_bonus=0., constraints):
@@ -291,13 +319,14 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
         model = get_model(model)
     unigram_probs = model.unigram_probs_wordsonly
     avoid_letter = constraints.get('avoidLetter')
+    stress_pattern = constraints.get('stress_pattern')
 
     bigrams = model.unfiltered_bigrams if iteration_num == 0 else model.filtered_bigrams
     DONE = 2
     new_beam = [ent for ent in beam if ent[DONE]]
     new_beam_size = len(new_beam)
     for entry in beam:
-        score, words, done, penultimate_state, last_word_idx, num_chars, _ = entry
+        score, words, done, penultimate_state, last_word_idx, num_chars, meta = entry
         if done:
             continue
         else:
@@ -326,6 +355,9 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                         next_words = model.unfiltered_bigrams.get(last_word_idx, [])
                         if len(next_words) < 10:
                             next_words = model.most_common_words_by_idx
+            stresses_sofar = meta['stresses_sofar']
+            stresses_todo = stress_pattern[len(stresses_sofar):]
+            # print(' '.join(words), repr(stresses_sofar), repr(stresses_todo))
             new_state = kenlm.State()
             for next_idx, word_idx in enumerate(next_words):
                 if word_idx == model.eos_idx or word_idx == model.eop_idx:
@@ -342,10 +374,18 @@ def beam_search_phrases_extend(model, beam, *, beam_width, iteration_num, length
                 unigram_bonus = -unigram_probs[word_idx]*rare_word_bonus if iteration_num > 0 and rare_word_bonus and word not in words else 0.
                 main_model_score = LOG10 * model.model.base_score_from_idx(last_state, word_idx, new_state)
                 new_score = score + prob + unigram_bonus + main_model_score
+                if stress_pattern:
+                    new_word_stress = lookup_stresses(word, stresses)
+                    stress_matches = new_word_stress == stresses_todo[:len(new_word_stress)]
+                    if not stress_matches:
+                        new_score -= 1000
+                    new_meta = dict(meta, stresses_sofar=stresses_sofar + new_word_stress)
+                else:
+                    new_meta = meta
                 new_words = words + [word]
                 new_num_chars = num_chars + 1 + len(word) if iteration_num else 0
                 done = new_num_chars >= length_after_first
-                new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, None)
+                new_entry = (new_score, new_words, done, last_state, word_idx, new_num_chars, new_meta)
                 if new_beam_size == beam_width:
                     heapq.heappushpop(new_beam, new_entry)
                     # Beam size unchanged.
@@ -472,21 +512,6 @@ def tokenize_sofar(sofar):
 
 def phrases_to_suggs(phrases):
     return [Recommendation(words=phrase, meta=meta) for phrase, meta in phrases]
-
-
-def predict_forward(domain, toks, beam_width, length_after_first, constraints):
-    model = get_model(domain)
-    first_word = toks[-1]
-    if first_word in '.?!':
-        return [first_word], None
-    continuations = beam_search_phrases(model, toks,
-        beam_width=beam_width, length_after_first=length_after_first, constraints=constraints)
-    if len(continuations) > 0:
-        continuation = continuations[0].words
-    else:
-        continuation = []
-    return [first_word] + continuation, None
-
 
 
 def try_to_match_topic_distribution(clizer, target_dist, sents):
