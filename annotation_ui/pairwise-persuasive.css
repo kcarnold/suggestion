@@ -32,7 +32,12 @@ html {
     padding: 5px 0;
 }
 
+.pair label div,
 .pair input {
     display: block;
     margin: 10px;
+}
+
+.text {
+    padding: ;
 }

@@ -8,19 +8,15 @@
     <div class="consent">
         <h1>Informed Consent for Academic Research</h1>
         <p>
-          <span style={{ fontSize: "14.0pt" }}>
             Study Title: Predictive typing with long suggestions
-          </span>
         </p>
         <p>
-          <span style={{ fontSize: "14.0pt" }}>
             Researcher: Kenneth C. Arnold
-          </span>
         </p>
 
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>Participation is voluntary</span>
+        Participation is voluntary
       </b><br>
       It is your choice whether or not to participate in this research. If
       you choose to participate, you may change your mind and leave the study at
@@ -30,9 +26,7 @@
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           What is the purpose of this research?
-        </span>
       </b><br>
       We are studying systems that offer shortcuts while someone is typing to
       find out how the system's design affects the writing process, writing
@@ -41,27 +35,21 @@
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           What can I expect if I take part in this research? What is the time
           commitment?
-        </span>
       </b><br>
       You will read restaurant reviews written by others and answer questions about them.
       We expect this task to take between 5 and 20 minutes.
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           What are the risks and possible discomforts?
-        </span>
       </b><br>
       There are no anticipated risks beyond normal use of a computer.
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           Are there any benefits from being in this research study?
-        </span>
       </b><br>
       We cannot promise any benefits to you or others from your taking part in
       this research. The results of this research may inform future advances in
@@ -69,19 +57,15 @@
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           Will I be compensated for participating in this research?
-        </span>
       </b><br>
       The target payment for this task is $9/hr. The reward for a specific study will be determined based on the
       estimated time to complete the task at $9/hr.
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           If I take part in this research, how will my privacy be protected?
           What happens to the information you collect?
-        </span>
       </b><br>
       We will not record any personally identifying information. De-identified
       data may be shared with other researchers and other participants in this
@@ -100,17 +84,15 @@
     </p>
     <p>
       <b>
-        <span style={{ fontSize: "14.0pt" }}>
           If I have any questions, concerns or complaints about this research
           study, who can I talk to?
-        </span>
       </b><br>
       The researcher for this study is Kenneth C. Arnold who can be reached at
       kcarnold@seas.harvard.edu, 617-299-6536, or 33 Oxford St MD 240, Cambridge
       MA 02138. The faculty sponsor is Krzysztof Z. Gajos who can be reached at
       kgajos@seas.harvard.edu
     </p>
-    <ul style={{ marginTop: "0in" }} type="disc">
+    <ul style="margin-top: 0in;" type="disc">
       <li>If you have questions, concerns, or complaints,</li>
       <li>If you would like to talk to the research team,</li>
       <li>If you think the research has harmed you, or</li>
@@ -122,7 +104,7 @@
       617-496-2847, 1350 Massachusetts Avenue, Suite 935, Cambridge, MA 02138,
       or cuhs@harvard.edu for any of the following:
     </p>
-    <ul style={{ marginTop: "0in" }} type="disc">
+    <ul style="margin-top: 0in;" type="disc">
       <li>
         If your questions, concerns, or complaints are not being answered by the
         research team,
@@ -140,28 +122,33 @@
 <div style="background: yellow; padding: 5px;">
     <h3>Instructions</h3>
 
-    <p><b>Background</b>: We're deciding <b>which restaurants</b> to include in visitor guides for several cities. We don't have space for detailed reviews, we just need a list of the best restaurants. We'll organize them by cuisine, price, etc. later; for now we're only interested in overall quality.</p>
+    <p><b>Task</b>: You'll see two restaurant reviews at a time. For each pair, there will be a set of statements. For each statement, pick the review that it applies better to.</p>
 
-    <p><b>Task</b>: You'll see two restaurant reviews. Based on the review, pick which <b>restaurant</b> we should include. (Remember that we're not including the reviews themselves.)</p>
-
-    <p></p>
-
-
-<!--     <p>You'll see a pair of restaurant reviews. Our friend "J" read these two reviews and then decided to check out one of the restaurants and not the other. Guess which one "J" picked.</p>
- -->
-    <p>Answer this question for each of the {{pairs.length}} pairs.</p>
+    <p>Do this for each of the {{pairs.length}} pairs.</p>
 
 </div>
 
     <div v-for="(pair, pairIdx) in pairs" class="pair">
-        <div v-if="pair.selected === null || pair.check_selected !== null">
-            <!-- Which of these two restaurants did "J" decide to check out? -->
-            Which of these restaurants should we include in our guide?
-            <label v-for="text in pair.texts">
-                <input type="radio" v-model="pair.selected" v-bind:value="text.idx">
-                <span>{{text.final_text}}</span>
+        <div v-if="pair.queries[0].selected === null || pair.check_selected !== null">
+            <label v-for="(text, textIdx) in pair.texts" class="text">
+                <b>{{names[textIdx]}}</b>:
+                {{text.final_text}}
             </label>
-            <p v-if="pair.check_selected !== null">(Your answer for the attention-check was recorded; you may change your answer above at any time.)</p>
+            <p>Which review does each statement apply better to?</p>
+            <table>
+              <thead>
+                <tr><th></th><th v-for="name in names">{{name}}</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="query in pair.queries">
+                  <td>{{query.text}}</td>
+                  <td v-for="text in pair.texts">
+                    <input type="radio" v-model="query.selected" v-bind:value="text.idx">
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-if="pair.check_selected !== null">(Your answer for the attention-check was recorded; you may change your answers above at any time.)</p>
         </div>
         <div v-else>
             <p>Which of the following phrases was in one of those two reviews? (incorrect answers will not result in rejection)</p>
