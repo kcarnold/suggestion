@@ -9,6 +9,7 @@ import cytoolz
 import joblib
 import random
 from scipy.misc import logsumexp
+from scipy.special import entr
 import itertools
 from functools import partial
 
@@ -650,17 +651,34 @@ def Recommendation(words, meta={}):
     return dict(words=words, meta=meta)
 
 
+def entropy_of_logprobs(logprobs):
+    # Mutates logprobs.
+    lse = logsumexp(logprobs)
+    logprobs -= lse
+    probs = np.exp(logprobs)
+    return entr(probs).sum()
+
+
+def get_nextword_entropy(model, phrase):
+    state = model.get_state(phrase, bos=False)[0]
+    indices, logprobs = model.next_word_logprobs_raw(state, phrase[-1])
+    return entropy_of_logprobs(logprobs)
+
+
 def get_split_recs(sofar, cur_word, flags={}):
     from sklearn.metrics import pairwise
     domain = flags.get('domain', 'yelp_train-balanced')
     num_slots = flags.get('num_slots', 3)
     num_alternatives = flags.get('num_alternatives', 5)
     alternative_similarity_threshold = flags.get('alternative_similarity_threshold', None)
+    entropy_threshold = flags.get('entropy_threshold', None)
 
     model = get_model(domain)
     toks = tokenize_sofar(sofar)
     cur_word_letters = ''.join(item['letter'] for item in cur_word)
     prefix_logprobs = [(0., cur_word_letters)] if len(cur_word) > 0 else None
+    if len(cur_word_letters) > 0:
+        entropy_threshold = None
 
     state = model.get_state(toks)[0]
     next_words, logprobs = model.next_word_logprobs_raw(state, toks[-1], prefix_logprobs=prefix_logprobs)
@@ -668,11 +686,28 @@ def get_split_recs(sofar, cur_word, flags={}):
     predictions = []
     word_indices = []
     used_words = set()
+    if entropy_threshold:
+        # baseline_entropy = entropy_of_logprobs(logprobs.copy())
+        # baseline_entropy = np.log(3.)
+        baseline_entropy = entropy_threshold
     for idx in logprob_argsort[::-1]:
         word_idx = next_words[idx]
         word = model.id2str[word_idx]
         if word[0] in ',.?!<':
             continue
+        # uni_prob = model.unigram_probs[word_idx]
+        # if logprobs[idx] - uni_prob < -.5:
+        #     print(word, logprobs[idx], uni_prob)
+        #     continue
+        # if logprobs[idx] < -7:
+        #     continue
+        if entropy_threshold:
+            next_word_entropy = get_nextword_entropy(model, toks + [word])
+            if next_word_entropy < baseline_entropy:
+                print("SKIP WORD", word)
+                continue
+            else:
+                print(f'{next_word_entropy:.2f}: {word}')
         predictions.append(Recommendation([word]))
         word_indices.append(word_idx)
         used_words.add(word)

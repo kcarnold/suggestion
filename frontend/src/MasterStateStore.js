@@ -336,7 +336,27 @@ export const namedConditions = {
       continuation_length: 17,
       domain: 'yelp_hifreq'
     },
-  }
+  },
+  yelpentropy: {
+    sugFlags: {
+      split: true,
+      num_sims: 0,
+      domain: 'yelp_train-balanced',
+      entropy_threshold: 3,
+    },
+    showPredictions: true,
+    showPhrase: false,
+  },
+  airbnbentropy: {
+    sugFlags: {
+      split: true,
+      num_sims: 0,
+      domain: 'airbnb_train',
+      entropy_threshold: 4,
+    },
+    showPredictions: true,
+    showPhrase: false,
+  },
 };
 
 const MASTER_CONFIGS = {
