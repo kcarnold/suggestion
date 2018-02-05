@@ -201,18 +201,9 @@ export const SelectRestaurants = inject('state')(observer(({state}) => {
 
 export const Instructions = inject('state')(observer(({state}) => {
     let inExperiment = state.curScreen.screen === 'ExperimentScreen';
-    let {isPrewrite} = state;
     return <div>
       <h1>{state.curPlace.name}!</h1>
       <p style={{border: '1px solid black', padding: '2px'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
-      {state.prewrite &&  <p>We'll do this in <b>two steps</b>:</p>}
-      {state.prewrite &&  <ol>
-        <li style={{paddingBottom: '1em', color: state.passedQuiz && isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].brainstormingInstructions}</li>
-        <li style={{color: !isPrewrite ? 'blue' : 'black'}}>{texts[state.masterConfig.instructions].revisionInstructions}</li>
-      </ol>}
-      {state.prewrite
-        ? <p>Both steps will happen on your phone, using the keyboard you just practiced with.</p>
-        : <p>{false && texts[state.masterConfig.instructions].revisionInstructions}</p>}
       <hr/>
       {state.passedQuiz || inExperiment || texts[state.masterConfig.instructions].instructionsQuiz === null
         ? <p>Use your phone to complete this step.</p>
@@ -227,7 +218,7 @@ export const ReadyPhone = inject('state')(observer(({state}) => <div>
     <h1>Writing task {state.block + 1} of {state.conditions.length}</h1>
     <p>We'll be writing about <b>{state.curPlace.name}</b>.</p>
     <OverallInstructions />
-    <p>{state.isPrewrite ? texts[state.masterConfig.instructions].brainstormingInstructions : texts[state.masterConfig.instructions].revisionInstructions}</p>
+    <p>{texts[state.masterConfig.instructions].revisionInstructions}</p>
     {state.condition.useAttentionCheck && <p>For this study, we need to measure which parts of the screen people are paying attention to. So if you happen to notice an "æ" somewhere, tap it to acknowledge that you saw it. (Don't worry if you happen to miss a few, and sorry if it gets annoying.)</p>}
 
     <p>For this writing session, you'll be using <b>Keyboard {state.block + 1}</b>. Each keyboard works a little differently.</p>
@@ -246,23 +237,7 @@ export const RevisionComputer = inject('state')(observer(({state}) => <div>
       <div>Aim for about {wordCountTarget} words (you're at {state.experimentState.wordCount}). Only reviews between {wordCountTarget - 10}  and {wordCountTarget + 10} words are eligible for the competition.
 
        </div>
-      {state.prewrite && <div>
-        <p>Here is what you wrote last time:</p>
-        <div style={{whiteSpace: 'pre-line'}}>{state.experiments.get(`pre-${state.block}`).curText}</div>
-      </div>}
     </div>));
-
-const OutlineSelector = inject('state', 'dispatch')(observer(({state, dispatch}) => {
-  return <div className="OutlineSelector">
-    {state.prewriteLines.map((line, idx) => <span key={idx} className={classNames({cur: idx===state.curPrewriteLine})} onClick={() => dispatch({type: 'selectOutline', idx})}>{line}</span>)}
-    <button onClick={() => {
-      let line = prompt();
-      if (line && line.length) {
-        dispatch({type: "addPrewriteItem", line});
-      }
-    }}>Add</button>
-  </div>;
-}));
 
 const ExperimentHead = inject('state', 'spying')(observer(class ExperimentHead extends Component {
   componentDidMount() {
@@ -294,7 +269,6 @@ const ExperimentHead = inject('state', 'spying')(observer(class ExperimentHead e
       <div style={{padding: '5px'}}>{instructionElt}</div>
       {state.condition.useAttentionCheck && <p>If you notice an æ, tap on it (or nearby, it doesn't matter). Don't worry if you happen to miss a few.</p>}
       {state.condition.useAttentionCheck && <div className={classNames("missed-attn-check", state.showAttnCheckFailedMsg ? "active" : "inactive")}>There was an æ in an area you haven't noticed yet!<br/>Look for the æ and tap it.<br/>Once you notice it yourself, these messages will stop.</div>}
-      {state.condition.usePrewriteText && <OutlineSelector />}
     </div>;
   }
 }));
@@ -423,20 +397,6 @@ export const EditScreen = inject('state', 'dispatch')(observer(({state, dispatch
     </div>
     <textarea value={state.curEditText} onChange={evt => {dispatch({type: 'controlledInputChanged', name: state.curEditTextName, value: evt.target.value});}} />;
   </div>));
-
-export const ListWords = inject('state', 'dispatch')(observer(({state, dispatch}) => <div className="ListWords">
-    <p>Think about your <b>{state.curPlace.visit}</b> visit to <b>{state.curPlace.name}</b>.</p>
-    <p style={{border: '1px solid black', padding: '2px', maxWidth: '50%'}}>{texts[state.masterConfig.instructions].overallInstructions}</p>
-
-    <p style={{paddingTop: "10px"}}><b>Write 5-10 words or phrases, one per line, that come to mind as you think about your experience.</b></p>
-    <p>Consider the food, drinks, service, ambiance, location, etc.</p>
-
-    <textarea rows={12} value={state.prewriteText}
-      placeholder="One word or phrase per line"
-      onChange={evt => {dispatch({type: 'prewriteTextChanged', value: evt.target.value});}} />
-    <NextBtn/>
-  </div>));
-
 
 export const Done = inject('clientId', 'state')(observer(({clientId, state}) => <div>Thanks! Your code is <tt style={{fontSize: '20pt'}}>{clientId}</tt><br/><br />
   {state.isHDSL && <p>Your participation has been logged. Expect to receive a gift certificate by email in the next few days. Thanks!

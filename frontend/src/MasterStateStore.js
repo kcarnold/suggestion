@@ -5,7 +5,6 @@ import {ExperimentStateStore} from './ExperimentState';
 import TutorialTasks from './TutorialTasks';
 import {seededShuffle} from './shuffle';
 
-const prewriteTimer = 60 * 5;
 const finalTimer = 60 * 5;
 
 type Screen = {
@@ -15,28 +14,12 @@ type Screen = {
   timer?: number,
 };
 
-function experimentBlock(block:number, conditionName: string, includePrewrite: boolean): Array<Screen> {
-  let prewritePhase = [
-    {
-      screen: 'ReadyPhone',
-      preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `pre-${block}`},
-    },
-    {screen: 'ExperimentScreen', controllerScreen: 'Instructions', timer: prewriteTimer},
-    {controllerScreen: 'PostFreewriteSurvey'},
-  ];
-
-  let finalPhase = [
+function experimentBlock(block:number, conditionName: string): Array<Screen> {
+  return [
     {preEvent: {type: 'setupExperiment', block, condition: conditionName, name: `final-${block}`}, controllerScreen: 'Instructions', screen: 'ReadyPhone'},
-    // {preEvent: {type: 'setEditFromExperiment'}, screen: null, controllerScreen: 'EditScreen', timer: editTimer},
-    {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer', timer: finalTimer},
+    {screen: 'ExperimentScreen', controllerScreen: 'RevisionComputer'},
     {screen: 'PostTaskSurvey'},
   ];
-
-  if (includePrewrite) {
-    return prewritePhase.concat(finalPhase);
-  } else {
-    return finalPhase;
-  }
 }
 
 const ngramFlags = {
@@ -176,17 +159,6 @@ export const namedConditions = {
     },
     showPhrase: true,
   },
-  withPrewrite: {
-    sugFlags: {
-      useSufarr: true,
-      rare_word_bonus: 0.,
-      null_logprob_weight: 0.,
-      use_bos_suggs: false,
-      continuation_length: 17,
-    },
-    showPhrase: true,
-    usePrewriteText: true,
-  },
   sentdiverse: {
     sugFlags: {
       useSufarr: false,
@@ -309,36 +281,25 @@ const MASTER_CONFIGS = {
   },
   study1: {
     baseConditions: ['word', 'phrase'],
-    prewrite: false,
   },
   study2: {
     baseConditions: ['rarePhrase', 'phrase'],
-    prewrite: true,
     instructions: 'detailed',
   },
   funny: {
     baseConditions: ['rarePhrase', 'phrase'],
-    prewrite: true,
     instructions: 'funny',
   },
   study4: {
     baseConditions: ['rarePhrase', 'phrase'],
-    prewrite: false,
     instructions: 'review',
   },
   topicdiversity: {
     baseConditions: ['topicdiverse', 'topiccontinue'],
-    prewrite: false,
     instructions: 'tabooTopic'
-  },
-  infoSource: {
-    baseConditions: ['withPrewrite', 'phrase'],
-    prewrite: false,
-    instructions: 'review'
   },
   sentiment: {
     baseConditions: ['sentdiverse', 'nosugg'],
-    prewrite: false,
     instructions: 'sentiment'
   },
   sent3: {
@@ -398,7 +359,7 @@ function getScreens(masterConfigName: string, conditions: string[]) {
 
   } else {
     conditions.forEach((condition, idx) => {
-      result = result.concat(experimentBlock(idx, condition, masterConfig.prewrite));
+      result = result.concat(experimentBlock(idx, condition));
     });
   }
   result = result.concat([
@@ -424,7 +385,6 @@ function specialSent4PlaceSort(participantId, places) {
 export class MasterStateStore {
   masterConfig: Object;
   masterConfigName: string;
-  prewrite: boolean;
   clientId: string;
   conditions: Array<string>;
   lastEventTimestamp: number;
@@ -462,7 +422,7 @@ export class MasterStateStore {
       this.demoConditionName = 'sentmatch';
     }
 
-    this.times = {prewriteTimer, finalTimer};
+    this.times = {finalTimer};
 
     M.extendObservable(this, {
       masterConfig: null,
@@ -482,14 +442,6 @@ export class MasterStateStore {
         return this.masterConfig.instructions === 'persuade';
       },
       get timeEstimate() { return this.masterConfig.timeEstimate; },
-      get prewrite() { return this.masterConfig.prewrite; },
-      prewriteText: '',
-      curPrewriteLine: 0,
-      get prewriteLines() {
-        let text = this.prewriteText.trim();
-        if (text === '') return [];
-        return text.split('\n');
-      },
       sentiment,
       lastEventTimestamp: null,
       replaying: true,
@@ -506,9 +458,6 @@ export class MasterStateStore {
         if (this.curExperiment) {
           return this.experiments.get(this.curExperiment);
         }
-      },
-      get isPrewrite() {
-        return this.curExperiment.slice(0, 3) === 'pre';
       },
       controlledInputs: M.observable.shallowMap({}),
       timerStartedAt: null,
@@ -652,24 +601,12 @@ export class MasterStateStore {
     case 'controlledInputChanged':
       this.controlledInputs.set(event.name, event.value);
       break;
-    case 'prewriteTextChanged':
-      this.prewriteText = event.value;
-      break;
-    case 'addPrewriteItem':
-      this.prewriteText = this.prewriteText.trim() + '\n' + event.line;
-      break;
-    case 'selectOutline':
-      this.curPrewriteLine = event.idx;
-      break;
     case 'resized':
       if (event.kind === 'p') {
         this.phoneSize = {width: event.width, height: event.height};
       }
       if (this.isDemo && !this.experimentState) {
         this.setMasterConfig('demo');
-        if (this.demoConditionName === 'withPrewrite') {
-          this.prewriteText = "tacos\nbest food\ncheap\nextra queso\ncarne asada\nweekly\ngood place for pick up not eat in\nwalls echo\nalways same order\nnew try horchata\n"
-        }
         this.pingTime = 0;
       }
     break;
