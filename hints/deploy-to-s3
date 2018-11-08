@@ -1,4 +1,0 @@
-#!/bin/bash
-aws --profile kca-s3 s3 cp hints.js s3://megacomplete.net/hints/hints-airbnb.js --acl public-read
-aws --profile kca-s3 s3 cp hints.css s3://megacomplete.net/hints/hints.css --acl public-read
-aws --profile kca-s3 s3 cp data.js s3://megacomplete.net/hints/data.js --acl public-read
